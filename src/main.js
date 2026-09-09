@@ -1,6 +1,9 @@
-// Fase 0 — bloque B. Registra el service worker y prueba que el aparato sepa
-// mostrar una notificación. Todavía no hay push ni servidor: eso llega en el
-// bloque C, cuando existan las claves VAPID.
+// Fase 0 — bloques B y C. Registra el service worker, prueba que el aparato
+// sepa mostrar una notificación, suscribe el dispositivo al push y pide a la
+// Edge Function que mande uno de verdad.
+
+import { configurado, VAPID_PUBLICA } from './supabase.js';
+import { suscribir, probarDesdeServidor } from './push.js';
 
 const set = (id, texto, estado = 'neutro') => {
   const el = document.getElementById(id);
@@ -111,5 +114,96 @@ botonProbar.addEventListener('click', async () => {
     decir('Enviado. Si no aparece, revisa la bandeja de notificaciones.', 'ok');
   } catch (error) {
     decir(`Falló: ${error.message}`, 'falla');
+  }
+});
+
+
+// --- Bloque C: push real ---
+
+const botonSuscribir = document.getElementById('btn-suscribir');
+const botonServidor = document.getElementById('btn-servidor');
+const resultadoPush = document.getElementById('resultado-push');
+
+const decirPush = (texto, estado = 'neutro') => {
+  resultadoPush.textContent = texto;
+  resultadoPush.dataset.estado = estado;
+};
+
+const listoParaSuscribir = configurado && Boolean(VAPID_PUBLICA);
+
+set(
+  'diag-supabase',
+  ...si(
+    listoParaSuscribir,
+    'configurado',
+    configurado ? 'falta VITE_VAPID_PUBLIC_KEY' : 'faltan las variables de entorno',
+  ),
+);
+
+// Refleja si este navegador ya tiene una suscripción viva. Es lo primero que
+// hay que mirar cuando "no llega el push": muchas veces el aparato nunca llegó
+// a suscribirse, o se le revocó el permiso y la suscripción murió con él.
+const pintarSuscripcion = async () => {
+  try {
+    const registro = await listoSW;
+    const suscripcion = await registro.pushManager.getSubscription();
+    if (suscripcion) {
+      set('diag-suscripcion', `activa (…${suscripcion.endpoint.slice(-12)})`, 'ok');
+      botonServidor.disabled = !configurado;
+    } else {
+      set('diag-suscripcion', 'sin suscribir');
+    }
+  } catch {
+    set('diag-suscripcion', 'no disponible', 'falla');
+  }
+};
+
+listoSW
+  .then(() => {
+    botonSuscribir.disabled = !listoParaSuscribir;
+    return pintarSuscripcion();
+  })
+  .catch(() => {});
+
+botonSuscribir.addEventListener('click', async () => {
+  decirPush('Suscribiendo…');
+  botonSuscribir.disabled = true;
+  try {
+    if (Notification.permission !== 'granted') {
+      // subscribe() dispararía el diálogo de permiso igual, pero pedirlo aquí
+      // deja claro qué se está preguntando y por qué.
+      const permiso = await Notification.requestPermission();
+      pintarPermiso();
+      if (permiso !== 'granted') throw new Error(`hace falta el permiso (respondiste "${permiso}")`);
+    }
+    const registro = await listoSW;
+    const endpoint = await suscribir(registro);
+    await pintarSuscripcion();
+    decirPush(`Suscrito. Endpoint …${endpoint.slice(-12)}`, 'ok');
+  } catch (error) {
+    decirPush(`Falló: ${error.message}`, 'falla');
+  } finally {
+    botonSuscribir.disabled = !listoParaSuscribir;
+  }
+});
+
+botonServidor.addEventListener('click', async () => {
+  decirPush('Pidiendo al servidor…');
+  botonServidor.disabled = true;
+  try {
+    const respuesta = await probarDesdeServidor();
+    const fallos = respuesta?.fallos ?? [];
+    if (respuesta?.enviados > 0) {
+      decirPush(
+        `El servidor lo mandó a ${respuesta.enviados} dispositivo(s). Espera el aviso.`,
+        'ok',
+      );
+    } else {
+      decirPush(`El servidor no envió nada. ${fallos.join(' | ') || 'sin detalle'}`, 'falla');
+    }
+  } catch (error) {
+    decirPush(`Falló: ${error.message}`, 'falla');
+  } finally {
+    botonServidor.disabled = false;
   }
 });

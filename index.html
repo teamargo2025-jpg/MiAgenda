@@ -30,6 +30,19 @@
       </section>
 
       <section class="panel">
+        <h2>Prueba real (servidor)</h2>
+        <p class="nota">
+          Suscribe este aparato y pide a la Edge Function que mande el aviso.
+          Recorre la cadena entera menos el cron.
+        </p>
+        <div class="acciones">
+          <button id="btn-suscribir" type="button" disabled>Suscribir este dispositivo</button>
+          <button id="btn-servidor" type="button" disabled>Pedir push al servidor</button>
+        </div>
+        <p id="resultado-push" class="resultado"></p>
+      </section>
+
+      <section class="panel">
         <h2>Diagnóstico</h2>
         <dl class="diag">
           <dt>Origen</dt><dd id="diag-origen">—</dd>
@@ -39,6 +52,8 @@
           <dt>Push</dt><dd id="diag-push">—</dd>
           <dt>Dictado por voz</dt><dd id="diag-voz">—</dd>
           <dt>Instalada</dt><dd id="diag-instalada">—</dd>
+          <dt>Supabase</dt><dd id="diag-supabase">—</dd>
+          <dt>Suscripción</dt><dd id="diag-suscripcion">—</dd>
         </dl>
       </section>
     </main>
