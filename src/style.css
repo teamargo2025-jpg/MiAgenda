@@ -36,3 +36,41 @@ h1 { margin: 0 0 .25rem; font-size: 1.5rem; }
 
 .diag dd[data-estado="ok"] { color: var(--ok); }
 .diag dd[data-estado="falla"] { color: var(--falla); }
+
+h2 {
+  margin: 0 0 .5rem;
+  font-size: .8rem;
+  font-weight: 600;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--tenue);
+}
+
+.panel {
+  margin-bottom: 2rem;
+  padding: 1.25rem;
+  border: 1px solid #262a33;
+  border-radius: .75rem;
+}
+
+.nota { margin: 0 0 1rem; color: var(--tenue); font-size: .9rem; }
+
+.acciones { display: flex; flex-wrap: wrap; gap: .5rem; }
+
+button {
+  flex: 1 1 12rem;
+  padding: .75rem 1rem;
+  border: 0;
+  border-radius: .5rem;
+  background: var(--ok);
+  color: #0b0d11;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+button:disabled { background: #2b303b; color: var(--tenue); cursor: not-allowed; }
+
+.resultado { margin: 1rem 0 0; font-size: .9rem; min-height: 1.5em; }
+.resultado[data-estado="ok"] { color: var(--ok); }
+.resultado[data-estado="falla"] { color: var(--falla); }
