@@ -120,15 +120,41 @@ Si a las dos semanas sigo anotando en otro lado, la app no resolvió la fricció
 **Terminó cuando:** instalo la página en el celular, programo un aviso para dos minutos después, y me llega — al celular y a la computadora.
 
 - [x] Proyecto Vite vacío desplegado en Vercel
-- [ ] Convertirlo en PWA instalable (manifest + service worker)
+- [x] Convertirlo en PWA instalable (manifest + service worker)
 - [ ] Pedir permiso de notificaciones y guardar la suscripción push
-- [ ] Proyecto en Supabase con la tabla de notas
-- [ ] Edge Function que envía un push de prueba
+- [x] Proyecto en Supabase con la tabla de notas
+- [~] Edge Function que envía un push de prueba *(desplegada; le faltan los secretos)*
 - [ ] `pg_cron` llamándola cada minuto
 - [ ] **Probar en el celular real** y anotar cuánto se retrasa
 - [ ] Probar diez segundos de dictado por voz en español y anotar qué tan bien salió
 
 > Si aquí falla el push, **parar y replantear** antes de seguir. Ese es el propósito de esta fase.
+
+#### Dónde nos quedamos — 9 de septiembre de 2026
+
+**Listo:** app desplegada en Vercel, PWA instalable, service worker con los
+handlers de push escritos, proyecto Supabase creado, las tres tablas creadas,
+variables de entorno cargadas en Vercel y verificadas dentro del bundle
+publicado, Edge Function `enviar-push` desplegada desde el editor web.
+
+**Siguiente paso:** cargar los dos secretos de la Edge Function en
+Supabase → Edge Functions → Secrets. La función lee `VAPID_JWKS` en su primera
+línea, así que sin él revienta antes de atender nada — ahora mismo devuelve 500.
+
+| Secreto | Valor |
+|---|---|
+| `VAPID_JWKS` | la línea correspondiente de `secretos.local.txt` (fuera de git) |
+| `CORREO_CONTACTO` | `mailto:fchoquequ@unsa.edu.pe` |
+
+**Después:** volver a llamar a la función para confirmar que arranca → suscribir
+el celular desde la app → "Pedir push al servidor" → programar el cron con
+`supabase/cron.sql` → medir el retraso con `select * from public.retrasos`.
+
+**Sin comprobar:** nunca se confirmó si el aviso de prueba local (botón
+"Mandarme un aviso de prueba") llegó al celular.
+
+**Deuda anotada:** RLS está abierto a la clave `anon`. Cerrarlo antes de
+empezar a usar la app de verdad, al final de la fase 1.
 
 ### Fase 1 — Capturar y recordar
 
