@@ -1,0 +1,38 @@
+:root {
+  color-scheme: dark;
+  --fondo: #111318;
+  --texto: #e6e8ee;
+  --tenue: #8a90a0;
+  --ok: #4ade80;
+  --falla: #f87171;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  padding: 2rem 1.25rem;
+  background: var(--fondo);
+  color: var(--texto);
+  font: 16px/1.5 system-ui, -apple-system, Segoe UI, sans-serif;
+}
+
+#app { max-width: 32rem; margin: 0 auto; }
+
+h1 { margin: 0 0 .25rem; font-size: 1.5rem; }
+
+.lead { margin: 0 0 2rem; color: var(--tenue); }
+
+.diag {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: .5rem 1rem;
+  margin: 0;
+}
+
+.diag dt { color: var(--tenue); }
+
+.diag dd { margin: 0; word-break: break-word; }
+
+.diag dd[data-estado="ok"] { color: var(--ok); }
+.diag dd[data-estado="falla"] { color: var(--falla); }
