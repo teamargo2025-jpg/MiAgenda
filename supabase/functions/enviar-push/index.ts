@@ -8,8 +8,11 @@
 // todos los tutoriales, depende del módulo `crypto` de Node y no funciona en
 // este runtime — es la trampa clásica de este paso.
 
-import * as webpush from 'webpush';
-import { createClient } from 'supabase';
+// Especificadores completos y con versión fija, en vez de un mapa de
+// importaciones aparte: así el archivo se despliega igual desde el editor web
+// del panel que desde el CLI, sin depender de deno.json.
+import * as webpush from 'jsr:@negrel/webpush@^0.3.0';
+import { createClient } from 'jsr:@supabase/supabase-js@^2';
 
 const CORREO_CONTACTO = Deno.env.get('CORREO_CONTACTO') ?? 'mailto:nadie@example.com';
 
