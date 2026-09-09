@@ -99,6 +99,14 @@ Si a las dos semanas sigo anotando en otro lado, la app no resolvió la fricció
 | El lienzo, ¿nodos que se conectan (mapa mental) o notas sueltas que se mueven (pizarra)? | Yo | Antes de la fase 3 |
 | ¿Hace falta que funcione sin internet? | Yo | Antes de la fase 1 |
 
+## Enlaces del proyecto
+
+| Qué | Dónde |
+|---|---|
+| App en producción | https://mi-agenda-nu.vercel.app/ |
+| Repositorio | https://github.com/teamargo2025-jpg/MiAgenda |
+| Panel de Vercel | https://vercel.com/argonauts5/mi-agenda |
+
 ---
 
 ## Plan por fases
@@ -111,7 +119,7 @@ Si a las dos semanas sigo anotando en otro lado, la app no resolvió la fricció
 **Duración estimada:** 1 a 2 días
 **Terminó cuando:** instalo la página en el celular, programo un aviso para dos minutos después, y me llega — al celular y a la computadora.
 
-- [ ] Proyecto Vite vacío desplegado en Vercel
+- [x] Proyecto Vite vacío desplegado en Vercel
 - [ ] Convertirlo en PWA instalable (manifest + service worker)
 - [ ] Pedir permiso de notificaciones y guardar la suscripción push
 - [ ] Proyecto en Supabase con la tabla de notas
