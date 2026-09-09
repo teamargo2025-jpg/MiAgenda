@@ -123,7 +123,7 @@ Si a las dos semanas sigo anotando en otro lado, la app no resolvió la fricció
 - [x] Convertirlo en PWA instalable (manifest + service worker)
 - [ ] Pedir permiso de notificaciones y guardar la suscripción push
 - [x] Proyecto en Supabase con la tabla de notas
-- [~] Edge Function que envía un push de prueba *(desplegada; le faltan los secretos)*
+- [x] Edge Function que envía un push de prueba *(desplegada y arrancando; verificada devolviendo 200 en ambos modos)*
 - [ ] `pg_cron` llamándola cada minuto
 - [ ] **Probar en el celular real** y anotar cuánto se retrasa
 - [ ] Probar diez segundos de dictado por voz en español y anotar qué tan bien salió
