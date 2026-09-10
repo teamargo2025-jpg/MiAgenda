@@ -1,36 +1,43 @@
 /* MiAgenda — hoja de estilos.
  *
- * Organizada por capas: primero los valores (colores, espacios, tipografía),
- * luego lo común a todas las pantallas, y al final lo propio de cada una.
+ * Diseño brutalista: bordes gruesos, esquinas rectas, sombras duras sin
+ * desenfoque, y la estructura de la página a la vista en vez de disimulada.
  *
- * Los valores viven en variables porque se repiten en sitios lejanos entre sí:
- * el verde es el acento del botón, el del atajo activo, el de la alarma futura
- * y el del anillo de foco. Cambiarlo en un solo sitio es la diferencia entre
- * poder ajustar la interfaz y no atreverse a tocarla.
+ * No es solo un gusto. En una app que se usa a un brazo de distancia, con una
+ * mano y a veces con prisa, el contraste alto y los bordes evidentes hacen que
+ * cada zona tocable se lea de un vistazo. Lo que en otro contexto sería
+ * agresivo, aquí es legible.
+ *
+ * Organizada por capas: primero los valores, luego lo común, y al final lo
+ * propio de cada pantalla.
  */
 
 :root {
-  color-scheme: dark;
+  /* Ambos temas: los controles nativos (casillas, calendario, teclado) siguen
+     al sistema en vez de quedarse oscuros sobre fondo claro. */
+  color-scheme: light dark;
 
-  --fondo: #0f1116;
-  --superficie: #171a21;
-  --superficie-alta: #1d212a;
-  --borde: #262b35;
-  --borde-suave: #1f242d;
+  --papel: #f2efe6;
+  --tarjeta: #fffdf7;
+  --tinta: #14141a;
+  --tenue: #55555f;
+  --apagado: #85858f;
 
-  --texto: #e8eaf0;
-  --tenue: #8a90a0;
-  --apagado: #5d6373;
+  --acento: #16c46a;
+  --sobre-acento: #08120c;
+  --falla: #e5484d;
 
-  --acento: #4ade80;
-  --acento-oscuro: #0b0d11;
-  --falla: #f87171;
-  /* Ámbar para lo que está guardado pero aún no ha subido: ni éxito ni error,
-     un estado intermedio que merece su propio color. */
-  --espera: #d8a657;
+  /* El grosor del borde es un valor propio y no un número suelto: en
+     brutalismo ES el lenguaje, y tener que cambiarlo en cuarenta sitios sería
+     no poder cambiarlo. */
+  --linea: 2px;
+  --borde: var(--linea) solid var(--tinta);
 
-  /* Escala de espacios. Tener seis valores y no dieciséis es lo que hace que
-     dos pantallas escritas en días distintos se parezcan. */
+  /* Sombra dura, sin desenfoque. Es lo que da la sensación de papel recortado
+     y pegado encima, en vez de un elemento flotando. */
+  --relieve: 4px 4px 0 var(--tinta);
+  --relieve-corto: 3px 3px 0 var(--tinta);
+
   --e1: .25rem;
   --e2: .5rem;
   --e3: .75rem;
@@ -38,32 +45,43 @@
   --e5: 1.5rem;
   --e6: 2rem;
 
-  --radio: .625rem;
-  --radio-grande: .875rem;
-
-  /* Alto mínimo de cualquier cosa que se toque con el dedo. */
   --tocable: 2.75rem;
+  --nav-alto: 4rem;
 
-  --nav-alto: 3.75rem;
+  --mono: ui-monospace, "SF Mono", "Cascadia Mono", "Segoe UI Mono", "Roboto Mono", monospace;
+}
+
+/* Tema oscuro. Solo se redefinen los valores; ni una regla de más abajo cambia.
+   La tinta y el papel se intercambian, que es exactamente lo que uno espera de
+   un diseño construido sobre esa metáfora. */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --papel: #0d0d10;
+    --tarjeta: #17171d;
+    --tinta: #f0efe9;
+    --tenue: #a5a5ae;
+    --apagado: #74747e;
+
+    --acento: #2ee27c;
+    --sobre-acento: #06140c;
+    --falla: #ff6b6b;
+  }
 }
 
 * { box-sizing: border-box; }
 
 /* El [hidden] del navegador es `display: none`, pero cualquier regla de autor
-   que fije display —como el `flex` de .deshacer— lo pisa, porque los estilos
-   de autor ganan a los del navegador. Sin esto, ocultar algo con el atributo
-   hidden funciona en unos elementos y en otros no. */
+   que fije display —como el `flex` de .deshacer— lo pisa, porque los estilos de
+   autor ganan a los del navegador. */
 [hidden] { display: none !important; }
 
 body {
   margin: 0;
-  padding: var(--e6) var(--e4);
-  /* Sitio para la barra inferior, más lo que ocupe la barra de gestos del
-     sistema en los móviles sin botones físicos. */
+  padding: var(--e5) var(--e4);
   padding-bottom: calc(var(--nav-alto) + var(--e6) + env(safe-area-inset-bottom));
-  background: var(--fondo);
-  color: var(--texto);
-  font: 16px/1.55 system-ui, -apple-system, "Segoe UI", sans-serif;
+  background: var(--papel);
+  color: var(--tinta);
+  font: 16px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif;
   -webkit-font-smoothing: antialiased;
 }
 
@@ -71,24 +89,29 @@ body {
 
 h1 {
   margin: 0 0 var(--e1);
-  font-size: 1.4rem;
-  letter-spacing: -.01em;
+  font-size: 1.65rem;
+  font-weight: 800;
+  letter-spacing: -.03em;
+  text-transform: uppercase;
 }
 
+/* Los rótulos de sección van en monoespaciada y con las letras separadas: se
+   leen como una etiqueta pegada al papel, no como una frase. */
 h2 {
   margin: 0 0 var(--e3);
-  font-size: .75rem;
-  font-weight: 600;
-  letter-spacing: .09em;
+  font-family: var(--mono);
+  font-size: .7rem;
+  font-weight: 700;
+  letter-spacing: .14em;
   text-transform: uppercase;
   color: var(--tenue);
 }
 
-.lead { margin: 0 0 var(--e6); color: var(--tenue); }
+.lead { margin: 0 0 var(--e5); color: var(--tenue); }
 
 .nota { margin: 0 0 var(--e4); color: var(--tenue); font-size: .9rem; }
 
-a { color: var(--tenue); }
+a { color: var(--tinta); }
 
 .visualmente-oculto {
   position: absolute;
@@ -101,10 +124,10 @@ a { color: var(--tenue); }
   white-space: nowrap;
 }
 
-/* Un solo anillo de foco para toda la app, visible sobre cualquier fondo.
-   :focus-visible y no :focus para que no aparezca al tocar con el dedo. */
+/* El foco no es un halo suave: es otro borde. Coherente con el resto y visible
+   sobre cualquier fondo. */
 :where(a, button, input, textarea, [tabindex]):focus-visible {
-  outline: 2px solid var(--acento);
+  outline: var(--linea) solid var(--acento);
   outline-offset: 2px;
 }
 
@@ -113,69 +136,107 @@ a { color: var(--tenue); }
 button {
   min-height: var(--tocable);
   padding: var(--e3) var(--e4);
-  border: 0;
-  border-radius: var(--radio);
+  border: var(--borde);
+  border-radius: 0;
   background: var(--acento);
-  color: var(--acento-oscuro);
+  box-shadow: var(--relieve);
+  color: var(--sobre-acento);
   font: inherit;
-  font-weight: 600;
+  font-weight: 700;
   cursor: pointer;
+  /* Solo la sombra y la posición se animan: son las dos cosas que cambian al
+     pulsar, y animar el color en un diseño de contraste alto lo emborrona. */
+  transition: transform .06s, box-shadow .06s;
+}
+
+/* Al pulsar, el botón se hunde hasta el papel: la sombra desaparece y el botón
+   se mueve justo lo que medía. Es el gesto que hace que el relieve se lea como
+   relieve y no como decoración. */
+button:active {
+  transform: translate(4px, 4px);
+  box-shadow: 0 0 0 var(--tinta);
 }
 
 button:disabled {
-  background: var(--superficie-alta);
+  background: var(--papel);
+  box-shadow: none;
   color: var(--apagado);
   cursor: not-allowed;
+  transform: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  button { transition: none; }
 }
 
 input, textarea {
   width: 100%;
   padding: var(--e3) var(--e4);
-  border: 1px solid var(--borde);
-  border-radius: var(--radio);
-  background: var(--superficie);
-  color: var(--texto);
+  border: var(--borde);
+  border-radius: 0;
+  background: var(--tarjeta);
+  color: var(--tinta);
   font: inherit;
 }
 
 input::placeholder, textarea::placeholder { color: var(--apagado); }
 
 .resultado {
-  margin: var(--e4) 0 var(--e4);
-  min-height: 1.5em;
-  font-size: .9rem;
+  margin: var(--e3) 0 var(--e4);
+  min-height: 1.4em;
+  font-family: var(--mono);
+  font-size: .8rem;
 }
 
-.resultado[data-estado="ok"] { color: var(--acento); }
-.resultado[data-estado="falla"] { color: var(--falla); }
+.resultado[data-estado="ok"] { color: var(--tinta); }
+
+/* Un fallo se marca con una barra a la izquierda, no solo con color: quien no
+   distingue bien el rojo lo ve igual. */
+.resultado[data-estado="falla"] {
+  padding-left: var(--e2);
+  border-left: 4px solid var(--falla);
+  color: var(--falla);
+}
 
 /* --- Cabecera de sección --- */
 
 .barra {
   display: flex;
-  align-items: baseline;
+  align-items: center;
   justify-content: space-between;
-  gap: var(--e4);
+  gap: var(--e3);
   margin-bottom: var(--e5);
+  padding-bottom: var(--e3);
+  border-bottom: var(--borde);
 }
 
 .barra h1 { margin: 0; }
 
-.volver { color: var(--acento); text-decoration: none; font-weight: 600; }
+.acciones-barra { display: flex; align-items: center; gap: var(--e2); }
+
+.volver { color: var(--tinta); text-decoration: none; font-weight: 700; }
 
 .salir, .enlace-discreto {
   min-height: 0;
-  padding: var(--e1) var(--e3);
-  border: 1px solid var(--borde);
-  border-radius: 999px;
-  background: transparent;
-  color: var(--tenue);
-  font-size: .8rem;
-  font-weight: 500;
+  padding: var(--e1) var(--e2);
+  border: var(--borde);
+  border-radius: 0;
+  background: var(--tarjeta);
+  box-shadow: var(--relieve-corto);
+  color: var(--tinta);
+  font-family: var(--mono);
+  font-size: .7rem;
+  font-weight: 700;
+  text-transform: uppercase;
   text-decoration: none;
 }
 
-/* --- Barra de navegación --- */
+.salir:active, .enlace-discreto:active {
+  transform: translate(3px, 3px);
+  box-shadow: 0 0 0 var(--tinta);
+}
+
+/* --- Navegación --- */
 
 .barra-nav {
   position: fixed;
@@ -185,10 +246,8 @@ input::placeholder, textarea::placeholder { color: var(--apagado); }
   z-index: 10;
   display: flex;
   padding-bottom: env(safe-area-inset-bottom);
-  border-top: 1px solid var(--borde-suave);
-  /* Fondo sólido y no translúcido: detrás pasa texto, y un desenfoque haría
-     que la barra cambiara de aspecto al hacer scroll. */
-  background: var(--superficie);
+  border-top: var(--linea) solid var(--tinta);
+  background: var(--tarjeta);
 }
 
 .pestana {
@@ -197,31 +256,39 @@ input::placeholder, textarea::placeholder { color: var(--apagado); }
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 2px;
+  gap: 3px;
   min-height: var(--nav-alto);
-  color: var(--tenue);
-  font-size: .7rem;
-  font-weight: 500;
+  color: var(--tinta);
+  font-family: var(--mono);
+  font-size: .65rem;
+  font-weight: 700;
+  letter-spacing: .06em;
+  text-transform: uppercase;
   text-decoration: none;
 }
 
-.pestana svg { width: 1.35rem; height: 1.35rem; }
+/* Las pestañas se separan con una línea, como celdas de una tabla: la
+   estructura se ve, no se insinúa. */
+.pestana + .pestana { border-left: var(--linea) solid var(--tinta); }
 
-.pestana[aria-current="page"] { color: var(--acento); }
+.pestana svg { width: 1.4rem; height: 1.4rem; }
+
+/* La sección actual se rellena entera en vez de solo teñir el texto. A un brazo
+   de distancia, un bloque de color se identifica antes que un matiz. */
+.pestana[aria-current="page"] {
+  background: var(--acento);
+  color: var(--sobre-acento);
+}
 
 /* --- Pantalla de captura --- */
 
-/* La captura ocupa la pantalla entera y centra el campo: al abrir la app, lo
-   único que hay que hacer es escribir.
- *
- * `safe center` y no `center` a secas: cuando el contenido no cabe —con la
- * lista llena, o con el teclado del celular abierto— el centrado normal recorta
- * por arriba, y justo arriba está el campo de escribir. Con `safe` deja de
- * centrar y se alinea al inicio en vez de esconderlo.
+/* `safe center` y no `center` a secas: cuando el contenido no cabe —con la
+   lista llena, o con el teclado abierto— el centrado normal recorta por arriba,
+   y justo arriba está el campo de escribir.
  *
  * 100dvh y no 100vh: en el móvil, vh no descuenta la barra del navegador. */
 body.captura #app {
-  min-height: calc(100dvh - var(--nav-alto) - var(--e6) * 2);
+  min-height: calc(100dvh - var(--nav-alto) - var(--e5) * 2);
   display: flex;
   flex-direction: column;
   justify-content: safe center;
@@ -235,51 +302,49 @@ body.captura #app {
 #texto {
   padding: var(--e4);
   /* Sitio para que el texto no pase por debajo del micrófono. */
-  padding-right: 3.9rem;
-  border-radius: var(--radio-grande);
+  padding-right: 4.25rem;
+  box-shadow: var(--relieve);
   font-size: 1.125rem;
   line-height: 1.45;
   resize: vertical;
 }
 
-/* El micrófono se superpone en la esquina del campo. Al dictar desde el
-   celular el pulgar ya está ahí, y no roba una línea de pantalla. */
-.microfono svg { width: 1.35rem; height: 1.35rem; }
-
+/* El micrófono se superpone en la esquina del campo: al dictar desde el celular
+   el pulgar ya está ahí, y no roba una línea de pantalla. */
 .microfono {
   position: absolute;
-  right: var(--e2);
-  bottom: var(--e2);
-  width: var(--tocable);
-  height: var(--tocable);
-  padding: 0;
-  border: 1px solid var(--borde);
-  border-radius: 50%;
-  background: var(--superficie-alta);
-  color: var(--tenue);
+  right: var(--e3);
+  bottom: var(--e3);
   display: grid;
   place-items: center;
+  width: var(--tocable);
+  height: var(--tocable);
+  min-height: 0;
+  padding: 0;
+  background: var(--tarjeta);
+  box-shadow: var(--relieve-corto);
+  color: var(--tinta);
 }
+
+.microfono svg { width: 1.35rem; height: 1.35rem; }
 
 .microfono.escuchando {
-  color: var(--acento);
-  border-color: var(--acento);
-  background: color-mix(in srgb, var(--acento) 20%, var(--superficie-alta));
-  animation: latido 1.4s ease-in-out infinite;
+  background: var(--falla);
+  color: var(--tarjeta);
+  animation: latido .9s steps(2, end) infinite;
 }
 
+/* Parpadeo a saltos, no un desvanecido: este diseño no interpola. */
 @keyframes latido {
-  0%, 100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--acento) 55%, transparent); }
-  50%      { box-shadow: 0 0 0 .5rem color-mix(in srgb, var(--acento) 0%, transparent); }
+  0%, 100% { box-shadow: var(--relieve-corto); }
+  50%      { box-shadow: 0 0 0 var(--tinta); transform: translate(3px, 3px); }
 }
 
-/* Quien prefiere menos movimiento no necesita un latido para saber que está
-   grabando: el color y el borde ya lo dicen. */
 @media (prefers-reduced-motion: reduce) {
   .microfono.escuchando { animation: none; }
 }
 
-/* --- Atajos de fecha --- */
+/* --- Chips --- */
 
 .chips { display: flex; flex-wrap: wrap; gap: var(--e2); }
 
@@ -287,18 +352,21 @@ body.captura #app {
   flex: 0 0 auto;
   min-height: 0;
   padding: var(--e2) var(--e3);
-  border: 1px solid var(--borde);
-  border-radius: 999px;
-  background: transparent;
-  color: var(--tenue);
-  font-size: .875rem;
-  font-weight: 500;
+  background: var(--tarjeta);
+  box-shadow: var(--relieve-corto);
+  color: var(--tinta);
+  font-family: var(--mono);
+  font-size: .72rem;
+  font-weight: 700;
+  letter-spacing: .04em;
+  text-transform: uppercase;
 }
 
+.chip:active { transform: translate(3px, 3px); box-shadow: 0 0 0 var(--tinta); }
+
 .chip[aria-pressed="true"] {
-  border-color: var(--acento);
-  background: color-mix(in srgb, var(--acento) 16%, transparent);
-  color: var(--acento);
+  background: var(--acento);
+  color: var(--sobre-acento);
 }
 
 /* --- Últimas capturas --- */
@@ -309,37 +377,47 @@ body.captura #app {
   padding: 0;
   display: flex;
   flex-direction: column;
-  gap: var(--e2);
+  gap: var(--e3);
 }
 
 #lista li {
   display: flex;
   justify-content: space-between;
   align-items: baseline;
-  gap: var(--e4);
+  gap: var(--e3);
   padding: var(--e3);
-  border: 1px solid var(--borde-suave);
-  border-radius: var(--radio);
+  border: var(--borde);
+  background: var(--tarjeta);
 }
 
 #lista .texto { overflow-wrap: anywhere; }
 
-#lista time { flex: none; color: var(--tenue); font-size: .78rem; }
+#lista time {
+  flex: none;
+  font-family: var(--mono);
+  font-size: .72rem;
+  color: var(--tenue);
+}
 
-#lista time.con-alarma { color: var(--acento); }
+#lista time.con-alarma { color: var(--tinta); font-weight: 700; }
 
-/* Lo capturado sin señal: se ve igual, pero se distingue. Ocultarlo sería
-   dejar al usuario sin saber si su nota existe; disfrazarlo de subido sería
-   mentirle. */
-.sin-subir { border-style: dashed !important; opacity: .9; }
+/* Lo capturado sin señal: se ve igual, pero se distingue. Ocultarlo dejaría al
+   usuario sin saber si su nota existe; disfrazarlo de subido sería mentirle.
+   El borde discontinuo dice "provisional" sin depender del color, así que
+   funciona igual para quien no distingue bien los tonos — por eso se sustituyó
+   el ámbar que marcaba esto en el diseño anterior. */
+.sin-subir {
+  border-style: dashed !important;
+  background: var(--papel) !important;
+}
 
 #lista li.sin-subir time,
 .gasto-fila.sin-subir .gasto-fecha,
 .marca-espera {
-  color: var(--espera);
+  color: var(--tenue);
+  font-family: var(--mono);
+  font-size: .72rem;
 }
-
-.marca-espera { font-size: .76rem; }
 
 /* --- Lista de notas --- */
 
@@ -349,7 +427,7 @@ body.captura #app {
   padding: 0;
   display: flex;
   flex-direction: column;
-  gap: var(--e2);
+  gap: var(--e3);
 }
 
 .nota-fila {
@@ -357,15 +435,15 @@ body.captura #app {
   align-items: flex-start;
   gap: var(--e3);
   padding: var(--e3);
-  border: 1px solid var(--borde-suave);
-  border-radius: var(--radio);
-  background: var(--superficie);
+  border: var(--borde);
+  background: var(--tarjeta);
+  box-shadow: var(--relieve-corto);
 }
 
 .nota-fila input[type="checkbox"] {
   flex: none;
-  width: 1.2rem;
-  height: 1.2rem;
+  width: 1.15rem;
+  height: 1.15rem;
   margin-top: .2rem;
   accent-color: var(--acento);
 }
@@ -375,39 +453,43 @@ body.captura #app {
   min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: var(--e1);
+  gap: var(--e2);
 }
 
-.nota-texto {
-  overflow-wrap: anywhere;
-  cursor: text;
-  border-radius: var(--e1);
-}
+.nota-texto { overflow-wrap: anywhere; cursor: text; }
 
+.esta-hecha { background: var(--papel); }
 .esta-hecha .nota-texto { color: var(--tenue); text-decoration: line-through; }
 
-.nota-alarma {
-  align-self: flex-start;
+.nota-chips { display: flex; flex-wrap: wrap; gap: var(--e2); }
+
+.nota-alarma, .nota-formato {
   flex: none;
   min-height: 0;
-  padding: 1px var(--e2);
-  border: 1px solid var(--borde);
-  border-radius: 999px;
+  padding: 2px var(--e2);
+  border: var(--linea) solid var(--tenue);
   background: transparent;
+  box-shadow: none;
   color: var(--tenue);
-  font-size: .76rem;
-  font-weight: 500;
+  font-family: var(--mono);
+  font-size: .7rem;
+  font-weight: 700;
+  text-transform: uppercase;
 }
 
-.nota-alarma.activa {
-  color: var(--acento);
-  border-color: color-mix(in srgb, var(--acento) 45%, transparent);
+.nota-alarma:active, .nota-formato:active { transform: none; box-shadow: none; }
+
+.nota-alarma.activa, .nota-formato.completa {
+  border-color: var(--tinta);
+  background: var(--acento);
+  color: var(--sobre-acento);
 }
 
 /* Vencida y sin avisar: algo salió mal, y conviene que salte a la vista. */
 .nota-alarma.vencida {
-  color: var(--falla);
-  border-color: color-mix(in srgb, var(--falla) 45%, transparent);
+  border-color: var(--tinta);
+  background: var(--falla);
+  color: var(--tarjeta);
 }
 
 .nota-borrar {
@@ -415,21 +497,87 @@ body.captura #app {
   width: var(--tocable);
   min-height: var(--tocable);
   padding: 0;
-  border-radius: var(--radio);
+  border-color: var(--tenue);
   background: transparent;
-  color: var(--apagado);
-  font-size: 1.2rem;
-  font-weight: 400;
+  box-shadow: none;
+  color: var(--tinta);
+  font-size: 1.1rem;
+  line-height: 1;
 }
 
-.nota-borrar:hover { background: var(--superficie-alta); color: var(--falla); }
+.nota-borrar:hover { background: var(--falla); color: var(--tarjeta); }
+.nota-borrar:active { transform: none; box-shadow: none; }
 
 .nota-editor {
   padding: var(--e2);
   border-color: var(--acento);
-  border-radius: var(--e1);
   resize: vertical;
 }
+
+/* --- Listas dentro de una nota --- */
+
+.nota-viñetas, .nota-checklist {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: var(--e1);
+}
+
+.nota-viñetas li { position: relative; padding-left: var(--e4); }
+
+/* Cuadrado y no círculo: aquí no hay curvas que no hagan falta. */
+.nota-viñetas li::before {
+  content: "";
+  position: absolute;
+  left: var(--e1);
+  top: .55em;
+  width: 6px;
+  height: 6px;
+  background: var(--tinta);
+}
+
+.nota-checklist li { display: flex; align-items: flex-start; gap: var(--e2); }
+
+.nota-checklist input[type="checkbox"] {
+  flex: none;
+  width: 1.05rem;
+  height: 1.05rem;
+  margin-top: .22rem;
+  accent-color: var(--acento);
+}
+
+.item-marcado { color: var(--tenue); text-decoration: line-through; }
+
+/* Editar el texto entero: discreto, porque marcar casillas es lo que se hace a
+   diario y reescribir las líneas es la excepción. */
+.nota-editar-texto {
+  align-self: flex-start;
+  min-height: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  box-shadow: none;
+  color: var(--tenue);
+  font-family: var(--mono);
+  font-size: .7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  text-decoration: underline;
+}
+
+.nota-editar-texto:active { transform: none; }
+
+.cabecera-seccion {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--e3);
+  margin-bottom: var(--e3);
+}
+
+.cabecera-seccion h2 { margin: 0; }
 
 /* --- Deshacer --- */
 
@@ -444,90 +592,103 @@ body.captura #app {
   z-index: 20;
   display: flex;
   align-items: center;
-  gap: var(--e4);
+  gap: var(--e3);
   width: calc(100% - var(--e6));
   max-width: 28rem;
-  padding: var(--e3) var(--e4);
-  border: 1px solid var(--borde);
-  border-radius: var(--radio);
-  background: var(--superficie-alta);
-  box-shadow: 0 8px 24px rgb(0 0 0 / .5);
-  font-size: .9rem;
+  padding: var(--e3);
+  border: var(--borde);
+  background: var(--tarjeta);
+  box-shadow: var(--relieve);
+  font-size: .85rem;
 }
 
 #deshacer-texto { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
-#deshacer-boton { min-height: 0; padding: var(--e2) var(--e3); font-size: .85rem; }
+#deshacer-boton {
+  flex: none;
+  min-height: 0;
+  padding: var(--e1) var(--e2);
+  font-family: var(--mono);
+  font-size: .7rem;
+  text-transform: uppercase;
+}
 
 /* --- Gastos --- */
 
+/* El total es el único número que hace útil apuntar gastos sin categorías, así
+   que se trata como un cartel: grande, en monoespaciada y con relieve. */
 .total {
   display: flex;
   flex-direction: column;
   gap: 2px;
   margin-bottom: var(--e5);
   padding: var(--e4);
-  border: 1px solid var(--borde-suave);
-  border-radius: var(--radio-grande);
-  background: var(--superficie);
+  border: var(--borde);
+  background: var(--tarjeta);
+  box-shadow: var(--relieve);
 }
 
 .total-etiqueta {
-  font-size: .72rem;
-  letter-spacing: .09em;
+  font-family: var(--mono);
+  font-size: .7rem;
+  font-weight: 700;
+  letter-spacing: .14em;
   text-transform: uppercase;
   color: var(--tenue);
 }
 
 .total strong {
-  font-size: 1.9rem;
-  font-variant-numeric: tabular-nums;
+  font-family: var(--mono);
+  font-size: 2.1rem;
+  font-weight: 700;
   letter-spacing: -.02em;
 }
 
-.total-detalle { font-size: .8rem; color: var(--tenue); }
+.total-detalle {
+  font-family: var(--mono);
+  font-size: .72rem;
+  color: var(--tenue);
+}
 
 .fila-gasto { display: flex; gap: var(--e2); }
 
-.campo-monto {
-  position: relative;
-  flex: 0 0 8.5rem;
-  display: flex;
-  align-items: center;
-}
+.campo-monto { position: relative; flex: 0 0 8.5rem; display: flex; align-items: center; }
 
 .moneda {
   position: absolute;
   left: var(--e3);
+  font-family: var(--mono);
+  font-weight: 700;
   color: var(--tenue);
   pointer-events: none;
 }
 
-#monto { padding-left: 2.3rem; font-variant-numeric: tabular-nums; }
+#monto { padding-left: 2.4rem; font-family: var(--mono); }
 
 #descripcion { flex: 1; }
 
 .gasto-fila { align-items: center; }
 
-.gasto-fecha { font-size: .76rem; color: var(--tenue); }
+.gasto-fecha { font-family: var(--mono); font-size: .72rem; color: var(--tenue); }
 
 .gasto-monto {
   flex: none;
-  font-variant-numeric: tabular-nums;
+  font-family: var(--mono);
+  font-size: 1rem;
   white-space: nowrap;
 }
 
-/* --- Diagnóstico --- */
+/* --- Diagnóstico y entrada --- */
 
 .panel {
   margin-bottom: var(--e5);
   padding: var(--e4);
-  border: 1px solid var(--borde-suave);
-  border-radius: var(--radio-grande);
-  background: var(--superficie);
+  border: var(--borde);
+  background: var(--tarjeta);
+  box-shadow: var(--relieve-corto);
 }
 
-.acciones { display: flex; flex-wrap: wrap; gap: var(--e2); }
+.acciones { display: flex; flex-wrap: wrap; gap: var(--e3); }
 
 .acciones button { flex: 1 1 12rem; }
 
@@ -536,104 +697,13 @@ body.captura #app {
   grid-template-columns: auto 1fr;
   gap: var(--e2) var(--e4);
   margin: 0;
-  font-size: .9rem;
+  font-family: var(--mono);
+  font-size: .8rem;
 }
 
-.diag dt { color: var(--tenue); }
+.diag dt { color: var(--tenue); text-transform: uppercase; letter-spacing: .06em; }
 
 .diag dd { margin: 0; word-break: break-word; }
 
-.diag dd[data-estado="ok"] { color: var(--acento); }
-.diag dd[data-estado="falla"] { color: var(--falla); }
-
-.acciones-barra { display: flex; align-items: center; gap: var(--e2); }
-
-/* --- Formatos de nota --- */
-
-.cabecera-seccion {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--e3);
-  margin-bottom: var(--e3);
-}
-
-.cabecera-seccion h2 { margin: 0; }
-
-.nota-chips { display: flex; flex-wrap: wrap; gap: var(--e1); }
-
-.nota-formato {
-  flex: none;
-  min-height: 0;
-  padding: 1px var(--e2);
-  border: 1px solid var(--borde);
-  border-radius: 999px;
-  background: transparent;
-  color: var(--tenue);
-  font-size: .76rem;
-  font-weight: 500;
-  font-variant-numeric: tabular-nums;
-}
-
-/* Checklist terminada: el verde dice "ya está" sin tener que leer el 4/4. */
-.nota-formato.completa {
-  color: var(--acento);
-  border-color: color-mix(in srgb, var(--acento) 45%, transparent);
-}
-
-.nota-viñetas, .nota-checklist {
-  margin: 0;
-  padding: 0;
-  list-style: none;
-  display: flex;
-  flex-direction: column;
-  gap: var(--e1);
-}
-
-.nota-viñetas li {
-  position: relative;
-  padding-left: var(--e4);
-}
-
-.nota-viñetas li::before {
-  content: "";
-  position: absolute;
-  left: var(--e1);
-  top: .6em;
-  width: 4px;
-  height: 4px;
-  border-radius: 50%;
-  background: var(--apagado);
-}
-
-.nota-checklist li {
-  display: flex;
-  align-items: flex-start;
-  gap: var(--e2);
-}
-
-.nota-checklist input[type="checkbox"] {
-  flex: none;
-  width: 1.05rem;
-  height: 1.05rem;
-  margin-top: .22rem;
-  accent-color: var(--acento);
-}
-
-.item-marcado { color: var(--tenue); text-decoration: line-through; }
-
-/* Editar el texto entero de una lista: discreto, porque marcar casillas es lo
-   que se hace a diario y reescribir las líneas es la excepción. */
-.nota-editar-texto {
-  min-height: 0;
-  margin-top: var(--e2);
-  padding: 0;
-  background: none;
-  color: var(--apagado);
-  font-size: .76rem;
-  font-weight: 500;
-  text-decoration: underline;
-}
-
-/* Borrar es una acción real, no un adorno: el color apagado la escondía. */
-.nota-borrar { color: var(--tenue); }
+.diag dd[data-estado="ok"] { color: var(--tinta); font-weight: 700; }
+.diag dd[data-estado="falla"] { color: var(--falla); font-weight: 700; }

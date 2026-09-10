@@ -4,8 +4,9 @@
 import { deflateSync } from 'node:zlib';
 import { writeFileSync, mkdirSync } from 'node:fs';
 
-const FONDO = [0x11, 0x13, 0x18];
-const TINTA = [0x4a, 0xde, 0x80];
+const PAPEL = [0xf2, 0xef, 0xe6];
+const TINTA = [0x14, 0x14, 0x1a];
+const ACENTO = [0x16, 0xc4, 0x6a];
 
 const tablaCrc = Array.from({ length: 256 }, (_, n) => {
   let c = n;
@@ -62,7 +63,17 @@ const cobertura = (x, y, { x0, y0, x1, y1, r }) => {
 // puede ser recortado por el launcher de Android.
 const dibujar = (tam, margenRelativo) => {
   const m = tam * margenRelativo;
-  const tarjeta = { x0: m, y0: m, x1: tam - m, y1: tam - m, r: tam * 0.09 };
+  // Esquinas rectas (r = 0) y un borde grueso de tinta: el icono tiene que
+  // anunciar lo mismo que la app al abrirse.
+  const tarjeta = { x0: m, y0: m, x1: tam - m, y1: tam - m, r: 0 };
+  const grosorBorde = Math.max(2, tam * 0.035);
+  const interior = {
+    x0: tarjeta.x0 + grosorBorde,
+    y0: tarjeta.y0 + grosorBorde,
+    x1: tarjeta.x1 - grosorBorde,
+    y1: tarjeta.y1 - grosorBorde,
+    r: 0,
+  };
   const anchoTarjeta = tarjeta.x1 - tarjeta.x0;
   const grosor = anchoTarjeta * 0.085;
   const hueco = anchoTarjeta * 0.145;
@@ -74,7 +85,7 @@ const dibujar = (tam, margenRelativo) => {
     y0: primeraY + i * (grosor + hueco),
     x1: izq + anchoTarjeta * largo,
     y1: primeraY + i * (grosor + hueco) + grosor,
-    r: grosor / 2,
+    r: 0,
   }));
 
   const rgb = Buffer.alloc(tam * (tam * 3 + 1));
@@ -83,12 +94,20 @@ const dibujar = (tam, margenRelativo) => {
     rgb[p++] = 0; // byte de filtro por línea
     for (let x = 0; x < tam; x++) {
       const enTarjeta = cobertura(x, y, tarjeta);
+      const enInterior = cobertura(x, y, interior);
       const enRenglon = Math.max(...renglones.map((r) => cobertura(x, y, r)));
-      // Los renglones son del color de fondo, calados sobre la tarjeta verde.
-      const alfa = Math.max(0, enTarjeta - enRenglon);
-      for (let c = 0; c < 3; c++) {
-        rgb[p++] = Math.round(FONDO[c] + (TINTA[c] - FONDO[c]) * alfa);
-      }
+
+      // Tres capas: papel de fondo, marco de tinta, relleno verde, y los
+      // renglones calados en tinta sobre el verde.
+      const mezclar = (base, encima, alfa) =>
+        base.map((v, c) => Math.round(v + (encima[c] - v) * alfa));
+
+      let color = PAPEL;
+      color = mezclar(color, TINTA, enTarjeta);
+      color = mezclar(color, ACENTO, enInterior);
+      color = mezclar(color, TINTA, enRenglon);
+
+      for (let c = 0; c < 3; c++) rgb[p++] = color[c];
     }
   }
   return png(tam, tam, rgb);
