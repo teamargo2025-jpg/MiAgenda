@@ -121,7 +121,7 @@ Si a las dos semanas sigo anotando en otro lado, la app no resolvió la fricció
 
 - [x] Proyecto Vite vacío desplegado en Vercel
 - [x] Convertirlo en PWA instalable (manifest + service worker)
-- [ ] Pedir permiso de notificaciones y guardar la suscripción push
+- [x] Pedir permiso de notificaciones y guardar la suscripción push
 - [x] Proyecto en Supabase con la tabla de notas
 - [x] Edge Function que envía un push de prueba *(desplegada y arrancando; verificada devolviendo 200 en ambos modos)*
 - [ ] `pg_cron` llamándola cada minuto
@@ -129,6 +129,27 @@ Si a las dos semanas sigo anotando en otro lado, la app no resolvió la fricció
 - [ ] Probar diez segundos de dictado por voz en español y anotar qué tan bien salió
 
 > Si aquí falla el push, **parar y replantear** antes de seguir. Ese es el propósito de esta fase.
+
+#### Resultado: el push llega ✅
+
+Confirmado en un Android real (Chrome 152) el 9 de septiembre de 2026: la
+Edge Function envía y la notificación aparece en el teléfono. La cadena
+completa —navegador → Supabase → servicio de push de Google → dispositivo—
+funciona en plan gratuito.
+
+Tres fallos encontrados y corregidos por el camino, todos en la parte que el
+documento señalaba como más incierta:
+
+1. El `upsert` de la suscripción chocaba con RLS. Postgres necesita SELECT
+   para resolver un conflicto, y a la clave anon se le niega a propósito.
+   Resuelto con insert + update filtrado.
+2. Faltaba CORS en la Edge Function. No se veía con curl ni desde pg_cron,
+   solo desde el navegador.
+3. Una suscripción del navegador queda atada a la clave VAPID con la que se
+   creó. Al cambiar la clave hay que desuscribir en el dispositivo; borrar la
+   fila en la base no basta.
+
+**Falta de la fase 0:** el cron, medir su retraso, y probar el dictado por voz.
 
 #### Dónde nos quedamos — 9 de septiembre de 2026
 
