@@ -23,6 +23,18 @@
           autofocus
           enterkeyhint="done"
         ></textarea>
+        <!-- Atajos para los casos de siempre. Elegir día y hora en un
+             calendario son cinco toques; esto es uno. La fecha libre queda
+             detrás de "Otra…" para quien de verdad la necesite. -->
+        <div id="cuando" class="chips" role="group" aria-label="¿Cuándo recordarlo?">
+          <button type="button" class="chip" data-preset="tarde">Esta tarde</button>
+          <button type="button" class="chip" data-preset="noche">Esta noche</button>
+          <button type="button" class="chip" data-preset="manana">Mañana 9:00</button>
+          <button type="button" class="chip" data-preset="otra">Otra…</button>
+        </div>
+
+        <input id="fecha-libre" type="datetime-local" hidden aria-label="Fecha y hora" />
+
         <button id="guardar" type="submit">Guardar</button>
       </form>
 

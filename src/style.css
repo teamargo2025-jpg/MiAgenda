@@ -146,3 +146,35 @@ body.captura #app {
 footer { padding-top: 2rem; font-size: .85rem; }
 
 a { color: var(--tenue); }
+
+/* --- Atajos de fecha --- */
+
+.chips { display: flex; flex-wrap: wrap; gap: .5rem; }
+
+.chip {
+  flex: 0 0 auto;
+  padding: .45rem .8rem;
+  border: 1px solid #2b303b;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--tenue);
+  font-size: .875rem;
+  font-weight: 500;
+}
+
+.chip[aria-pressed="true"] {
+  border-color: var(--ok);
+  background: color-mix(in srgb, var(--ok) 18%, transparent);
+  color: var(--ok);
+}
+
+#fecha-libre {
+  padding: .75rem;
+  border: 1px solid #2b303b;
+  border-radius: .5rem;
+  background: #171a21;
+  color: var(--texto);
+  font: inherit;
+}
+
+#lista time.con-alarma { color: var(--ok); }

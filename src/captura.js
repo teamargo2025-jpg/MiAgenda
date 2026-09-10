@@ -5,6 +5,7 @@
 // se guarda.
 
 import { db, configurado } from './supabase.js';
+import { crearSelectorDeCuando, describirCuando } from './cuando.js';
 
 const form = document.getElementById('form');
 const texto = document.getElementById('texto');
@@ -12,6 +13,11 @@ const boton = document.getElementById('guardar');
 const aviso = document.getElementById('aviso');
 const recientes = document.getElementById('recientes');
 const lista = document.getElementById('lista');
+
+const cuando = crearSelectorDeCuando({
+  contenedor: document.getElementById('cuando'),
+  campoLibre: document.getElementById('fecha-libre'),
+});
 
 const decir = (mensaje, estado = 'neutro') => {
   aviso.textContent = mensaje;
@@ -24,6 +30,7 @@ const formatearFecha = (iso) =>
     month: 'short',
     hour: '2-digit',
     minute: '2-digit',
+    hour12: false,
   });
 
 // Se muestran unas pocas notas recientes como acuse de recibo: ver la frase
@@ -34,7 +41,7 @@ async function pintarRecientes() {
 
   const { data, error } = await db
     .from('notas')
-    .select('id, texto, creada_en')
+    .select('id, texto, creada_en, recordar_en')
     .order('creada_en', { ascending: false })
     .limit(5);
 
@@ -49,10 +56,18 @@ async function pintarRecientes() {
       const cuerpo = document.createElement('span');
       cuerpo.className = 'texto';
       cuerpo.textContent = nota.texto;
-      const cuando = document.createElement('time');
-      cuando.dateTime = nota.creada_en;
-      cuando.textContent = formatearFecha(nota.creada_en);
-      li.append(cuerpo, cuando);
+      const marca = document.createElement('time');
+      if (nota.recordar_en) {
+        // Cuando hay recordatorio se muestra ese, no la fecha de creación: es
+        // el dato que importa mirar de un vistazo.
+        marca.dateTime = nota.recordar_en;
+        marca.textContent = `⏰ ${describirCuando(nota.recordar_en)}`;
+        marca.classList.add('con-alarma');
+      } else {
+        marca.dateTime = nota.creada_en;
+        marca.textContent = formatearFecha(nota.creada_en);
+      }
+      li.append(cuerpo, marca);
       return li;
     }),
   );
@@ -70,10 +85,20 @@ form.addEventListener('submit', async (evento) => {
     return;
   }
 
+  const problema = cuando.problema();
+  if (problema) {
+    decir(`No se guardó: ${problema}.`, 'falla');
+    return;
+  }
+
   boton.disabled = true;
   decir('Guardando…');
 
-  const { error } = await db.from('notas').insert({ texto: contenido });
+  const recordarEn = cuando.valor();
+  const { error } = await db.from('notas').insert({
+    texto: contenido,
+    recordar_en: recordarEn,
+  });
 
   boton.disabled = false;
 
@@ -86,8 +111,9 @@ form.addEventListener('submit', async (evento) => {
   }
 
   texto.value = '';
+  cuando.limpiar();
   texto.focus();
-  decir('Guardado.', 'ok');
+  decir(recordarEn ? `Guardado. Te aviso ${describirCuando(recordarEn)}.` : 'Guardado.', 'ok');
   pintarRecientes();
 });
 
