@@ -10,6 +10,7 @@ import { exigirSesion } from './sesion.js';
 import { encolar, nuevoId, soportaCola } from './cola.js';
 import { pendientesDe, sincronizarEnSegundoPlano } from './sincronizar.js';
 import { crearDictado, soportaVoz } from './voz.js';
+import { convertirA, lineasDe } from './formato.js';
 
 const form = document.getElementById('form');
 const texto = document.getElementById('texto');
@@ -28,6 +29,41 @@ const decir = (mensaje, estado = 'neutro') => {
   aviso.dataset.estado = estado;
 };
 
+// --- Formato ---
+
+const grupoFormato = document.getElementById('formato');
+const chipsFormato = [...grupoFormato.querySelectorAll('[data-formato]')];
+let formatoElegido = 'texto';
+
+const pintarFormato = () => {
+  for (const chip of chipsFormato) {
+    chip.setAttribute('aria-pressed', String(chip.dataset.formato === formatoElegido));
+  }
+};
+
+// El selector aparece y desaparece según haga falta. Una nota de una línea no
+// tiene formato posible, y ofrecerlo sería añadir una decisión a la captura.
+const repasarFormato = () => {
+  const varias = lineasDe(texto.value).length > 1;
+  grupoFormato.hidden = !varias;
+  if (!varias && formatoElegido !== 'texto') {
+    formatoElegido = 'texto';
+    pintarFormato();
+  }
+};
+
+for (const chip of chipsFormato) {
+  chip.addEventListener('click', () => {
+    formatoElegido = chip.dataset.formato;
+    pintarFormato();
+    // Al elegir checklist se ven las casillas en el propio campo, para que no
+    // haya sorpresa entre lo que se escribe y lo que se guarda.
+    texto.value = convertirA(formatoElegido, texto.value);
+  });
+}
+
+texto.addEventListener('input', repasarFormato);
+
 // --- Dictado ---
 
 const microfono = document.getElementById('microfono');
@@ -41,6 +77,7 @@ const dictado = crearDictado({
   alTexto(transcrito) {
     const separador = textoPrevio && !textoPrevio.endsWith(' ') ? ' ' : '';
     texto.value = textoPrevio + separador + transcrito;
+    repasarFormato();
   },
   alEstado(estado) {
     const escuchando = estado === 'escuchando';
@@ -159,7 +196,12 @@ form.addEventListener('submit', async (evento) => {
   const recordarEn = cuando.valor();
   // El id se genera aquí: la nota tiene identidad antes de existir en el
   // servidor, así que reintentar la subida no puede duplicarla.
-  const fila = { id: nuevoId(), texto: contenido, recordar_en: recordarEn };
+  const fila = {
+    id: nuevoId(),
+    texto: convertirA(formatoElegido, contenido),
+    recordar_en: recordarEn,
+    formato: formatoElegido,
+  };
 
   const guardado = await guardar(fila);
   boton.disabled = false;
@@ -169,6 +211,9 @@ form.addEventListener('submit', async (evento) => {
   dictado?.parar();
   textoPrevio = '';
   texto.value = '';
+  formatoElegido = 'texto';
+  pintarFormato();
+  repasarFormato();
   cuando.limpiar();
   texto.focus();
 

@@ -547,3 +547,93 @@ body.captura #app {
 .diag dd[data-estado="falla"] { color: var(--falla); }
 
 .acciones-barra { display: flex; align-items: center; gap: var(--e2); }
+
+/* --- Formatos de nota --- */
+
+.cabecera-seccion {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--e3);
+  margin-bottom: var(--e3);
+}
+
+.cabecera-seccion h2 { margin: 0; }
+
+.nota-chips { display: flex; flex-wrap: wrap; gap: var(--e1); }
+
+.nota-formato {
+  flex: none;
+  min-height: 0;
+  padding: 1px var(--e2);
+  border: 1px solid var(--borde);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--tenue);
+  font-size: .76rem;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Checklist terminada: el verde dice "ya está" sin tener que leer el 4/4. */
+.nota-formato.completa {
+  color: var(--acento);
+  border-color: color-mix(in srgb, var(--acento) 45%, transparent);
+}
+
+.nota-viñetas, .nota-checklist {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: var(--e1);
+}
+
+.nota-viñetas li {
+  position: relative;
+  padding-left: var(--e4);
+}
+
+.nota-viñetas li::before {
+  content: "";
+  position: absolute;
+  left: var(--e1);
+  top: .6em;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--apagado);
+}
+
+.nota-checklist li {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--e2);
+}
+
+.nota-checklist input[type="checkbox"] {
+  flex: none;
+  width: 1.05rem;
+  height: 1.05rem;
+  margin-top: .22rem;
+  accent-color: var(--acento);
+}
+
+.item-marcado { color: var(--tenue); text-decoration: line-through; }
+
+/* Editar el texto entero de una lista: discreto, porque marcar casillas es lo
+   que se hace a diario y reescribir las líneas es la excepción. */
+.nota-editar-texto {
+  min-height: 0;
+  margin-top: var(--e2);
+  padding: 0;
+  background: none;
+  color: var(--apagado);
+  font-size: .76rem;
+  font-weight: 500;
+  text-decoration: underline;
+}
+
+/* Borrar es una acción real, no un adorno: el color apagado la escondía. */
+.nota-borrar { color: var(--tenue); }

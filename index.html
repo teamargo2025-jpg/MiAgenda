@@ -32,6 +32,15 @@
             <span class="visualmente-oculto">Dictar</span>
           </button>
         </div>
+        <!-- El formato solo aparece cuando la nota tiene más de una línea:
+             para una frase suelta no significa nada, y mostrarlo siempre sería
+             añadir una decisión a la captura de dos segundos. -->
+        <div id="formato" class="chips" hidden role="group" aria-label="Formato de la nota">
+          <button type="button" class="chip" data-formato="texto" aria-pressed="true">Texto</button>
+          <button type="button" class="chip" data-formato="lista" aria-pressed="false">Lista</button>
+          <button type="button" class="chip" data-formato="checklist" aria-pressed="false">Checklist</button>
+        </div>
+
         <!-- Atajos para los casos de siempre. Elegir día y hora en un
              calendario son cinco toques; esto es uno. La fecha libre queda
              detrás de "Otra…" para quien de verdad la necesite. -->

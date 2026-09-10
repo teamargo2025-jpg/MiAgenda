@@ -9,6 +9,7 @@ import { describirCuando } from './cuando.js';
 import { exigirSesion, salir } from './sesion.js';
 import { pendientesDe } from './sincronizar.js';
 import { quitarDeCola } from './cola.js';
+import { itemsDe, alternarItem, convertirA, progreso, ETIQUETAS, FORMATOS } from './formato.js';
 
 const estado = document.getElementById('estado');
 const vacio = document.getElementById('vacio');
@@ -31,7 +32,7 @@ const decir = (mensaje, tipo = 'neutro') => {
 async function traerNotas() {
   const { data, error } = await db
     .from('notas')
-    .select('id, texto, recordar_en, notificada_en, hecha, creada_en')
+    .select('id, texto, recordar_en, notificada_en, hecha, creada_en, formato')
     .order('creada_en', { ascending: false });
 
   if (error) throw new Error(error.message);
@@ -101,6 +102,108 @@ function crearFila(nota) {
   const cuerpo = document.createElement('div');
   cuerpo.className = 'nota-cuerpo';
 
+  const texto = crearCuerpo(nota);
+
+  const alarma = document.createElement('button');
+  alarma.type = 'button';
+  alarma.className = 'nota-alarma';
+  pintarAlarma(alarma, nota);
+  alarma.addEventListener('click', () => editarAlarma(nota, alarma));
+
+  const formatoBoton = document.createElement('button');
+  formatoBoton.type = 'button';
+  formatoBoton.className = 'nota-formato';
+  pintarFormato(formatoBoton, nota);
+  // Cicla entre los tres en vez de abrir un desplegable: son tres opciones y
+  // verlas cambiar en el sitio explica mejor qué hace cada una que sus nombres.
+  formatoBoton.addEventListener('click', () => {
+    const actual = FORMATOS.indexOf(nota.formato ?? 'texto');
+    cambiarFormato(nota, FORMATOS[(actual + 1) % FORMATOS.length]);
+  });
+
+  const chips = document.createElement('div');
+  chips.className = 'nota-chips';
+  chips.append(alarma, formatoBoton);
+
+  cuerpo.append(texto, chips);
+
+  const borrar = document.createElement('button');
+  borrar.type = 'button';
+  borrar.className = 'nota-borrar';
+  borrar.textContent = 'x';
+  borrar.setAttribute('aria-label', 'Borrar nota');
+  borrar.addEventListener('click', () => borrarNota(nota));
+
+  li.append(marca, cuerpo, borrar);
+  return li;
+}
+
+// El cuerpo cambia según el formato. Texto suelto se edita tocándolo; las
+// listas se pintan como tales, y en la checklist cada línea es una casilla que
+// se marca sin entrar a editar.
+function crearCuerpo(nota) {
+  const formato = nota.formato ?? 'texto';
+
+  if (formato === 'texto') return crearTextoEditable(nota);
+
+  const contenedor = document.createElement('ul');
+  contenedor.className = formato === 'checklist' ? 'nota-checklist' : 'nota-viñetas';
+
+  itemsDe(nota.texto).forEach((item, indice) => {
+    const li = document.createElement('li');
+
+    if (formato === 'checklist') {
+      const casilla = document.createElement('input');
+      casilla.type = 'checkbox';
+      casilla.checked = item.marcada;
+      casilla.setAttribute('aria-label', item.texto);
+      casilla.addEventListener('change', () => marcarItem(nota, indice));
+
+      const etiqueta = document.createElement('span');
+      etiqueta.textContent = item.texto;
+      if (item.marcada) etiqueta.className = 'item-marcado';
+
+      li.append(casilla, etiqueta);
+    } else {
+      li.textContent = item.texto;
+    }
+
+    contenedor.append(li);
+  });
+
+  // Tocar el hueco de al lado abre la edición del texto entero, que es la vía
+  // para añadir o quitar líneas sin inventarse otra interfaz.
+  const envoltorio = document.createElement('div');
+  envoltorio.className = 'nota-texto';
+  envoltorio.append(contenedor);
+
+  const editar = document.createElement('button');
+  editar.type = 'button';
+  editar.className = 'nota-editar-texto';
+  editar.textContent = 'Editar líneas';
+  editar.addEventListener('click', () => editarTexto(nota, envoltorio));
+  envoltorio.append(editar);
+
+  return envoltorio;
+}
+
+function pintarFormato(boton, nota) {
+  const formato = nota.formato ?? 'texto';
+  boton.textContent = ETIQUETAS[formato];
+  boton.setAttribute('aria-label', `Formato: ${ETIQUETAS[formato]}. Tocar para cambiar`);
+
+  // En una checklist el dato útil no es el nombre del formato sino cuánto
+  // queda, así que lo sustituye.
+  if (formato === 'checklist') {
+    const { hechas, total } = progreso(nota.texto);
+    boton.textContent = `${hechas}/${total}`;
+    boton.classList.toggle('completa', total > 0 && hechas === total);
+  } else {
+    boton.classList.remove('completa');
+  }
+}
+
+function crearTextoEditable(nota) {
   const texto = document.createElement('div');
   texto.className = 'nota-texto';
   texto.textContent = nota.texto;
@@ -113,24 +216,37 @@ function crearFila(nota) {
       editarTexto(nota, texto);
     }
   });
+  return texto;
+}
 
-  const alarma = document.createElement('button');
-  alarma.type = 'button';
-  alarma.className = 'nota-alarma';
-  pintarAlarma(alarma, nota);
-  alarma.addEventListener('click', () => editarAlarma(nota, alarma));
+async function marcarItem(nota, indice) {
+  const nuevo = alternarItem(nota.texto, indice);
+  const { error } = await db.from('notas').update({ texto: nuevo }).eq('id', nota.id);
+  if (error) {
+    decir(`No se pudo marcar: ${error.message}`, 'falla');
+    pintarTodo();
+    return;
+  }
+  nota.texto = nuevo;
+  pintarTodo();
+}
 
-  cuerpo.append(texto, alarma);
+// Cambiar el formato reescribe el texto: al entrar en checklist se ponen las
+// marcas y al salir se quitan, para que el texto plano no acabe lleno de "[ ]".
+async function cambiarFormato(nota, formato) {
+  const nuevoTexto = convertirA(formato, nota.texto);
+  const { error } = await db
+    .from('notas')
+    .update({ formato, texto: nuevoTexto })
+    .eq('id', nota.id);
 
-  const borrar = document.createElement('button');
-  borrar.type = 'button';
-  borrar.className = 'nota-borrar';
-  borrar.textContent = 'x';
-  borrar.setAttribute('aria-label', 'Borrar nota');
-  borrar.addEventListener('click', () => borrarNota(nota));
-
-  li.append(marca, cuerpo, borrar);
-  return li;
+  if (error) {
+    decir(`No se pudo cambiar el formato: ${error.message}`, 'falla');
+    return;
+  }
+  nota.formato = formato;
+  nota.texto = nuevoTexto;
+  pintarTodo();
 }
 
 function pintarAlarma(boton, nota) {
@@ -170,10 +286,58 @@ async function pintarTodo() {
 
   seccionPendientes.hidden = pendientes.length === 0 && sinSubir.length === 0;
   seccionHechas.hidden = hechas.length === 0;
+  botonVaciar.hidden = hechas.length === 0;
+  botonVaciar.textContent = `Borrar ${hechas.length}`;
+  botonVaciar.onclick = () => vaciarHechas(hechas);
   vacio.hidden = notas.length + sinSubir.length > 0;
 }
 
 // --- Acciones ---
+
+let deshacerPendiente = null;
+const botonVaciar = document.getElementById('vaciar-hechas');
+
+// Borrar en bloque las que ya están hechas. Con deshacer igual que el borrado
+// de una sola: aquí el arrepentimiento cuesta más caro, no menos.
+async function vaciarHechas(hechas) {
+  const ids = hechas.map((n) => n.id);
+  const { error } = await db.from('notas').delete().in('id', ids);
+  if (error) {
+    decir(`No se pudieron borrar: ${error.message}`, 'falla');
+    return;
+  }
+
+  pintarTodo();
+  ofrecerDeshacerVarias(hechas);
+}
+
+function ofrecerDeshacerVarias(notas) {
+  clearTimeout(deshacerPendiente);
+  textoDeshacer.textContent = `Borradas ${notas.length} notas hechas`;
+  barraDeshacer.hidden = false;
+
+  botonDeshacer.onclick = async () => {
+    barraDeshacer.hidden = true;
+    clearTimeout(deshacerPendiente);
+    const { error } = await db.from('notas').insert(
+      notas.map((n) => ({
+        id: n.id,
+        texto: n.texto,
+        recordar_en: n.recordar_en,
+        notificada_en: n.notificada_en,
+        hecha: n.hecha,
+        creada_en: n.creada_en,
+        formato: n.formato ?? 'texto',
+      })),
+    );
+    if (error) decir(`No se pudieron restaurar: ${error.message}`, 'falla');
+    pintarTodo();
+  };
+
+  deshacerPendiente = setTimeout(() => {
+    barraDeshacer.hidden = true;
+  }, 7000);
+}
 
 async function alternarHecha(nota, hecha) {
   const { error } = await db.from('notas').update({ hecha }).eq('id', nota.id);
@@ -295,8 +459,6 @@ function editarAlarma(nota, boton) {
 // contesta que si por costumbre y no protege de nada. Ensenar el resultado y
 // ofrecer volver atras si protege — y ademas no estorba cuando el borrado era
 // intencionado, que es casi siempre.
-let deshacerPendiente = null;
-
 async function borrarNota(nota) {
   const { error } = await db.from('notas').delete().eq('id', nota.id);
   if (error) {
