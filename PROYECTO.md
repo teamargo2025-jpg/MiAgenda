@@ -124,13 +124,53 @@ Si a las dos semanas sigo anotando en otro lado, la app no resolvió la fricció
 - [x] Pedir permiso de notificaciones y guardar la suscripción push
 - [x] Proyecto en Supabase con la tabla de notas
 - [x] Edge Function que envía un push de prueba *(desplegada y arrancando; verificada devolviendo 200 en ambos modos)*
-- [ ] `pg_cron` llamándola cada minuto
-- [ ] **Probar en el celular real** y anotar cuánto se retrasa
+- [x] `pg_cron` llamándola cada minuto
+- [x] **Probar en el celular real** y anotar cuánto se retrasa *(40,2 s medidos)*
 - [ ] Probar diez segundos de dictado por voz en español y anotar qué tan bien salió
 
 > Si aquí falla el push, **parar y replantear** antes de seguir. Ese es el propósito de esta fase.
 
-#### Resultado: el push llega ✅
+#### Resultado: la fase 0 responde que sí ✅
+
+**El push llega.** Confirmado en un Android real (Chrome 152): la Edge Function
+envía y la notificación aparece en el teléfono. Cadena completa —navegador →
+Supabase → servicio de push de Google → dispositivo— en plan gratuito.
+
+**El cron dispara solo, con 40,2 s de retraso medidos.** Una nota programada
+para las 04:14:20 se notificó a las 04:15:00. Ese retraso no es imprecisión
+sino granularidad: pg_cron corre puntualísimo, siempre en el segundo :00.0 de
+cada minuto, pero solo mira una vez por minuto. En la práctica, entre 0 y 60 s,
+~30 s de media. Para recordatorios es irrelevante.
+
+#### Los cinco fallos del camino
+
+Todos en la parte que el documento marcaba como más incierta. Vale la pena
+tenerlos escritos porque ninguno era evidente:
+
+1. **El `upsert` de la suscripción chocaba con RLS.** Postgres necesita SELECT
+   para resolver un conflicto, y a la clave anon se le niega a propósito.
+   Resuelto con insert + update filtrado por endpoint.
+2. **Faltaba CORS en la Edge Function.** No se veía con curl ni desde pg_cron,
+   solo desde el navegador, que manda un OPTIONS previo.
+3. **Clave VAPID pública equivocada** en las variables de Vercel. La
+   comprobación verificaba solo el prefijo, así que dio "OK" sobre un valor
+   corrupto. Verificar cadenas completas, no prefijos.
+4. **Una suscripción del navegador queda atada a la clave VAPID con la que se
+   creó.** Al cambiar la clave hay que desuscribir en el dispositivo; borrar la
+   fila en la base no basta.
+5. **El editor SQL de Supabase censura el texto que reconoce como clave de
+   API**, sustituyéndolo carácter por carácter. El largo se conserva —así que
+   comprobar la longitud no detecta nada— pero el contenido cambia. Solo se vio
+   comparando huellas md5. Para meter una clave en la base, codificarla en
+   base64 y decodificarla con `convert_from(decode(...))`.
+
+**Lección transversal:** `cron.job_run_details` marcaba "succeeded" mientras
+todas las llamadas fallaban, porque el job solo encola la petición. El
+resultado real de la llamada HTTP está en `net._http_response`.
+
+**Falta de la fase 0:** probar el dictado por voz en español.
+
+#### Historial
 
 Confirmado en un Android real (Chrome 152) el 9 de septiembre de 2026: la
 Edge Function envía y la notificación aparece en el teléfono. La cadena
