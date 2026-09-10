@@ -1,13 +1,21 @@
-// Gym: cronómetro de descanso y cuenta de series.
+// Gym: rutina del día, cronómetro de descanso y cuenta de series.
 //
-// Primera entrega de lo que será el asistente de entrenamiento. Rutinas
-// guardadas, ejercicios y peso levantado necesitan un modelo de datos y una
-// pantalla de administración; esto no necesita nada y ya sirve el próximo día
-// que pises el gimnasio.
+// Primera entrega del asistente de entrenamiento. Lo que falta —ejercicios con
+// peso y repeticiones, historial de sesiones— necesita un modelo de datos que
+// conviene diseñar habiendo usado esto antes.
 //
-// No toca la base ni exige sesión: es una herramienta de mano, funciona sin
-// señal y sin cuenta. Lo poco que recuerda —cuántas series llevas hoy— vive en
-// el dispositivo, que es donde está el gimnasio.
+// No se exige sesión en esta pantalla. El cronómetro es lo que se usa de pie y
+// sin señal, y mandar a una pantalla de contraseña en mitad del entrenamiento
+// sería absurdo. La rutina, que sí toca la base, se lee de una copia local y
+// solo necesita conexión para escribirse.
+//
+// El cronómetro y el contador no tocan la base: son herramientas de mano y
+// funcionan sin señal. La rutina sí se guarda en el servidor para tenerla en
+// cualquier dispositivo, pero se lee de una copia local — el gimnasio suele ser
+// un sótano sin cobertura.
+
+import { DIAS, nombreDia, cargarRutinas, guardarRutina } from './rutinas.js';
+import { itemsDe } from './formato.js';
 
 const crono = document.getElementById('crono');
 const etiqueta = document.getElementById('crono-etiqueta');
@@ -205,3 +213,123 @@ document.getElementById('reiniciar').addEventListener('click', () => {
 
 pintarCrono();
 pintarSeries();
+
+
+// --- Rutina del día ---
+
+const barraSemana = document.getElementById('semana');
+const tituloRutina = document.getElementById('titulo-rutina');
+const vistaRutina = document.getElementById('rutina-vista');
+const avisoRutina = document.getElementById('rutina-aviso');
+const botonEditar = document.getElementById('editar-rutina');
+
+let diaElegido = new Date().getDay();
+let rutinas = {};
+let editando = false;
+
+const decirRutina = (mensaje, estado = 'neutro') => {
+  avisoRutina.textContent = mensaje;
+  avisoRutina.dataset.estado = estado;
+  avisoRutina.hidden = !mensaje;
+};
+
+function pintarSemana() {
+  const hoy = new Date().getDay();
+
+  barraSemana.replaceChildren(
+    ...DIAS.map(({ dia, corto, largo }) => {
+      const boton = document.createElement('button');
+      boton.type = 'button';
+      boton.className = 'dia';
+      boton.textContent = corto;
+      boton.setAttribute('aria-label', largo);
+      boton.setAttribute('aria-pressed', String(dia === diaElegido));
+      // El día de hoy se marca aunque estés mirando otro: sin eso, al navegar
+      // por la semana se pierde la referencia de dónde estás parado.
+      boton.dataset.hoy = String(dia === hoy);
+      // Un punto avisa de que ese día tiene rutina puesta, para ver la semana
+      // entera de un vistazo.
+      boton.dataset.tiene = String(Boolean((rutinas[dia] ?? '').trim()));
+      boton.addEventListener('click', () => {
+        diaElegido = dia;
+        editando = false;
+        pintarSemana();
+        pintarRutina();
+      });
+      return boton;
+    }),
+  );
+}
+
+function pintarRutina() {
+  const texto = (rutinas[diaElegido] ?? '').trim();
+  const hoy = new Date().getDay();
+  tituloRutina.textContent =
+    diaElegido === hoy ? `Hoy · ${nombreDia(diaElegido)}` : nombreDia(diaElegido);
+
+  botonEditar.textContent = editando ? 'Guardar' : texto ? 'Editar' : 'Escribir';
+
+  if (editando) {
+    const campo = document.createElement('textarea');
+    campo.className = 'nota-editor';
+    campo.id = 'campo-rutina';
+    campo.rows = Math.max(4, texto.split('\n').length + 1);
+    campo.placeholder = 'Press banca 4x8\nAperturas 3x12\nFondos 3 al fallo';
+    campo.value = texto;
+    vistaRutina.replaceChildren(campo);
+    campo.focus();
+    return;
+  }
+
+  if (!texto) {
+    const vacio = document.createElement('p');
+    vacio.className = 'nota';
+    vacio.textContent = 'Sin rutina para este día.';
+    vistaRutina.replaceChildren(vacio);
+    return;
+  }
+
+  // Cada línea, una viñeta. Se reutiliza el mismo criterio que las notas: el
+  // texto libre es el modelo, y pintarlo como lista no exige estructurarlo.
+  const lista = document.createElement('ul');
+  lista.className = 'nota-viñetas';
+  for (const item of itemsDe(texto)) {
+    const li = document.createElement('li');
+    li.textContent = item.texto;
+    lista.append(li);
+  }
+  vistaRutina.replaceChildren(lista);
+}
+
+botonEditar.addEventListener('click', async () => {
+  if (!editando) {
+    editando = true;
+    decirRutina('');
+    pintarRutina();
+    return;
+  }
+
+  const campo = document.getElementById('campo-rutina');
+  const nuevo = campo.value.trim();
+  rutinas[diaElegido] = nuevo;
+  editando = false;
+  pintarSemana();
+  pintarRutina();
+
+  const { error } = await guardarRutina(diaElegido, nuevo);
+  if (error) decirRutina(`Guardada aquí, pero no en el servidor: ${error.message}`, 'falla');
+  else decirRutina('Guardada.', 'ok');
+});
+
+// La sesión se exige solo para la rutina, que sí toca la base. El cronómetro
+// tiene que funcionar aunque no haya sesión: es lo que se usa de pie y sin
+// señal, y mandarte a una pantalla de contraseña en mitad del entrenamiento
+// sería absurdo.
+rutinas = cargarRutinas((fresco) => {
+  rutinas = fresco;
+  pintarSemana();
+  if (!editando) pintarRutina();
+});
+
+pintarSemana();
+pintarRutina();

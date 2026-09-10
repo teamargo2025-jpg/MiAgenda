@@ -1113,3 +1113,57 @@ body.captura #app {
   font-weight: 700;
   font-variant-numeric: tabular-nums;
 }
+
+/* --- Semana --- */
+
+.semana {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  margin-bottom: var(--e4);
+  border: var(--borde);
+  background: var(--tarjeta);
+  box-shadow: var(--relieve-corto);
+}
+
+.dia {
+  position: relative;
+  min-height: var(--tocable);
+  padding: var(--e2) 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  color: var(--tinta);
+  font-family: var(--mono);
+  font-size: .95rem;
+  font-weight: 700;
+}
+
+.dia + .dia { border-left: var(--linea) solid var(--tinta); }
+
+.dia:active { transform: none; box-shadow: none; }
+
+.dia[aria-pressed="true"] { background: var(--tinta); color: var(--tarjeta); }
+
+/* Hoy va subrayado aunque estés mirando otro día: sin esa referencia, navegar
+   por la semana te deja sin saber dónde estás parado. */
+.dia[data-hoy="true"]::after {
+  content: "";
+  position: absolute;
+  left: 25%;
+  right: 25%;
+  bottom: 5px;
+  height: 2px;
+  background: currentColor;
+}
+
+/* Un punto arriba avisa de qué días tienen rutina puesta. */
+.dia[data-tiene="true"]::before {
+  content: "";
+  position: absolute;
+  top: 5px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 5px;
+  height: 5px;
+  background: currentColor;
+}

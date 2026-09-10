@@ -84,6 +84,12 @@ Si a las dos semanas sigo anotando en otro lado, la app no resolvió la fricció
 
 ## Decisiones tomadas
 
+- **La rutina se asigna al día de la semana, no a una fecha** (10/09/2026). La
+  del lunes es la del lunes, todos los lunes: siete filas como mucho. Cuando
+  haga falta llevar historial de lo que se hizo cada día concreto, eso será otra
+  tabla —un registro de sesiones— y esta seguirá siendo la plantilla. El texto
+  es libre y multilínea, como una nota, para no inventar un modelo de ejercicios
+  con series y repeticiones antes de saber cómo se va a usar.
 - **Sección Gym, empezando por lo que se usa de pie** (10/09/2026). Será un
   asistente de entrenamiento —rutinas, ejercicios, peso levantado—, pero eso
   necesita modelo de datos y pantallas de administración. Lo primero es el

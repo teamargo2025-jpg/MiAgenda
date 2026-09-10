@@ -18,6 +18,19 @@
         <button id="reiniciar" type="button" class="salir">Reiniciar</button>
       </header>
 
+      <!-- La semana entera a la vista: elegir día es de un toque y se ve de
+           un vistazo qué toca hoy sin abrir nada. -->
+      <nav class="semana" id="semana" aria-label="Día de la semana"></nav>
+
+      <section class="panel" id="panel-rutina">
+        <div class="cabecera-seccion">
+          <h2 id="titulo-rutina">Rutina</h2>
+          <button id="editar-rutina" type="button" class="salir">Editar</button>
+        </div>
+        <div id="rutina-vista"></div>
+        <p id="rutina-aviso" class="resultado"></p>
+      </section>
+
       <!-- El cronómetro ocupa la pantalla porque es lo que se mira de reojo,
            sudando, a metro y medio del suelo mientras el celular está apoyado
            en el banco. -->
@@ -51,8 +64,8 @@
       </section>
 
       <p class="nota">
-        Rutinas guardadas, ejercicios y peso levantado llegarán después. Esto es
-        lo que sirve con el celular en la mano entre series.
+        Ejercicios con peso y repeticiones, e historial de sesiones, llegarán
+        después.
       </p>
     </main>
 
