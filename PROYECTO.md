@@ -278,6 +278,8 @@ cuánto se gana y en qué se gasta en una base abierta a cualquiera con la URL e
 otra categoría de problema que unas notas sueltas.
 
 - [x] Cerrar el acceso con sesión (bloque 6 de la fase 1, adelantado)
+- [x] Verificado tras cerrar: sin sesión la API devuelve `[]`, escribir da 42501,
+      `config` ya no existe para la API, y el cron sigue devolviendo 200
 - [x] Tabla `gastos` con monto y descripción
 - [x] Pantalla de captura de gastos con total del mes
 - [x] Borrar con deshacer
