@@ -1,10 +1,50 @@
+/* MiAgenda — hoja de estilos.
+ *
+ * Organizada por capas: primero los valores (colores, espacios, tipografía),
+ * luego lo común a todas las pantallas, y al final lo propio de cada una.
+ *
+ * Los valores viven en variables porque se repiten en sitios lejanos entre sí:
+ * el verde es el acento del botón, el del atajo activo, el de la alarma futura
+ * y el del anillo de foco. Cambiarlo en un solo sitio es la diferencia entre
+ * poder ajustar la interfaz y no atreverse a tocarla.
+ */
+
 :root {
   color-scheme: dark;
-  --fondo: #111318;
-  --texto: #e6e8ee;
+
+  --fondo: #0f1116;
+  --superficie: #171a21;
+  --superficie-alta: #1d212a;
+  --borde: #262b35;
+  --borde-suave: #1f242d;
+
+  --texto: #e8eaf0;
   --tenue: #8a90a0;
-  --ok: #4ade80;
+  --apagado: #5d6373;
+
+  --acento: #4ade80;
+  --acento-oscuro: #0b0d11;
   --falla: #f87171;
+  /* Ámbar para lo que está guardado pero aún no ha subido: ni éxito ni error,
+     un estado intermedio que merece su propio color. */
+  --espera: #d8a657;
+
+  /* Escala de espacios. Tener seis valores y no dieciséis es lo que hace que
+     dos pantallas escritas en días distintos se parezcan. */
+  --e1: .25rem;
+  --e2: .5rem;
+  --e3: .75rem;
+  --e4: 1rem;
+  --e5: 1.5rem;
+  --e6: 2rem;
+
+  --radio: .625rem;
+  --radio-grande: .875rem;
+
+  /* Alto mínimo de cualquier cosa que se toque con el dedo. */
+  --tocable: 2.75rem;
+
+  --nav-alto: 3.75rem;
 }
 
 * { box-sizing: border-box; }
@@ -12,411 +52,43 @@
 /* El [hidden] del navegador es `display: none`, pero cualquier regla de autor
    que fije display —como el `flex` de .deshacer— lo pisa, porque los estilos
    de autor ganan a los del navegador. Sin esto, ocultar algo con el atributo
-   hidden funciona en unos elementos y en otros no, según lo que les hayamos
-   puesto de display. */
+   hidden funciona en unos elementos y en otros no. */
 [hidden] { display: none !important; }
 
 body {
   margin: 0;
-  padding: 2rem 1.25rem;
+  padding: var(--e6) var(--e4);
+  /* Sitio para la barra inferior, más lo que ocupe la barra de gestos del
+     sistema en los móviles sin botones físicos. */
+  padding-bottom: calc(var(--nav-alto) + var(--e6) + env(safe-area-inset-bottom));
   background: var(--fondo);
   color: var(--texto);
-  font: 16px/1.5 system-ui, -apple-system, Segoe UI, sans-serif;
+  font: 16px/1.55 system-ui, -apple-system, "Segoe UI", sans-serif;
+  -webkit-font-smoothing: antialiased;
 }
 
 #app { max-width: 32rem; margin: 0 auto; }
 
-h1 { margin: 0 0 .25rem; font-size: 1.5rem; }
-
-.lead { margin: 0 0 2rem; color: var(--tenue); }
-
-.diag {
-  display: grid;
-  grid-template-columns: auto 1fr;
-  gap: .5rem 1rem;
-  margin: 0;
+h1 {
+  margin: 0 0 var(--e1);
+  font-size: 1.4rem;
+  letter-spacing: -.01em;
 }
-
-.diag dt { color: var(--tenue); }
-
-.diag dd { margin: 0; word-break: break-word; }
-
-.diag dd[data-estado="ok"] { color: var(--ok); }
-.diag dd[data-estado="falla"] { color: var(--falla); }
 
 h2 {
-  margin: 0 0 .5rem;
-  font-size: .8rem;
+  margin: 0 0 var(--e3);
+  font-size: .75rem;
   font-weight: 600;
-  letter-spacing: .08em;
+  letter-spacing: .09em;
   text-transform: uppercase;
   color: var(--tenue);
 }
 
-.panel {
-  margin-bottom: 2rem;
-  padding: 1.25rem;
-  border: 1px solid #262a33;
-  border-radius: .75rem;
-}
+.lead { margin: 0 0 var(--e6); color: var(--tenue); }
 
-.nota { margin: 0 0 1rem; color: var(--tenue); font-size: .9rem; }
-
-.acciones { display: flex; flex-wrap: wrap; gap: .5rem; }
-
-button {
-  flex: 1 1 12rem;
-  padding: .75rem 1rem;
-  border: 0;
-  border-radius: .5rem;
-  background: var(--ok);
-  color: #0b0d11;
-  font: inherit;
-  font-weight: 600;
-  cursor: pointer;
-}
-
-button:disabled { background: #2b303b; color: var(--tenue); cursor: not-allowed; }
-
-.resultado { margin: 1rem 0 0; font-size: .9rem; min-height: 1.5em; }
-.resultado[data-estado="ok"] { color: var(--ok); }
-.resultado[data-estado="falla"] { color: var(--falla); }
-
-/* --- Pantalla de captura --- */
-
-/* La captura ocupa la pantalla entera y centra el campo: al abrir la app, lo
-   único que hay que hacer es escribir.
-
-   `safe center` y no `center` a secas: cuando el contenido no cabe —con la
-   lista llena, o con el teclado del celular abierto— el centrado normal recorta
-   por arriba, y justo arriba está el campo de escribir. Con `safe` deja de
-   centrar y se alinea al inicio en vez de esconderlo.
-
-   100dvh y no 100vh: en el móvil, vh no descuenta la barra del navegador. */
-body.captura #app {
-  min-height: 100dvh;
-  display: flex;
-  flex-direction: column;
-  justify-content: safe center;
-  gap: 1rem;
-}
-
-#form { display: flex; flex-direction: column; gap: .75rem; }
-
-#texto {
-  width: 100%;
-  padding: 1rem;
-  border: 1px solid #262a33;
-  border-radius: .75rem;
-  background: #171a21;
-  color: var(--texto);
-  font: inherit;
-  font-size: 1.125rem;
-  line-height: 1.4;
-  resize: vertical;
-}
-
-#texto:focus {
-  outline: 2px solid var(--ok);
-  outline-offset: 2px;
-}
-
-#texto::placeholder { color: #5d6373; }
-
-#guardar { flex: none; padding: .9rem 1rem; font-size: 1rem; }
-
-#recientes h2 { margin-bottom: .75rem; }
-
-#lista {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: flex;
-  flex-direction: column;
-  gap: .5rem;
-}
-
-#lista li {
-  display: flex;
-  justify-content: space-between;
-  align-items: baseline;
-  gap: 1rem;
-  padding: .6rem .75rem;
-  border: 1px solid #21252e;
-  border-radius: .5rem;
-}
-
-#lista .texto { overflow-wrap: anywhere; }
-
-#lista time { flex: none; color: var(--tenue); font-size: .8rem; }
-
-footer { padding-top: 2rem; font-size: .85rem; }
+.nota { margin: 0 0 var(--e4); color: var(--tenue); font-size: .9rem; }
 
 a { color: var(--tenue); }
-
-/* --- Atajos de fecha --- */
-
-.chips { display: flex; flex-wrap: wrap; gap: .5rem; }
-
-.chip {
-  flex: 0 0 auto;
-  padding: .45rem .8rem;
-  border: 1px solid #2b303b;
-  border-radius: 999px;
-  background: transparent;
-  color: var(--tenue);
-  font-size: .875rem;
-  font-weight: 500;
-}
-
-.chip[aria-pressed="true"] {
-  border-color: var(--ok);
-  background: color-mix(in srgb, var(--ok) 18%, transparent);
-  color: var(--ok);
-}
-
-#fecha-libre {
-  padding: .75rem;
-  border: 1px solid #2b303b;
-  border-radius: .5rem;
-  background: #171a21;
-  color: var(--texto);
-  font: inherit;
-}
-
-#lista time.con-alarma { color: var(--ok); }
-
-/* --- Lista de notas --- */
-
-.barra {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 1rem;
-  margin-bottom: 1.5rem;
-}
-
-.barra h1 { margin: 0; font-size: 1.35rem; }
-
-.volver { color: var(--ok); text-decoration: none; font-weight: 600; }
-
-.notas-lista {
-  list-style: none;
-  margin: 0 0 2rem;
-  padding: 0;
-  display: flex;
-  flex-direction: column;
-  gap: .5rem;
-}
-
-.nota-fila {
-  display: flex;
-  align-items: flex-start;
-  gap: .75rem;
-  padding: .75rem;
-  border: 1px solid #21252e;
-  border-radius: .6rem;
-}
-
-.nota-fila input[type="checkbox"] {
-  flex: none;
-  width: 1.15rem;
-  height: 1.15rem;
-  margin-top: .15rem;
-  accent-color: var(--ok);
-}
-
-.nota-cuerpo {
-  flex: 1;
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  gap: .35rem;
-}
-
-.nota-texto {
-  overflow-wrap: anywhere;
-  cursor: text;
-  border-radius: .25rem;
-}
-
-.nota-texto:focus-visible { outline: 2px solid var(--ok); outline-offset: 2px; }
-
-.esta-hecha .nota-texto { color: var(--tenue); text-decoration: line-through; }
-
-.nota-alarma {
-  align-self: flex-start;
-  flex: none;
-  padding: .15rem .5rem;
-  border: 1px solid #2b303b;
-  border-radius: 999px;
-  background: transparent;
-  color: var(--tenue);
-  font-size: .78rem;
-}
-
-.nota-alarma.activa { color: var(--ok); border-color: color-mix(in srgb, var(--ok) 45%, transparent); }
-
-/* Vencida y sin avisar: algo salió mal, y conviene que salte a la vista. */
-.nota-alarma.vencida { color: var(--falla); border-color: color-mix(in srgb, var(--falla) 45%, transparent); }
-
-.nota-borrar {
-  flex: none;
-  width: 2rem;
-  padding: 0;
-  border: 0;
-  border-radius: .4rem;
-  background: transparent;
-  color: var(--tenue);
-  font-size: 1.25rem;
-  line-height: 2rem;
-}
-
-.nota-borrar:hover { background: #21252e; color: var(--falla); }
-
-.nota-editor {
-  width: 100%;
-  padding: .4rem .5rem;
-  border: 1px solid var(--ok);
-  border-radius: .35rem;
-  background: #171a21;
-  color: var(--texto);
-  font: inherit;
-  resize: vertical;
-}
-
-/* La barra de deshacer se ancla abajo, fuera del flujo: la fila que la motivó
-   acaba de desaparecer, así que no puede colgar de ella. */
-.deshacer {
-  position: fixed;
-  left: 50%;
-  bottom: 1rem;
-  transform: translateX(-50%);
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  width: calc(100% - 2rem);
-  max-width: 28rem;
-  padding: .75rem 1rem;
-  border: 1px solid #2b303b;
-  border-radius: .6rem;
-  background: #1d212a;
-  box-shadow: 0 8px 24px rgb(0 0 0 / .45);
-  font-size: .9rem;
-}
-
-#deshacer-texto { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-
-#deshacer-boton {
-  flex: none;
-  padding: .35rem .75rem;
-  font-size: .85rem;
-}
-
-.salir {
-  flex: none;
-  padding: .3rem .7rem;
-  border: 1px solid #2b303b;
-  border-radius: 999px;
-  background: transparent;
-  color: var(--tenue);
-  font-size: .8rem;
-}
-
-/* --- Pantalla de entrada --- */
-
-#correo, #clave {
-  width: 100%;
-  padding: .9rem 1rem;
-  border: 1px solid #262a33;
-  border-radius: .6rem;
-  background: #171a21;
-  color: var(--texto);
-  font: inherit;
-}
-
-#correo:focus, #clave:focus { outline: 2px solid var(--ok); outline-offset: 2px; }
-
-/* --- Gastos --- */
-
-.total {
-  display: flex;
-  flex-direction: column;
-  gap: .15rem;
-  margin-bottom: 1.5rem;
-  padding: 1rem 1.25rem;
-  border: 1px solid #21252e;
-  border-radius: .75rem;
-  background: #171a21;
-}
-
-.total-etiqueta {
-  font-size: .75rem;
-  letter-spacing: .08em;
-  text-transform: uppercase;
-  color: var(--tenue);
-}
-
-.total strong { font-size: 1.75rem; font-variant-numeric: tabular-nums; }
-
-.total-detalle { font-size: .8rem; color: var(--tenue); }
-
-.fila-gasto { display: flex; gap: .5rem; }
-
-.campo-monto {
-  position: relative;
-  flex: 0 0 8.5rem;
-  display: flex;
-  align-items: center;
-}
-
-.moneda {
-  position: absolute;
-  left: .75rem;
-  color: var(--tenue);
-  pointer-events: none;
-}
-
-#monto, #descripcion {
-  width: 100%;
-  padding: .9rem 1rem;
-  border: 1px solid #262a33;
-  border-radius: .6rem;
-  background: #171a21;
-  color: var(--texto);
-  font: inherit;
-}
-
-#monto {
-  padding-left: 2.4rem;
-  font-variant-numeric: tabular-nums;
-}
-
-#descripcion { flex: 1; }
-
-#monto:focus, #descripcion:focus { outline: 2px solid var(--ok); outline-offset: 2px; }
-
-.gasto-fila { align-items: center; }
-
-.gasto-fecha { font-size: .78rem; color: var(--tenue); }
-
-.gasto-monto {
-  flex: none;
-  font-variant-numeric: tabular-nums;
-  white-space: nowrap;
-}
-
-/* Lo capturado sin señal: se ve igual, pero se distingue. Ocultarlo sería
-   dejar al usuario sin saber si su nota existe; disfrazarlo de subido sería
-   mentirle. */
-.sin-subir { border-style: dashed; opacity: .85; }
-
-#lista li.sin-subir time,
-.gasto-fila.sin-subir .gasto-fecha {
-  color: #d8a657;
-}
-
-/* --- Dictado --- */
 
 .visualmente-oculto {
   position: absolute;
@@ -429,34 +101,176 @@ a { color: var(--tenue); }
   white-space: nowrap;
 }
 
+/* Un solo anillo de foco para toda la app, visible sobre cualquier fondo.
+   :focus-visible y no :focus para que no aparezca al tocar con el dedo. */
+:where(a, button, input, textarea, [tabindex]):focus-visible {
+  outline: 2px solid var(--acento);
+  outline-offset: 2px;
+}
+
+/* --- Controles --- */
+
+button {
+  min-height: var(--tocable);
+  padding: var(--e3) var(--e4);
+  border: 0;
+  border-radius: var(--radio);
+  background: var(--acento);
+  color: var(--acento-oscuro);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+button:disabled {
+  background: var(--superficie-alta);
+  color: var(--apagado);
+  cursor: not-allowed;
+}
+
+input, textarea {
+  width: 100%;
+  padding: var(--e3) var(--e4);
+  border: 1px solid var(--borde);
+  border-radius: var(--radio);
+  background: var(--superficie);
+  color: var(--texto);
+  font: inherit;
+}
+
+input::placeholder, textarea::placeholder { color: var(--apagado); }
+
+.resultado {
+  margin: var(--e4) 0 var(--e4);
+  min-height: 1.5em;
+  font-size: .9rem;
+}
+
+.resultado[data-estado="ok"] { color: var(--acento); }
+.resultado[data-estado="falla"] { color: var(--falla); }
+
+/* --- Cabecera de sección --- */
+
+.barra {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--e4);
+  margin-bottom: var(--e5);
+}
+
+.barra h1 { margin: 0; }
+
+.volver { color: var(--acento); text-decoration: none; font-weight: 600; }
+
+.salir, .enlace-discreto {
+  min-height: 0;
+  padding: var(--e1) var(--e3);
+  border: 1px solid var(--borde);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--tenue);
+  font-size: .8rem;
+  font-weight: 500;
+  text-decoration: none;
+}
+
+/* --- Barra de navegación --- */
+
+.barra-nav {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 10;
+  display: flex;
+  padding-bottom: env(safe-area-inset-bottom);
+  border-top: 1px solid var(--borde-suave);
+  /* Fondo sólido y no translúcido: detrás pasa texto, y un desenfoque haría
+     que la barra cambiara de aspecto al hacer scroll. */
+  background: var(--superficie);
+}
+
+.pestana {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  min-height: var(--nav-alto);
+  color: var(--tenue);
+  font-size: .7rem;
+  font-weight: 500;
+  text-decoration: none;
+}
+
+.pestana svg { width: 1.35rem; height: 1.35rem; }
+
+.pestana[aria-current="page"] { color: var(--acento); }
+
+/* --- Pantalla de captura --- */
+
+/* La captura ocupa la pantalla entera y centra el campo: al abrir la app, lo
+   único que hay que hacer es escribir.
+ *
+ * `safe center` y no `center` a secas: cuando el contenido no cabe —con la
+ * lista llena, o con el teclado del celular abierto— el centrado normal recorta
+ * por arriba, y justo arriba está el campo de escribir. Con `safe` deja de
+ * centrar y se alinea al inicio en vez de esconderlo.
+ *
+ * 100dvh y no 100vh: en el móvil, vh no descuenta la barra del navegador. */
+body.captura #app {
+  min-height: calc(100dvh - var(--nav-alto) - var(--e6) * 2);
+  display: flex;
+  flex-direction: column;
+  justify-content: safe center;
+  gap: var(--e4);
+}
+
+#form { display: flex; flex-direction: column; gap: var(--e3); }
+
 .campo-con-voz { position: relative; display: flex; }
+
+#texto {
+  padding: var(--e4);
+  /* Sitio para que el texto no pase por debajo del micrófono. */
+  padding-right: 3.9rem;
+  border-radius: var(--radio-grande);
+  font-size: 1.125rem;
+  line-height: 1.45;
+  resize: vertical;
+}
 
 /* El micrófono se superpone en la esquina del campo. Al dictar desde el
    celular el pulgar ya está ahí, y no roba una línea de pantalla. */
+.microfono svg { width: 1.35rem; height: 1.35rem; }
+
 .microfono {
   position: absolute;
-  right: .6rem;
-  bottom: .6rem;
-  flex: none;
-  width: 2.75rem;
-  height: 2.75rem;
+  right: var(--e2);
+  bottom: var(--e2);
+  width: var(--tocable);
+  height: var(--tocable);
   padding: 0;
-  border: 1px solid #2b303b;
+  border: 1px solid var(--borde);
   border-radius: 50%;
-  background: #1d212a;
-  font-size: 1.15rem;
-  line-height: 1;
+  background: var(--superficie-alta);
+  color: var(--tenue);
+  display: grid;
+  place-items: center;
 }
 
 .microfono.escuchando {
-  border-color: var(--ok);
-  background: color-mix(in srgb, var(--ok) 20%, #1d212a);
+  color: var(--acento);
+  border-color: var(--acento);
+  background: color-mix(in srgb, var(--acento) 20%, var(--superficie-alta));
   animation: latido 1.4s ease-in-out infinite;
 }
 
 @keyframes latido {
-  0%, 100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--ok) 55%, transparent); }
-  50%      { box-shadow: 0 0 0 .5rem color-mix(in srgb, var(--ok) 0%, transparent); }
+  0%, 100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--acento) 55%, transparent); }
+  50%      { box-shadow: 0 0 0 .5rem color-mix(in srgb, var(--acento) 0%, transparent); }
 }
 
 /* Quien prefiere menos movimiento no necesita un latido para saber que está
@@ -465,5 +279,271 @@ a { color: var(--tenue); }
   .microfono.escuchando { animation: none; }
 }
 
-/* Sitio para que el texto no pase por debajo del botón. */
-#texto { padding-right: 4rem; }
+/* --- Atajos de fecha --- */
+
+.chips { display: flex; flex-wrap: wrap; gap: var(--e2); }
+
+.chip {
+  flex: 0 0 auto;
+  min-height: 0;
+  padding: var(--e2) var(--e3);
+  border: 1px solid var(--borde);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--tenue);
+  font-size: .875rem;
+  font-weight: 500;
+}
+
+.chip[aria-pressed="true"] {
+  border-color: var(--acento);
+  background: color-mix(in srgb, var(--acento) 16%, transparent);
+  color: var(--acento);
+}
+
+/* --- Últimas capturas --- */
+
+#lista {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--e2);
+}
+
+#lista li {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: var(--e4);
+  padding: var(--e3);
+  border: 1px solid var(--borde-suave);
+  border-radius: var(--radio);
+}
+
+#lista .texto { overflow-wrap: anywhere; }
+
+#lista time { flex: none; color: var(--tenue); font-size: .78rem; }
+
+#lista time.con-alarma { color: var(--acento); }
+
+/* Lo capturado sin señal: se ve igual, pero se distingue. Ocultarlo sería
+   dejar al usuario sin saber si su nota existe; disfrazarlo de subido sería
+   mentirle. */
+.sin-subir { border-style: dashed !important; opacity: .9; }
+
+#lista li.sin-subir time,
+.gasto-fila.sin-subir .gasto-fecha,
+.marca-espera {
+  color: var(--espera);
+}
+
+.marca-espera { font-size: .76rem; }
+
+/* --- Lista de notas --- */
+
+.notas-lista {
+  list-style: none;
+  margin: 0 0 var(--e6);
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--e2);
+}
+
+.nota-fila {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--e3);
+  padding: var(--e3);
+  border: 1px solid var(--borde-suave);
+  border-radius: var(--radio);
+  background: var(--superficie);
+}
+
+.nota-fila input[type="checkbox"] {
+  flex: none;
+  width: 1.2rem;
+  height: 1.2rem;
+  margin-top: .2rem;
+  accent-color: var(--acento);
+}
+
+.nota-cuerpo {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--e1);
+}
+
+.nota-texto {
+  overflow-wrap: anywhere;
+  cursor: text;
+  border-radius: var(--e1);
+}
+
+.esta-hecha .nota-texto { color: var(--tenue); text-decoration: line-through; }
+
+.nota-alarma {
+  align-self: flex-start;
+  flex: none;
+  min-height: 0;
+  padding: 1px var(--e2);
+  border: 1px solid var(--borde);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--tenue);
+  font-size: .76rem;
+  font-weight: 500;
+}
+
+.nota-alarma.activa {
+  color: var(--acento);
+  border-color: color-mix(in srgb, var(--acento) 45%, transparent);
+}
+
+/* Vencida y sin avisar: algo salió mal, y conviene que salte a la vista. */
+.nota-alarma.vencida {
+  color: var(--falla);
+  border-color: color-mix(in srgb, var(--falla) 45%, transparent);
+}
+
+.nota-borrar {
+  flex: none;
+  width: var(--tocable);
+  min-height: var(--tocable);
+  padding: 0;
+  border-radius: var(--radio);
+  background: transparent;
+  color: var(--apagado);
+  font-size: 1.2rem;
+  font-weight: 400;
+}
+
+.nota-borrar:hover { background: var(--superficie-alta); color: var(--falla); }
+
+.nota-editor {
+  padding: var(--e2);
+  border-color: var(--acento);
+  border-radius: var(--e1);
+  resize: vertical;
+}
+
+/* --- Deshacer --- */
+
+/* Se ancla abajo, fuera del flujo: la fila que la motivó acaba de desaparecer,
+   así que no puede colgar de ella. Va por encima de la navegación, porque su
+   ventana de siete segundos manda mientras dura. */
+.deshacer {
+  position: fixed;
+  left: 50%;
+  bottom: calc(var(--nav-alto) + var(--e3) + env(safe-area-inset-bottom));
+  transform: translateX(-50%);
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  gap: var(--e4);
+  width: calc(100% - var(--e6));
+  max-width: 28rem;
+  padding: var(--e3) var(--e4);
+  border: 1px solid var(--borde);
+  border-radius: var(--radio);
+  background: var(--superficie-alta);
+  box-shadow: 0 8px 24px rgb(0 0 0 / .5);
+  font-size: .9rem;
+}
+
+#deshacer-texto { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+#deshacer-boton { min-height: 0; padding: var(--e2) var(--e3); font-size: .85rem; }
+
+/* --- Gastos --- */
+
+.total {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-bottom: var(--e5);
+  padding: var(--e4);
+  border: 1px solid var(--borde-suave);
+  border-radius: var(--radio-grande);
+  background: var(--superficie);
+}
+
+.total-etiqueta {
+  font-size: .72rem;
+  letter-spacing: .09em;
+  text-transform: uppercase;
+  color: var(--tenue);
+}
+
+.total strong {
+  font-size: 1.9rem;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -.02em;
+}
+
+.total-detalle { font-size: .8rem; color: var(--tenue); }
+
+.fila-gasto { display: flex; gap: var(--e2); }
+
+.campo-monto {
+  position: relative;
+  flex: 0 0 8.5rem;
+  display: flex;
+  align-items: center;
+}
+
+.moneda {
+  position: absolute;
+  left: var(--e3);
+  color: var(--tenue);
+  pointer-events: none;
+}
+
+#monto { padding-left: 2.3rem; font-variant-numeric: tabular-nums; }
+
+#descripcion { flex: 1; }
+
+.gasto-fila { align-items: center; }
+
+.gasto-fecha { font-size: .76rem; color: var(--tenue); }
+
+.gasto-monto {
+  flex: none;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+/* --- Diagnóstico --- */
+
+.panel {
+  margin-bottom: var(--e5);
+  padding: var(--e4);
+  border: 1px solid var(--borde-suave);
+  border-radius: var(--radio-grande);
+  background: var(--superficie);
+}
+
+.acciones { display: flex; flex-wrap: wrap; gap: var(--e2); }
+
+.acciones button { flex: 1 1 12rem; }
+
+.diag {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: var(--e2) var(--e4);
+  margin: 0;
+  font-size: .9rem;
+}
+
+.diag dt { color: var(--tenue); }
+
+.diag dd { margin: 0; word-break: break-word; }
+
+.diag dd[data-estado="ok"] { color: var(--acento); }
+.diag dd[data-estado="falla"] { color: var(--falla); }
+
+.acciones-barra { display: flex; align-items: center; gap: var(--e2); }

@@ -28,7 +28,7 @@
             enterkeyhint="done"
           ></textarea>
           <button id="microfono" type="button" class="microfono" hidden aria-pressed="false">
-            <span aria-hidden="true">🎤</span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="2" width="6" height="11" rx="3"/><path d="M5 10a7 7 0 0 0 14 0"/><path d="M12 17v4"/></svg>
             <span class="visualmente-oculto">Dictar</span>
           </button>
         </div>
@@ -53,13 +53,26 @@
         <h2>Últimas</h2>
         <ul id="lista"></ul>
       </section>
-
-      <footer>
-        <a href="/notas.html">Mis notas</a>
-        <a href="/gastos.html">Gastos</a>
-        <a href="/diagnostico.html">Diagnóstico</a>
-      </footer>
     </main>
+
+    <!-- Barra fija abajo: en el celular es donde llega el pulgar sin recolocar
+         la mano. Los enlaces en el pie obligaban a estirarse hasta arriba o a
+         hacer scroll, que para moverse entre tres pantallas es demasiado. -->
+    <nav class="barra-nav" aria-label="Secciones">
+      <a href="/" class="pestana" aria-current="page">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+        <span>Capturar</span>
+      </a>
+      <a href="/notas.html" class="pestana">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6h12"/><path d="M9 12h12"/><path d="M9 18h12"/><path d="M4 6h.01"/><path d="M4 12h.01"/><path d="M4 18h.01"/></svg>
+        <span>Notas</span>
+      </a>
+      <a href="/gastos.html" class="pestana">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="2.5"/></svg>
+        <span>Gastos</span>
+      </a>
+    </nav>
+
     <script type="module" src="/src/captura.js"></script>
   </body>
 </html>

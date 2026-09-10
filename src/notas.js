@@ -7,6 +7,8 @@
 import { db, configurado } from './supabase.js';
 import { describirCuando } from './cuando.js';
 import { exigirSesion, salir } from './sesion.js';
+import { pendientesDe } from './sincronizar.js';
+import { quitarDeCola } from './cola.js';
 
 const estado = document.getElementById('estado');
 const vacio = document.getElementById('vacio');
@@ -46,6 +48,43 @@ function ordenarPendientes(notas) {
 }
 
 // --- Pintado ---
+
+// Una nota que sigue en la cola se muestra, pero sin las acciones que exigen
+// que exista en el servidor: marcarla como hecha o cambiarle la hora no tendría
+// dónde guardarse. Borrar sí, porque quitarla de la cola es una acción local.
+function crearFilaPendiente(nota) {
+  const li = document.createElement('li');
+  li.className = 'nota-fila sin-subir';
+
+  const cuerpo = document.createElement('div');
+  cuerpo.className = 'nota-cuerpo';
+
+  const texto = document.createElement('div');
+  texto.className = 'nota-texto';
+  texto.textContent = nota.texto;
+
+  const marca = document.createElement('span');
+  marca.className = 'marca-espera';
+  marca.textContent = nota.recordar_en
+    ? `en el dispositivo · ⏰ ${describirCuando(nota.recordar_en)}`
+    : 'en el dispositivo';
+  marca.title = 'Se subirá cuando vuelva la conexión';
+
+  cuerpo.append(texto, marca);
+
+  const borrar = document.createElement('button');
+  borrar.type = 'button';
+  borrar.className = 'nota-borrar';
+  borrar.textContent = 'x';
+  borrar.setAttribute('aria-label', 'Descartar nota sin subir');
+  borrar.addEventListener('click', async () => {
+    await quitarDeCola(nota.id);
+    pintarTodo();
+  });
+
+  li.append(cuerpo, borrar);
+  return li;
+}
 
 function crearFila(nota) {
   const li = document.createElement('li');
@@ -107,25 +146,31 @@ function pintarAlarma(boton, nota) {
 }
 
 async function pintarTodo() {
-  let notas;
+  // Si el servidor no responde se sigue con lista vacía: lo que está en el
+  // dispositivo tiene que verse igual. Salir aquí dejaría la pantalla en blanco
+  // justo cuando acabas de capturar algo sin señal.
+  let notas = [];
   try {
     notas = await traerNotas();
   } catch (e) {
-    decir(`No se pudieron cargar: ${e.message}`, 'falla');
-    return;
+    if (navigator.onLine) decir(`No se pudieron cargar: ${e.message}`, 'falla');
   }
 
   decir('');
 
   const pendientes = ordenarPendientes(notas.filter((n) => !n.hecha));
   const hechas = notas.filter((n) => n.hecha);
+  const sinSubir = await pendientesDe('nota');
 
-  listaPendientes.replaceChildren(...pendientes.map(crearFila));
+  listaPendientes.replaceChildren(
+    ...sinSubir.map(crearFilaPendiente),
+    ...pendientes.map(crearFila),
+  );
   listaHechas.replaceChildren(...hechas.map(crearFila));
 
-  seccionPendientes.hidden = pendientes.length === 0;
+  seccionPendientes.hidden = pendientes.length === 0 && sinSubir.length === 0;
   seccionHechas.hidden = hechas.length === 0;
-  vacio.hidden = notas.length > 0;
+  vacio.hidden = notas.length + sinSubir.length > 0;
 }
 
 // --- Acciones ---
