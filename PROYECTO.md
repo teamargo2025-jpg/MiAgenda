@@ -264,4 +264,21 @@ Se detalla al empezar la fase, no ahora: para entonces habrá dos semanas de uso
 
 ### Fase 4 — Gastos y finanzas
 
-Sin fecha, sin detalle. Queda registrado para no perderlo. Se retoma cuando las fases 0 a 3 estén asentadas y la app se esté usando de verdad.
+**Adelantada al 10/09/2026 por decisión de uso.** El plan la dejaba para el
+final; se trae porque es lo que se quiso usar. Se construye la versión mínima
+—monto y descripción, más el total del mes— y no el "producto entero aparte"
+que describía el documento.
+
+Sin categorías a propósito: son el peaje que hizo abandonar Trello. Si tras unas
+semanas de uso hace falta saber en qué se va el dinero, se añaden entonces, con
+datos reales delante para saber cuáles.
+
+Condición que se puso antes de construirla: **cerrar el acceso primero**. Meter
+cuánto se gana y en qué se gasta en una base abierta a cualquiera con la URL es
+otra categoría de problema que unas notas sueltas.
+
+- [x] Cerrar el acceso con sesión (bloque 6 de la fase 1, adelantado)
+- [x] Tabla `gastos` con monto y descripción
+- [x] Pantalla de captura de gastos con total del mes
+- [x] Borrar con deshacer
+- [ ] Usarla y decidir si hacen falta categorías

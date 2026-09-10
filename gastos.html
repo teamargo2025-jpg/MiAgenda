@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="theme-color" content="#111318" />
+    <title>Gastos — MiAgenda</title>
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <link rel="icon" href="/icono-192.png" />
+    <link rel="apple-touch-icon" href="/icono-192.png" />
+    <link rel="stylesheet" href="/src/style.css" />
+  </head>
+  <body class="gastos">
+    <main id="app">
+      <header class="barra">
+        <h1>Gastos</h1>
+        <a class="volver" href="/">Notas</a>
+      </header>
+
+      <!-- El total del mes va arriba: es el único número que hace útil apuntar
+           gastos sin categorías. Verlo al abrir es la mitad del valor. -->
+      <section class="total">
+        <span class="total-etiqueta">Este mes</span>
+        <strong id="total-mes">—</strong>
+        <span id="total-detalle" class="total-detalle"></span>
+      </section>
+
+      <form id="form" autocomplete="off">
+        <div class="fila-gasto">
+          <div class="campo-monto">
+            <span class="moneda">S/</span>
+            <!-- inputmode decimal abre el teclado numérico en el celular sin
+                 sufrir la rueda del scroll que trae type="number". -->
+            <input
+              id="monto"
+              type="text"
+              inputmode="decimal"
+              placeholder="0.00"
+              autofocus
+              required
+              aria-label="Monto"
+            />
+          </div>
+          <input
+            id="descripcion"
+            type="text"
+            placeholder="¿En qué?"
+            required
+            aria-label="Descripción"
+          />
+        </div>
+        <button id="guardar" type="submit">Anotar gasto</button>
+      </form>
+
+      <p id="aviso" class="resultado"></p>
+
+      <section id="seccion-lista" hidden>
+        <h2>Últimos</h2>
+        <ul id="lista" class="notas-lista"></ul>
+      </section>
+
+      <p id="vacio" hidden class="nota">Todavía no has anotado nada.</p>
+    </main>
+
+    <div id="deshacer" class="deshacer" hidden>
+      <span id="deshacer-texto"></span>
+      <button id="deshacer-boton" type="button">Deshacer</button>
+    </div>
+
+    <script type="module" src="/src/gastos.js"></script>
+  </body>
+</html>

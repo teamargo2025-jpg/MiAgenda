@@ -9,6 +9,13 @@
 
 * { box-sizing: border-box; }
 
+/* El [hidden] del navegador es `display: none`, pero cualquier regla de autor
+   que fije display —como el `flex` de .deshacer— lo pisa, porque los estilos
+   de autor ganan a los del navegador. Sin esto, ocultar algo con el atributo
+   hidden funciona en unos elementos y en otros no, según lo que les hayamos
+   puesto de display. */
+[hidden] { display: none !important; }
+
 body {
   margin: 0;
   padding: 2rem 1.25rem;
@@ -329,3 +336,72 @@ a { color: var(--tenue); }
 }
 
 #correo:focus, #clave:focus { outline: 2px solid var(--ok); outline-offset: 2px; }
+
+/* --- Gastos --- */
+
+.total {
+  display: flex;
+  flex-direction: column;
+  gap: .15rem;
+  margin-bottom: 1.5rem;
+  padding: 1rem 1.25rem;
+  border: 1px solid #21252e;
+  border-radius: .75rem;
+  background: #171a21;
+}
+
+.total-etiqueta {
+  font-size: .75rem;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--tenue);
+}
+
+.total strong { font-size: 1.75rem; font-variant-numeric: tabular-nums; }
+
+.total-detalle { font-size: .8rem; color: var(--tenue); }
+
+.fila-gasto { display: flex; gap: .5rem; }
+
+.campo-monto {
+  position: relative;
+  flex: 0 0 8.5rem;
+  display: flex;
+  align-items: center;
+}
+
+.moneda {
+  position: absolute;
+  left: .75rem;
+  color: var(--tenue);
+  pointer-events: none;
+}
+
+#monto, #descripcion {
+  width: 100%;
+  padding: .9rem 1rem;
+  border: 1px solid #262a33;
+  border-radius: .6rem;
+  background: #171a21;
+  color: var(--texto);
+  font: inherit;
+}
+
+#monto {
+  padding-left: 2.4rem;
+  font-variant-numeric: tabular-nums;
+}
+
+#descripcion { flex: 1; }
+
+#monto:focus, #descripcion:focus { outline: 2px solid var(--ok); outline-offset: 2px; }
+
+.gasto-fila { align-items: center; }
+
+.gasto-fecha { font-size: .78rem; color: var(--tenue); }
+
+.gasto-monto {
+  flex: none;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
