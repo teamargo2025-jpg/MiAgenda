@@ -941,3 +941,92 @@ body.captura #app {
 }
 
 .barra-relleno { height: 100%; background: var(--tinta); }
+
+/* --- Lobby --- */
+
+.saludo { margin-bottom: var(--e5); }
+
+.momento {
+  margin: 0;
+  font-size: 1.65rem;
+  font-weight: 800;
+  letter-spacing: -.03em;
+  text-transform: uppercase;
+}
+
+.fecha-larga {
+  margin: 0;
+  font-family: var(--mono);
+  font-size: .75rem;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  color: var(--tenue);
+}
+
+/* Capturar es lo que más se hace: en el lobby tiene que ser lo más grande que
+   hay, o el lobby se convierte en un peaje. */
+.boton-grande {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--e3);
+  margin-bottom: var(--e5);
+  padding: var(--e4);
+  border: var(--borde);
+  background: var(--tinta);
+  box-shadow: var(--relieve);
+  color: var(--tarjeta);
+  font-size: 1.05rem;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.boton-grande svg { width: 1.3rem; height: 1.3rem; }
+
+.notas-lista.compacta { margin-bottom: 0; gap: var(--e2); }
+
+.notas-lista.compacta .nota-fila { box-shadow: none; padding: var(--e2) var(--e3); }
+
+/* Vencido y todavía sin hacer: la barra lateral lo dice sin depender del color,
+   igual que en el resto de la app. */
+.marca-vencida {
+  align-self: flex-start;
+  padding-left: var(--e2);
+  border-left: 4px solid var(--falla);
+  color: var(--falla);
+  font-family: var(--mono);
+  font-size: .72rem;
+  font-weight: 700;
+}
+
+.tarjetas { display: grid; grid-template-columns: 1fr 1fr; gap: var(--e3); }
+
+.tarjeta {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: var(--e3) var(--e4);
+  border: var(--borde);
+  background: var(--tarjeta);
+  box-shadow: var(--relieve-corto);
+  color: var(--tinta);
+  text-decoration: none;
+}
+
+.tarjeta-cifra {
+  font-family: var(--mono);
+  font-size: 1.5rem;
+  font-weight: 700;
+  letter-spacing: -.02em;
+}
+
+.tarjeta-cifra[data-negativo="true"] { color: var(--falla); }
+
+.tarjeta-etiqueta {
+  font-family: var(--mono);
+  font-size: .66rem;
+  font-weight: 700;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--tenue);
+}

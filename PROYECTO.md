@@ -84,6 +84,13 @@ Si a las dos semanas sigo anotando en otro lado, la app no resolvió la fricció
 
 ## Decisiones tomadas
 
+- **Se entra a un lobby, no al cuadro de texto** (10/09/2026). Abrir la app y
+  encontrarse el teclado levantándose es brusco: pide antes de saludar. Pero un
+  lobby que solo saluda es un toque de más, así que se gana el sitio contando lo
+  que ahorra entrar a mirar — qué toca hoy, cuánto queda pendiente y cómo va el
+  mes. Capturar sigue a un toque desde cualquier pantalla y es lo más grande del
+  lobby: si el lobby estorbara para anotar, habría que quitarlo.
+
 - **La parte financiera crece hacia asistente, sin IA** (10/09/2026). Entran
   ingresos además de gastos, categorías por etiqueta (`almuerzo #comida`) y una
   pantalla de análisis: balance, ritmo diario, proyección a fin de mes,

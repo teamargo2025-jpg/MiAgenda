@@ -88,7 +88,7 @@ function pintarTemas(notas) {
   // apuntar una más.
   const entrar = document.createElement('a');
   entrar.className = 'entrar-tema';
-  entrar.href = `/?tema=${encodeURIComponent(temaActivo ?? '')}`;
+  entrar.href = `/capturar.html?tema=${encodeURIComponent(temaActivo ?? '')}`;
   entrar.textContent = `+ Añadir a #${temaActivo}`;
 
   barraTemas.replaceChildren(

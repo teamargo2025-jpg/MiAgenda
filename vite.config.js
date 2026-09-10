@@ -17,6 +17,7 @@ export default defineConfig({
         // pero se conserva porque es donde se suscribe el dispositivo y donde
         // se ve qué soporta el navegador cuando algo falla.
         main: resolve(__dirname, 'index.html'),
+        capturar: resolve(__dirname, 'capturar.html'),
         notas: resolve(__dirname, 'notas.html'),
         dinero: resolve(__dirname, 'dinero.html'),
         analisis: resolve(__dirname, 'analisis.html'),
