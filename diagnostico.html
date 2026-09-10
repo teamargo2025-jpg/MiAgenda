@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="theme-color" content="#111318" />
+    <title>Diagnóstico — MiAgenda</title>
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <link rel="icon" href="/icono-192.png" />
+    <link rel="stylesheet" href="/src/style.css" />
+  </head>
+  <body>
+    <main id="app">
+      <h1>Diagnóstico</h1>
+      <p class="lead"><a href="/">← volver a capturar</a></p>
+
+      <section class="panel">
+        <h2>Notificaciones</h2>
+        <p class="nota">
+          Suscribe este aparato para recibir los recordatorios. Hay que hacerlo
+          una vez por dispositivo.
+        </p>
+        <div class="acciones">
+          <button id="btn-suscribir" type="button" disabled>Suscribir este dispositivo</button>
+          <button id="btn-servidor" type="button" disabled>Pedir push al servidor</button>
+        </div>
+        <p id="resultado-push" class="resultado"></p>
+      </section>
+
+      <section class="panel">
+        <h2>Prueba local</h2>
+        <p class="nota">
+          Muestra un aviso desde el service worker, sin pasar por el servidor.
+          Sirve para separar un problema del aparato de uno del servidor.
+        </p>
+        <div class="acciones">
+          <button id="btn-permiso" type="button">Dar permiso de notificaciones</button>
+          <button id="btn-probar" type="button" disabled>Mandarme un aviso de prueba</button>
+        </div>
+        <p id="resultado" class="resultado"></p>
+      </section>
+
+      <section class="panel">
+        <h2>Estado</h2>
+        <dl class="diag">
+          <dt>Origen</dt><dd id="diag-origen">—</dd>
+          <dt>HTTPS</dt><dd id="diag-https">—</dd>
+          <dt>Service Worker</dt><dd id="diag-sw">—</dd>
+          <dt>Notificaciones</dt><dd id="diag-notif">—</dd>
+          <dt>Push</dt><dd id="diag-push">—</dd>
+          <dt>Dictado por voz</dt><dd id="diag-voz">—</dd>
+          <dt>Instalada</dt><dd id="diag-instalada">—</dd>
+          <dt>Supabase</dt><dd id="diag-supabase">—</dd>
+          <dt>Suscripción</dt><dd id="diag-suscripcion">—</dd>
+        </dl>
+      </section>
+    </main>
+    <script type="module" src="/src/diagnostico.js"></script>
+  </body>
+</html>

@@ -74,3 +74,75 @@ button:disabled { background: #2b303b; color: var(--tenue); cursor: not-allowed;
 .resultado { margin: 1rem 0 0; font-size: .9rem; min-height: 1.5em; }
 .resultado[data-estado="ok"] { color: var(--ok); }
 .resultado[data-estado="falla"] { color: var(--falla); }
+
+/* --- Pantalla de captura --- */
+
+/* La captura ocupa la pantalla entera y centra el campo: al abrir la app, lo
+   único que hay que hacer es escribir.
+
+   `safe center` y no `center` a secas: cuando el contenido no cabe —con la
+   lista llena, o con el teclado del celular abierto— el centrado normal recorta
+   por arriba, y justo arriba está el campo de escribir. Con `safe` deja de
+   centrar y se alinea al inicio en vez de esconderlo.
+
+   100dvh y no 100vh: en el móvil, vh no descuenta la barra del navegador. */
+body.captura #app {
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  justify-content: safe center;
+  gap: 1rem;
+}
+
+#form { display: flex; flex-direction: column; gap: .75rem; }
+
+#texto {
+  width: 100%;
+  padding: 1rem;
+  border: 1px solid #262a33;
+  border-radius: .75rem;
+  background: #171a21;
+  color: var(--texto);
+  font: inherit;
+  font-size: 1.125rem;
+  line-height: 1.4;
+  resize: vertical;
+}
+
+#texto:focus {
+  outline: 2px solid var(--ok);
+  outline-offset: 2px;
+}
+
+#texto::placeholder { color: #5d6373; }
+
+#guardar { flex: none; padding: .9rem 1rem; font-size: 1rem; }
+
+#recientes h2 { margin-bottom: .75rem; }
+
+#lista {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: .5rem;
+}
+
+#lista li {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 1rem;
+  padding: .6rem .75rem;
+  border: 1px solid #21252e;
+  border-radius: .5rem;
+}
+
+#lista .texto { overflow-wrap: anywhere; }
+
+#lista time { flex: none; color: var(--tenue); font-size: .8rem; }
+
+footer { padding-top: 2rem; font-size: .85rem; }
+
+a { color: var(--tenue); }

@@ -4,59 +4,39 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <meta name="theme-color" content="#111318" />
-    <meta name="description" content="Suelto una idea y no se pierde: se guarda y me avisa cuando toca." />
+    <meta name="description" content="Suelto una idea y no se pierde." />
     <title>MiAgenda</title>
     <link rel="manifest" href="/manifest.webmanifest" />
     <link rel="icon" href="/icono-192.png" />
     <link rel="apple-touch-icon" href="/icono-192.png" />
     <link rel="stylesheet" href="/src/style.css" />
   </head>
-  <body>
+  <body class="captura">
     <main id="app">
-      <h1>MiAgenda</h1>
-      <p class="lead">Fase 0 — probando la cadena de notificaciones.</p>
+      <form id="form" autocomplete="off">
+        <!-- Sin etiqueta, sin categorías, sin desplegables: el peaje de treinta
+             segundos es justo lo que este proyecto viene a eliminar. -->
+        <textarea
+          id="texto"
+          rows="4"
+          placeholder="¿Qué se te ocurrió?"
+          autofocus
+          enterkeyhint="done"
+        ></textarea>
+        <button id="guardar" type="submit">Guardar</button>
+      </form>
 
-      <section class="panel">
-        <h2>Prueba local</h2>
-        <p class="nota">
-          Esto muestra un aviso desde el service worker, sin pasar por el servidor.
-          Verifica que el celular sepa mostrar notificaciones antes de montar el push.
-        </p>
-        <div class="acciones">
-          <button id="btn-permiso" type="button">Dar permiso de notificaciones</button>
-          <button id="btn-probar" type="button" disabled>Mandarme un aviso de prueba</button>
-        </div>
-        <p id="resultado" class="resultado"></p>
+      <p id="aviso" class="resultado"></p>
+
+      <section id="recientes" hidden>
+        <h2>Últimas</h2>
+        <ul id="lista"></ul>
       </section>
 
-      <section class="panel">
-        <h2>Prueba real (servidor)</h2>
-        <p class="nota">
-          Suscribe este aparato y pide a la Edge Function que mande el aviso.
-          Recorre la cadena entera menos el cron.
-        </p>
-        <div class="acciones">
-          <button id="btn-suscribir" type="button" disabled>Suscribir este dispositivo</button>
-          <button id="btn-servidor" type="button" disabled>Pedir push al servidor</button>
-        </div>
-        <p id="resultado-push" class="resultado"></p>
-      </section>
-
-      <section class="panel">
-        <h2>Diagnóstico</h2>
-        <dl class="diag">
-          <dt>Origen</dt><dd id="diag-origen">—</dd>
-          <dt>HTTPS</dt><dd id="diag-https">—</dd>
-          <dt>Service Worker</dt><dd id="diag-sw">—</dd>
-          <dt>Notificaciones</dt><dd id="diag-notif">—</dd>
-          <dt>Push</dt><dd id="diag-push">—</dd>
-          <dt>Dictado por voz</dt><dd id="diag-voz">—</dd>
-          <dt>Instalada</dt><dd id="diag-instalada">—</dd>
-          <dt>Supabase</dt><dd id="diag-supabase">—</dd>
-          <dt>Suscripción</dt><dd id="diag-suscripcion">—</dd>
-        </dl>
-      </section>
+      <footer>
+        <a href="/diagnostico.html">Diagnóstico y notificaciones</a>
+      </footer>
     </main>
-    <script type="module" src="/src/main.js"></script>
+    <script type="module" src="/src/captura.js"></script>
   </body>
 </html>
