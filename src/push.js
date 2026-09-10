@@ -18,16 +18,36 @@ export async function suscribir(registro) {
 
   const datos = suscripcion.toJSON();
 
-  const { error } = await db.from('suscripciones').upsert(
-    {
-      endpoint: datos.endpoint,
-      datos,
-      etiqueta: navigator.userAgent.slice(0, 120),
-    },
-    { onConflict: 'endpoint' },
-  );
+  const fila = {
+    endpoint: datos.endpoint,
+    datos,
+    etiqueta: navigator.userAgent.slice(0, 120),
+  };
 
-  if (error) throw new Error(`no se pudo guardar la suscripción: ${error.message}`);
+  // Insertar y, si el endpoint ya existía, actualizar esa fila.
+  //
+  // Deliberadamente NO se usa upsert: cuando encuentra un conflicto, Postgres
+  // tiene que leer la fila existente, y eso exige permiso de SELECT. A la clave
+  // anon no se le da SELECT sobre esta tabla a propósito, para que el navegador
+  // no pueda listar los endpoints de todos los dispositivos. Un update filtrado
+  // por endpoint consigue lo mismo sin necesitar lectura.
+  const { error } = await db.from('suscripciones').insert(fila);
+
+  if (error) {
+    // 23505 = clave duplicada. Este aparato ya estaba dado de alta; se refrescan
+    // sus datos por si el navegador rotó las claves de cifrado.
+    if (error.code !== '23505') {
+      throw new Error(`no se pudo guardar la suscripción: ${error.message}`);
+    }
+    const { error: errorUpdate } = await db
+      .from('suscripciones')
+      .update({ datos: fila.datos, etiqueta: fila.etiqueta })
+      .eq('endpoint', datos.endpoint);
+    if (errorUpdate) {
+      throw new Error(`no se pudo refrescar la suscripción: ${errorUpdate.message}`);
+    }
+  }
+
   return datos.endpoint;
 }
 
