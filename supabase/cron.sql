@@ -1,22 +1,23 @@
 -- Programa el cron que dispara los recordatorios.
 --
--- NO se corre tal cual: hay que sustituir los dos marcadores de abajo. Y ojo,
--- este archivo va al repositorio, así que la clave NO se escribe aquí — se
--- guarda en Vault y el job la lee de ahí.
+-- Sustituir <REF> por el "Project ref" (Settings → General) y <ANON_KEY> por
+-- la clave anon (Settings → API).
 --
--- Sustituir:
---   <REF>         → el "Project ref" de Supabase (Settings → General)
---   <SERVICE_KEY> → la service_role key (Settings → API). Se usa una sola vez,
---                   en el insert a Vault; después queda cifrada.
+-- Sobre la autorización: se usa la clave ANON, no la service_role. La función
+-- solo exige que quien la llame traiga un JWT válido, y la anon lo es; sus
+-- permisos reales vienen de su propia variable SUPABASE_SERVICE_ROLE_KEY, no
+-- de quien la invoca. Además la anon ya es pública — viaja dentro del
+-- JavaScript de la web — así que escribirla aquí no expone nada nuevo.
+--
+-- El primer intento usaba la service_role guardada en Vault. La consulta a
+-- vault.decrypted_secrets devolvía vacío desde el contexto del job, la
+-- cabecera quedaba como "Bearer " y cada llamada respondía 401. Se ve en
+-- net._http_response, no en cron.job_run_details: ahí el job figura como
+-- "succeeded" porque lo único que hace es encolar la petición.
 
 create extension if not exists pg_cron;
 create extension if not exists pg_net;
 
--- Guardar la clave de servicio cifrada, para que el job no la lleve en claro.
-select vault.create_secret('<SERVICE_KEY>', 'clave_servicio', 'service_role key para el cron de MiAgenda');
-
--- Un tick por minuto. Es la granularidad más fina de pg_cron, y basta: un
--- recordatorio con hasta un minuto de holgura es aceptable para esta app.
 select cron.schedule(
   'miagenda-recordatorios',
   '* * * * *',
@@ -25,7 +26,7 @@ select cron.schedule(
     url     := 'https://<REF>.supabase.co/functions/v1/enviar-push',
     headers := jsonb_build_object(
       'Content-Type',  'application/json',
-      'Authorization', 'Bearer ' || (select decrypted_secret from vault.decrypted_secrets where name = 'clave_servicio')
+      'Authorization', 'Bearer <ANON_KEY>'
     ),
     body    := '{}'::jsonb,
     timeout_milliseconds := 8000
@@ -33,16 +34,20 @@ select cron.schedule(
   $$
 );
 
--- --- Comprobaciones útiles ---
+-- --- Comprobaciones ---
 --
--- Ver que el job existe:
+-- El job existe y está activo:
 --   select jobid, jobname, schedule, active from cron.job;
 --
--- Ver las últimas corridas del cron (si fallan, aquí sale por qué):
+-- El cron corre (esto solo dice que encoló la petición):
 --   select status, return_message, start_time
 --     from cron.job_run_details order by start_time desc limit 10;
 --
--- Ver el retraso real de los avisos — esta es LA medición de la fase 0:
+-- El resultado REAL de la llamada HTTP — aquí se ven los 401, 404, timeouts:
+--   select id, status_code, error_msg, timed_out, created
+--     from net._http_response order by created desc limit 10;
+--
+-- El retraso real de los avisos:
 --   select * from public.retrasos limit 20;
 --
 -- Apagarlo mientras se depura:
