@@ -1,5 +1,15 @@
 import { db, configurado, VAPID_PUBLICA, base64UrlABytes } from './supabase.js';
 
+// Compara la clave con la que se creó una suscripción existente contra la
+// actual. El navegador la devuelve como ArrayBuffer, así que se comparan bytes.
+function mismaClave(suscripcion, clave) {
+  const guardada = suscripcion.options?.applicationServerKey;
+  if (!guardada) return false;
+  const bytes = new Uint8Array(guardada);
+  if (bytes.length !== clave.length) return false;
+  return bytes.every((b, i) => b === clave[i]);
+}
+
 // Da de alta este dispositivo. Es idempotente: el navegador devuelve siempre el
 // mismo endpoint mientras no se revoque el permiso, y en la tabla ese campo es
 // único, así que volver a pulsar el botón no crea duplicados.
@@ -7,13 +17,24 @@ export async function suscribir(registro) {
   if (!configurado) throw new Error('faltan VITE_SUPABASE_URL / VITE_SUPABASE_ANON_KEY');
   if (!VAPID_PUBLICA) throw new Error('falta VITE_VAPID_PUBLIC_KEY');
 
-  const existente = await registro.pushManager.getSubscription();
+  const clave = base64UrlABytes(VAPID_PUBLICA);
+
+  // Una suscripción del navegador queda atada a la clave pública con la que se
+  // creó. Si esa clave cambia, la vieja sigue viva en el navegador pero el
+  // servidor ya no puede firmar para ella: el servicio de push responde 403.
+  // Borrarla de la base no basta — hay que desuscribir aquí.
+  let existente = await registro.pushManager.getSubscription();
+  if (existente && !mismaClave(existente, clave)) {
+    await existente.unsubscribe();
+    existente = null;
+  }
+
   const suscripcion =
     existente ??
     (await registro.pushManager.subscribe({
       // Obligatorio en Chrome: no se aceptan suscripciones sin payload visible.
       userVisibleOnly: true,
-      applicationServerKey: base64UrlABytes(VAPID_PUBLICA),
+      applicationServerKey: clave,
     }));
 
   const datos = suscripcion.toJSON();
