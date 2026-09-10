@@ -84,7 +84,7 @@ Si a las dos semanas sigo anotando en otro lado, la app no resolvió la fricció
 
 ## Decisiones tomadas
 
-- **La captura tiene que funcionar sin conexión** (10/09/2026). Si la app falla
+- **La captura funciona sin conexión** (hecho el 10/09/2026). Si la app falla
   al abrirse sin señal, se rompe la premisa: anotar tiene que ser siempre más
   fácil que no anotar. La nota se guarda en el dispositivo y sube cuando vuelve
   la conexión. Esto añade entre día y medio y dos días a la fase 1 — se acepta

@@ -405,3 +405,13 @@ a { color: var(--tenue); }
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }
+
+/* Lo capturado sin señal: se ve igual, pero se distingue. Ocultarlo sería
+   dejar al usuario sin saber si su nota existe; disfrazarlo de subido sería
+   mentirle. */
+.sin-subir { border-style: dashed; opacity: .85; }
+
+#lista li.sin-subir time,
+.gasto-fila.sin-subir .gasto-fecha {
+  color: #d8a657;
+}

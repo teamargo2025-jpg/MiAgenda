@@ -2,11 +2,13 @@
 //
 // El objetivo declarado del proyecto es que anotar cueste menos que no anotar,
 // así que aquí no se pide categoría, ni tablero, ni confirmación. Se escribe y
-// se guarda.
+// se guarda — con señal o sin ella.
 
 import { db, configurado } from './supabase.js';
 import { crearSelectorDeCuando, describirCuando } from './cuando.js';
 import { exigirSesion } from './sesion.js';
+import { encolar, nuevoId, soportaCola } from './cola.js';
+import { pendientesDe, sincronizarEnSegundoPlano } from './sincronizar.js';
 
 const form = document.getElementById('form');
 const texto = document.getElementById('texto');
@@ -40,25 +42,40 @@ const formatearFecha = (iso) =>
 async function pintarRecientes() {
   if (!configurado) return;
 
-  const { data, error } = await db
+  const { data } = await db
     .from('notas')
     .select('id, texto, creada_en, recordar_en')
     .order('creada_en', { ascending: false })
     .limit(5);
 
-  if (error || !data?.length) {
+  // Lo que aún no ha subido se muestra igual, y arriba. Capturar algo sin señal
+  // y no verlo en ningún sitio se siente exactamente como haberlo perdido.
+  const enCola = await pendientesDe('nota');
+
+  const todas = [
+    ...enCola.map((e) => ({ ...e, sinSubir: true })),
+    ...(data ?? []),
+  ].slice(0, 5);
+
+  if (!todas.length) {
     recientes.hidden = true;
     return;
   }
 
   lista.replaceChildren(
-    ...data.map((nota) => {
+    ...todas.map((nota) => {
       const li = document.createElement('li');
+      if (nota.sinSubir) li.classList.add('sin-subir');
+
       const cuerpo = document.createElement('span');
       cuerpo.className = 'texto';
       cuerpo.textContent = nota.texto;
+
       const marca = document.createElement('time');
-      if (nota.recordar_en) {
+      if (nota.sinSubir) {
+        marca.textContent = 'en el dispositivo';
+        marca.title = 'Se subirá cuando vuelva la conexión';
+      } else if (nota.recordar_en) {
         // Cuando hay recordatorio se muestra ese, no la fecha de creación: es
         // el dato que importa mirar de un vistazo.
         marca.dateTime = nota.recordar_en;
@@ -68,6 +85,7 @@ async function pintarRecientes() {
         marca.dateTime = nota.creada_en;
         marca.textContent = formatearFecha(nota.creada_en);
       }
+
       li.append(cuerpo, marca);
       return li;
     }),
@@ -96,31 +114,62 @@ form.addEventListener('submit', async (evento) => {
   decir('Guardando…');
 
   const recordarEn = cuando.valor();
-  const { error } = await db.from('notas').insert({
-    texto: contenido,
-    recordar_en: recordarEn,
-  });
+  // El id se genera aquí: la nota tiene identidad antes de existir en el
+  // servidor, así que reintentar la subida no puede duplicarla.
+  const fila = { id: nuevoId(), texto: contenido, recordar_en: recordarEn };
 
+  const guardado = await guardar(fila);
   boton.disabled = false;
 
-  if (error) {
-    // El texto NO se borra si falla: perder lo escrito es exactamente el
-    // problema que la app viene a resolver. Guardar sin conexión llega en su
-    // propio bloque; hasta entonces, al menos la nota sigue en pantalla.
-    decir(`No se pudo guardar: ${error.message}. El texto sigue aquí.`, 'falla');
-    return;
-  }
+  if (guardado === 'falla') return;
 
   texto.value = '';
   cuando.limpiar();
   texto.focus();
-  decir(recordarEn ? `Guardado. Te aviso ${describirCuando(recordarEn)}.` : 'Guardado.', 'ok');
-  // La sesión se comprueba antes de pedir nada a la base: sin ella las
-// políticas devolverían cero filas y la pantalla mentiría diciendo que no hay
-// notas, en vez de mandarte a entrar.
-await exigirSesion();
-pintarRecientes();
+
+  const base = recordarEn ? `Guardado. Te aviso ${describirCuando(recordarEn)}` : 'Guardado';
+  decir(
+    guardado === 'cola' ? `${base} — se subirá al volver la conexión.` : `${base}.`,
+    'ok',
+  );
+  pintarRecientes();
 });
+
+// Devuelve 'servidor', 'cola' o 'falla'.
+async function guardar(fila) {
+  if (navigator.onLine) {
+    const { error } = await db.from('notas').insert(fila);
+    if (!error) return 'servidor';
+
+    // Un error de datos (texto inválido, sesión caducada) no se arregla
+    // esperando, así que no se encola: se dice. Solo se guarda en local lo que
+    // falló por no poder llegar al servidor.
+    if (!esFalloDeRed(error)) {
+      decir(`No se pudo guardar: ${error.message}. El texto sigue aquí.`, 'falla');
+      return 'falla';
+    }
+  }
+
+  if (!soportaCola) {
+    decir('Sin conexión y este navegador no puede guardar en el dispositivo.', 'falla');
+    return 'falla';
+  }
+
+  try {
+    await encolar({ ...fila, tipo: 'nota' });
+    return 'cola';
+  } catch {
+    decir('No se pudo guardar en el dispositivo. El texto sigue aquí.', 'falla');
+    return 'falla';
+  }
+}
+
+// supabase-js no distingue el fallo de red del rechazo del servidor con un
+// código propio: cuando no hay respuesta, llega un TypeError de fetch sin
+// `code`. Es lo que se usa para separarlos.
+function esFalloDeRed(error) {
+  return !error.code || error.message === 'Failed to fetch';
+}
 
 // Ctrl+Enter (o Cmd+Enter) guarda sin levantar la mano del teclado. En el
 // celular el botón queda a mano; en la computadora esto ahorra el viaje al ratón.
@@ -140,4 +189,9 @@ if ('serviceWorker' in navigator) {
   });
 }
 
+// La sesión se comprueba antes de pedir nada a la base: sin ella las políticas
+// devolverían cero filas y la pantalla mentiría diciendo que no hay notas, en
+// vez de mandarte a entrar.
+await exigirSesion();
+sincronizarEnSegundoPlano(() => pintarRecientes());
 pintarRecientes();

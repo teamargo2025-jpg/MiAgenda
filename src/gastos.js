@@ -9,6 +9,8 @@
 
 import { db, configurado } from './supabase.js';
 import { exigirSesion } from './sesion.js';
+import { encolar, nuevoId, soportaCola } from './cola.js';
+import { pendientesDe, sincronizarEnSegundoPlano } from './sincronizar.js';
 
 const form = document.getElementById('form');
 const monto = document.getElementById('monto');
@@ -73,18 +75,23 @@ async function pintarTotal() {
     .select('monto')
     .gte('gastado_en', desde);
 
-  if (error) {
-    totalMes.textContent = '—';
-    return;
-  }
+  // Un error de red no impide calcular el total: lo pendiente en el
+  // dispositivo se suma igual, solo que sin lo que hay en el servidor.
+  const delServidor = error ? [] : (data ?? []);
 
   // La suma se hace aquí y no en la base a propósito: para un solo usuario son
   // decenas de filas al mes, y traerlas evita montar una vista o una función
   // que habría que mantener. Si algún día fueran miles, se mueve.
-  const total = (data ?? []).reduce((suma, g) => suma + Number(g.monto), 0);
+  // Lo pendiente de subir cuenta igual: un total que no incluye lo que acabas
+  // de anotar sin señal es un total equivocado, y encima justo cuando estás
+  // mirándolo para decidir si gastas más.
+  const enCola = (await pendientesDe('gasto')).filter((e) => e.gastado_en >= desde);
+
+  const filas = [...delServidor, ...enCola];
+  const total = filas.reduce((suma, g) => suma + Number(g.monto), 0);
   totalMes.textContent = soles(total);
 
-  const cuantos = data?.length ?? 0;
+  const cuantos = filas.length;
   totalDetalle.textContent =
     cuantos === 0 ? 'sin gastos aún' : `${cuantos} ${cuantos === 1 ? 'gasto' : 'gastos'}`;
 }
@@ -92,6 +99,7 @@ async function pintarTotal() {
 function crearFila(gasto) {
   const li = document.createElement('li');
   li.className = 'nota-fila gasto-fila';
+  if (gasto.sinSubir) li.classList.add('sin-subir');
 
   const cuerpo = document.createElement('div');
   cuerpo.className = 'nota-cuerpo';
@@ -102,7 +110,12 @@ function crearFila(gasto) {
 
   const cuando = document.createElement('span');
   cuando.className = 'gasto-fecha';
-  cuando.textContent = fechaCorta(gasto.gastado_en);
+  if (gasto.sinSubir) {
+    cuando.textContent = 'en el dispositivo';
+    cuando.title = 'Se subirá cuando vuelva la conexión';
+  } else {
+    cuando.textContent = fechaCorta(gasto.gastado_en);
+  }
 
   cuerpo.append(texto, cuando);
 
@@ -122,17 +135,22 @@ function crearFila(gasto) {
 }
 
 async function pintarTodo() {
-  let gastos;
+  // Si el servidor no responde se sigue adelante con lista vacía: lo que está
+  // en el dispositivo tiene que verse igual. Salir aquí dejaría la pantalla en
+  // blanco justo cuando acabas de anotar algo sin señal.
+  let gastos = [];
   try {
     gastos = await traerGastos();
   } catch (e) {
-    decir(`No se pudieron cargar: ${e.message}`, 'falla');
-    return;
+    if (navigator.onLine) decir(`No se pudieron cargar: ${e.message}`, 'falla');
   }
 
-  lista.replaceChildren(...gastos.map(crearFila));
-  seccionLista.hidden = gastos.length === 0;
-  vacio.hidden = gastos.length > 0;
+  const enCola = (await pendientesDe('gasto')).map((e) => ({ ...e, sinSubir: true }));
+  const todos = [...enCola, ...gastos];
+
+  lista.replaceChildren(...todos.map(crearFila));
+  seccionLista.hidden = todos.length === 0;
+  vacio.hidden = todos.length > 0;
   await pintarTotal();
 }
 
@@ -158,25 +176,41 @@ form.addEventListener('submit', async (evento) => {
   boton.disabled = true;
   decir('Guardando…');
 
-  const { error } = await db.from('gastos').insert({ monto: valor, descripcion: enQue });
-  boton.disabled = false;
+  const fila = {
+    id: nuevoId(),
+    monto: valor,
+    descripcion: enQue,
+    gastado_en: new Date().toISOString(),
+  };
 
-  if (error) {
-    // Igual que en las notas: lo escrito no se borra si falla.
-    decir(`No se pudo guardar: ${error.message}. Los datos siguen aquí.`, 'falla');
-    return;
-  }
+  const guardado = await guardarGasto(fila);
+  boton.disabled = false;
+  if (guardado === 'falla') return;
 
   monto.value = '';
   descripcion.value = '';
   monto.focus();
-  decir(`Anotado ${soles(valor)}.`, 'ok');
+  decir(
+    guardado === 'cola'
+      ? `Anotado ${soles(valor)} (se subirá al volver la conexión).`
+      : `Anotado ${soles(valor)}.`,
+    'ok',
+  );
   pintarTodo();
 });
 
 let deshacerPendiente = null;
 
 async function borrarGasto(gasto) {
+  // Un gasto que todavía está en la cola se quita de ahí: intentar borrarlo del
+  // servidor no haría nada, porque nunca llegó.
+  if (gasto.sinSubir) {
+    const { quitarDeCola } = await import('./cola.js');
+    await quitarDeCola(gasto.id);
+    pintarTodo();
+    return;
+  }
+
   const { error } = await db.from('gastos').delete().eq('id', gasto.id);
   if (error) {
     decir(`No se pudo borrar: ${error.message}`, 'falla');
@@ -215,11 +249,39 @@ monto.addEventListener('keydown', (e) => {
   }
 });
 
+// Devuelve 'servidor', 'cola' o 'falla'. Mismo criterio que en las notas: solo
+// se guarda en local lo que falló por no poder llegar al servidor; un error de
+// datos no se arregla esperando, así que se dice.
+async function guardarGasto(fila) {
+  if (navigator.onLine) {
+    const { error } = await db.from('gastos').insert(fila);
+    if (!error) return 'servidor';
+    if (error.code && error.message !== 'Failed to fetch') {
+      decir(`No se pudo guardar: ${error.message}. Los datos siguen aquí.`, 'falla');
+      return 'falla';
+    }
+  }
+
+  if (!soportaCola) {
+    decir('Sin conexión y este navegador no puede guardar en el dispositivo.', 'falla');
+    return 'falla';
+  }
+
+  try {
+    await encolar({ ...fila, tipo: 'gasto' });
+    return 'cola';
+  } catch {
+    decir('No se pudo guardar en el dispositivo. Los datos siguen aquí.', 'falla');
+    return 'falla';
+  }
+}
+
 // --- Arranque ---
 
 if (!configurado) {
   decir('Falta configurar Supabase — mira el diagnóstico.', 'falla');
 } else {
   await exigirSesion();
+  sincronizarEnSegundoPlano(() => pintarTodo());
   pintarTodo();
 }
