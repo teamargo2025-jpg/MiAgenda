@@ -37,6 +37,20 @@ const db = createClient(
   { auth: { persistSession: false } },
 );
 
+// La función se llama desde el navegador (botón "Pedir push al servidor") y
+// desde pg_cron. El navegador, antes de la petición real, manda un OPTIONS de
+// permiso porque enviamos cabeceras propias; si no se le contesta, la llamada
+// falla antes de salir. El cron no hace esa comprobación, y por eso el fallo
+// solo se ve desde la app.
+const CORS = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS',
+};
+
+const responder = (cuerpo: unknown, status = 200) =>
+  Response.json(cuerpo, { status, headers: CORS });
+
 // Un endpoint muerto responde 404 o 410: el navegador se desinstaló, se limpió
 // el sitio o caducó. Guardarlo no sirve de nada y hace que cada envío falle
 // para siempre, así que se borra.
@@ -75,6 +89,8 @@ async function enviarATodos(carga: Record<string, unknown>) {
 }
 
 Deno.serve(async (req) => {
+  if (req.method === 'OPTIONS') return new Response('ok', { headers: CORS });
+
   const disparadoEn = new Date();
 
   try {
@@ -95,7 +111,7 @@ Deno.serve(async (req) => {
         ok: enviados > 0,
         detalle: fallos.join(' | ') || null,
       });
-      return Response.json({ modo: 'prueba', enviados, fallos });
+      return responder({ modo: 'prueba', enviados, fallos });
     }
 
     // Modo normal: notas vencidas, aún no notificadas y sin marcar como hechas.
@@ -109,7 +125,7 @@ Deno.serve(async (req) => {
       .limit(20);
 
     if (error) throw error;
-    if (!pendientes?.length) return Response.json({ pendientes: 0 });
+    if (!pendientes?.length) return responder({ pendientes: 0 });
 
     const resultados = [];
     for (const nota of pendientes) {
@@ -142,7 +158,7 @@ Deno.serve(async (req) => {
       resultados.push({ nota: nota.id, enviados, fallos });
     }
 
-    return Response.json({ pendientes: pendientes.length, resultados });
+    return responder({ pendientes: pendientes.length, resultados });
   } catch (e) {
     const mensaje = e instanceof Error ? e.message : String(e);
     await db.from('envios').insert({
@@ -150,6 +166,6 @@ Deno.serve(async (req) => {
       ok: false,
       detalle: mensaje,
     });
-    return Response.json({ error: mensaje }, { status: 500 });
+    return responder({ error: mensaje }, 500);
   }
 });
