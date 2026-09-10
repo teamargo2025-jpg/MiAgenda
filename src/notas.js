@@ -49,23 +49,23 @@ function ordenarPendientes(notas) {
   return [...conHora, ...sinHora];
 }
 
-// --- Vasos ---
+// --- Temas ---
 
-const barraVasos = document.getElementById('vasos');
+const barraTemas = document.getElementById('temas');
 
-// null = todos. La cadena vacía es un valor real (el vaso "sin tema"), así que
+// null = todos. La cadena vacía es un valor real (el tema "sin tema"), así que
 // no puede usarse para decir "sin filtro".
-let vasoActivo = null;
+let temaActivo = null;
 
-function pintarVasos(notas) {
+function pintarTemas(notas) {
   const temas = temasDe(notas);
   const sinTema = notas.filter((n) => !n.tema).length;
 
-  // Con un solo vaso no hay nada que filtrar, y una fila de pestañas que no
+  // Con un solo tema no hay nada que filtrar, y una fila de pestañas que no
   // sirve para nada es ruido.
   if (temas.length === 0) {
-    barraVasos.hidden = true;
-    vasoActivo = null;
+    barraTemas.hidden = true;
+    temaActivo = null;
     return;
   }
 
@@ -74,36 +74,49 @@ function pintarVasos(notas) {
     ...temas.map((t) => ({ clave: t.tema, etiqueta: `#${t.tema}`, total: t.total })),
   ];
 
-  if (sinTema > 0) opciones.push({ clave: '', etiqueta: 'Sin vaso', total: sinTema });
+  if (sinTema > 0) opciones.push({ clave: '', etiqueta: 'Sin tema', total: sinTema });
 
-  // Si el vaso activo se quedó sin notas —se movió la última, o se borró—, el
+  // Si el tema activo se quedó sin notas —se movió la última, o se borró—, el
   // filtro volvería a una pantalla vacía sin explicar por qué. Se vuelve a
   // Todos.
-  if (vasoActivo !== null && !opciones.some((o) => o.clave === vasoActivo)) {
-    vasoActivo = null;
+  if (temaActivo !== null && !opciones.some((o) => o.clave === temaActivo)) {
+    temaActivo = null;
   }
 
-  barraVasos.replaceChildren(
+  // Al estar dentro de un tema aparece la vía directa para seguir añadiendo
+  // ahí. Es el gesto natural: se entra a mirar un tema y se acaba queriendo
+  // apuntar una más.
+  const entrar = document.createElement('a');
+  entrar.className = 'entrar-tema';
+  entrar.href = `/?tema=${encodeURIComponent(temaActivo ?? '')}`;
+  entrar.textContent = `+ Añadir a #${temaActivo}`;
+
+  barraTemas.replaceChildren(
     ...opciones.map((opcion) => {
       const boton = document.createElement('button');
       boton.type = 'button';
       boton.className = 'chip';
       boton.textContent = `${opcion.etiqueta} ${opcion.total}`;
-      boton.setAttribute('aria-pressed', String(opcion.clave === vasoActivo));
+      boton.setAttribute('aria-pressed', String(opcion.clave === temaActivo));
       boton.addEventListener('click', () => {
-        vasoActivo = opcion.clave === vasoActivo ? null : opcion.clave;
+        temaActivo = opcion.clave === temaActivo ? null : opcion.clave;
         pintarTodo();
       });
       return boton;
     }),
   );
-  barraVasos.hidden = false;
+
+  // Solo cuando hay un tema concreto activo: en "Todos" o en "Sin tema" no hay
+  // un destino al que añadir.
+  if (temaActivo) barraTemas.append(entrar);
+
+  barraTemas.hidden = false;
 }
 
-const enVasoActivo = (nota) => {
-  if (vasoActivo === null) return true;
-  if (vasoActivo === '') return !nota.tema;
-  return nota.tema === vasoActivo;
+const enTemaActivo = (nota) => {
+  if (temaActivo === null) return true;
+  if (temaActivo === '') return !nota.tema;
+  return nota.tema === temaActivo;
 };
 
 // --- Pintado ---
@@ -185,18 +198,18 @@ function crearFila(nota) {
   chips.append(alarma, formatoBoton);
 
   if (nota.tema) {
-    const vaso = document.createElement('button');
-    vaso.type = 'button';
-    vaso.className = 'nota-vaso';
-    vaso.textContent = `#${nota.tema}`;
-    vaso.setAttribute('aria-label', `Ver solo el vaso ${nota.tema}`);
-    // Tocar el vaso de una nota filtra por él: es el gesto que uno intenta
+    const tema = document.createElement('button');
+    tema.type = 'button';
+    tema.className = 'nota-tema';
+    tema.textContent = `#${nota.tema}`;
+    tema.setAttribute('aria-label', `Ver solo el tema ${nota.tema}`);
+    // Tocar el tema de una nota filtra por él: es el gesto que uno intenta
     // instintivamente al ver una etiqueta.
-    vaso.addEventListener('click', () => {
-      vasoActivo = nota.tema;
+    tema.addEventListener('click', () => {
+      temaActivo = nota.tema;
       pintarTodo();
     });
-    chips.append(vaso);
+    chips.append(tema);
   }
 
   cuerpo.append(texto, chips);
@@ -360,14 +373,14 @@ async function pintarTodo() {
   decir('');
 
   // Las pestañas se calculan sobre TODAS las notas, no sobre las filtradas: si
-  // no, al entrar en un vaso desaparecerían los demás y no habría forma de
+  // no, al entrar en un tema desaparecerían los demás y no habría forma de
   // volver.
-  pintarVasos(notas);
+  pintarTemas(notas);
 
-  const visibles = notas.filter(enVasoActivo);
+  const visibles = notas.filter(enTemaActivo);
   const pendientes = ordenarPendientes(visibles.filter((n) => !n.hecha));
   const hechas = visibles.filter((n) => n.hecha);
-  const sinSubir = (await pendientesDe('nota')).filter(enVasoActivo);
+  const sinSubir = (await pendientesDe('nota')).filter(enTemaActivo);
 
   listaPendientes.replaceChildren(
     ...sinSubir.map(crearFilaPendiente),
@@ -462,7 +475,7 @@ function editarTexto(nota, elemento) {
     }
 
     // Se vuelve a leer el tema: escribir "#otro" al editar mueve la nota de
-    // vaso, igual que al capturarla. Es la única forma de cambiarla de vaso, y
+    // tema, igual que al capturarla. Es la única forma de cambiarla de tema, y
     // funciona sin aprender nada nuevo.
     const { tema, limpio } = extraerTema(nuevo);
     const textoFinal = limpio || nuevo;

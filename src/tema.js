@@ -1,4 +1,4 @@
-// Temas: los "vasos" donde caen las notas.
+// Temas: cómo se agrupan las notas.
 //
 // El tema se escribe dentro de la propia nota, con almohadilla: "llamar al
 // dentista #salud". No hay pantalla de administrar temas ni lista que
@@ -18,7 +18,7 @@ export const SIN_TEMA = null;
 
 // Extrae el tema y devuelve el texto ya sin la etiqueta.
 //
-// Solo se coge el primero: una nota pertenece a un vaso, no a cinco. Permitir
+// Solo se coge el primero: una nota pertenece a un tema, no a cinco. Permitir
 // varios obligaría a decidir en cuál aparece al filtrar, y eso es justo el tipo
 // de pregunta que este proyecto evita.
 export function extraerTema(texto) {
@@ -38,7 +38,7 @@ export function extraerTema(texto) {
   return { tema, limpio };
 }
 
-// En minúsculas para que "#Salud" y "#salud" sean el mismo vaso. Los acentos se
+// En minúsculas para que "#Salud" y "#salud" sean el mismo tema. Los acentos se
 // conservan: "#diseño" y "#diseno" son palabras distintas y tratarlas como una
 // sola sorprendería más de lo que ayudaría.
 export function normalizarTema(bruto) {
@@ -47,7 +47,7 @@ export function normalizarTema(bruto) {
 
 // Los temas que existen ahora mismo, con cuántas notas tiene cada uno, de más
 // usado a menos. No hay tabla de temas: la lista se deduce de las notas, así
-// que un vaso vacío deja de existir sin que nadie lo borre.
+// que un tema vacío deja de existir sin que nadie lo borre.
 export function temasDe(notas) {
   const cuenta = new Map();
   for (const nota of notas) {
@@ -57,4 +57,36 @@ export function temasDe(notas) {
   return [...cuenta.entries()]
     .map(([tema, total]) => ({ tema, total }))
     .sort((a, b) => b.total - a.total || a.tema.localeCompare(b.tema, 'es'));
+}
+
+
+// --- Tema activo ---
+//
+// "Entrar" en un tema y seguir escribiendo sin repetir la etiqueta. Mientras
+// hay uno activo, lo que se capture cae ahí solo.
+//
+// Vive en el dispositivo y no en la base: es un contexto de trabajo —dónde
+// estoy escribiendo ahora mismo—, no un dato de la cuenta. Si mañana abro la
+// app desde la computadora, no tengo por qué seguir dentro del tema en el que
+// estaba con el celular.
+
+const CLAVE_ACTIVO = 'miagenda-tema-activo';
+
+export function leerTemaActivo() {
+  try {
+    return localStorage.getItem(CLAVE_ACTIVO) || null;
+  } catch {
+    // Almacenamiento bloqueado (ventana privada, permisos): se trabaja sin
+    // tema activo, que es el comportamiento por defecto de todos modos.
+    return null;
+  }
+}
+
+export function guardarTemaActivo(tema) {
+  try {
+    if (tema) localStorage.setItem(CLAVE_ACTIVO, tema);
+    else localStorage.removeItem(CLAVE_ACTIVO);
+  } catch {
+    // Ver arriba: no poder recordarlo no debe impedir capturar.
+  }
 }

@@ -491,8 +491,8 @@ body.captura #app {
 .nota-alarma:active, .nota-formato:active { transform: none; box-shadow: none; }
 
 /* Relleno y contorno significan cosas distintas: relleno es a qué PERTENECE la
-   nota (su vaso), contorno es un atributo suyo (cuándo avisa, qué formato
-   tiene). Antes la alarma futura salía rellena igual que el vaso y las dos
+   nota (su tema), contorno es un atributo suyo (cuándo avisa, qué formato
+   tiene). Antes la alarma futura salía rellena igual que el tema y las dos
    marcas se confundían. */
 .nota-alarma.activa, .nota-formato.completa {
   border-color: var(--tinta);
@@ -723,13 +723,13 @@ body.captura #app {
 .diag dd[data-estado="ok"] { color: var(--tinta); font-weight: 700; }
 .diag dd[data-estado="falla"] { color: var(--falla); font-weight: 700; }
 
-/* --- Vasos --- */
+/* --- Temas --- */
 
-.vasos { margin-bottom: var(--e4); }
+.temas { margin-bottom: var(--e4); }
 
-/* La marca del vaso se distingue de los otros chips de la fila por ir en
+/* La marca del tema se distingue de los otros chips de la fila por ir en
    negativo: es a lo que pertenece la nota, no un ajuste suyo. */
-.nota-vaso {
+.nota-tema {
   flex: none;
   min-height: 0;
   padding: 2px var(--e2);
@@ -742,12 +742,60 @@ body.captura #app {
   font-weight: 700;
 }
 
-.nota-vaso:active { transform: none; box-shadow: none; }
+.nota-tema:active { transform: none; box-shadow: none; }
 
-.vaso-detectado {
+.tema-detectado {
   margin: 0;
   font-family: var(--mono);
   font-size: .75rem;
   font-weight: 700;
   color: var(--tenue);
+}
+
+/* --- Tema activo --- */
+
+/* Se ve siempre mientras dura: un contexto invisible que decide dónde van tus
+   notas sería peor que no tenerlo. */
+.banda-tema {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--e3);
+  padding: var(--e2) var(--e3);
+  border: var(--borde);
+  background: var(--tinta);
+  color: var(--tarjeta);
+  font-family: var(--mono);
+  font-size: .75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.banda-tema button {
+  flex: none;
+  min-height: 0;
+  padding: 2px var(--e2);
+  border-color: var(--tarjeta);
+  background: transparent;
+  box-shadow: none;
+  color: var(--tarjeta);
+  font-family: var(--mono);
+  font-size: .68rem;
+  text-transform: uppercase;
+}
+
+.banda-tema button:active { transform: none; box-shadow: none; }
+
+.entrar-tema {
+  flex: none;
+  padding: var(--e2) var(--e3);
+  border: var(--borde);
+  background: var(--tinta);
+  color: var(--tarjeta);
+  font-family: var(--mono);
+  font-size: .72rem;
+  font-weight: 700;
+  letter-spacing: .04em;
+  text-decoration: none;
+  text-transform: uppercase;
 }

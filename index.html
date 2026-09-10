@@ -14,6 +14,14 @@
   </head>
   <body class="captura">
     <main id="app">
+      <!-- Mientras hay un tema activo, todo lo que se escriba cae ahí sin
+           repetir la etiqueta. Se ve siempre, porque un contexto invisible que
+           decide dónde van tus notas sería peor que no tenerlo. -->
+      <div id="banda-tema" class="banda-tema" hidden>
+        <span id="banda-tema-nombre"></span>
+        <button id="banda-tema-salir" type="button" aria-label="Salir del tema">Salir</button>
+      </div>
+
       <form id="form" autocomplete="off">
         <!-- Sin etiqueta, sin categorías, sin desplegables: el peaje de treinta
              segundos es justo lo que este proyecto viene a eliminar. -->
@@ -33,10 +41,10 @@
             <span class="visualmente-oculto">Dictar</span>
           </button>
         </div>
-        <!-- Confirma el vaso detectado mientras escribes. Sin esto, escribir
+        <!-- Confirma el tema detectado mientras escribes. Sin esto, escribir
              "#salud" y ver que la etiqueta desaparece al guardar parecería que
              se perdió algo. -->
-        <p id="vaso" class="vaso-detectado" hidden></p>
+        <p id="tema" class="tema-detectado" hidden></p>
 
         <!-- El formato solo aparece cuando la nota tiene más de una línea:
              para una frase suelta no significa nada, y mostrarlo siempre sería

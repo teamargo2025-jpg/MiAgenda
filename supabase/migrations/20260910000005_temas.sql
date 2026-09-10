@@ -1,4 +1,4 @@
--- Temas: los "vasos" donde caen las notas.
+-- Temas: los "temas" donde caen las notas.
 --
 -- Una columna en `notas`, no una tabla de temas con su clave foránea.
 --
@@ -16,7 +16,7 @@
 alter table public.notas
   add column if not exists tema text;
 
--- La consulta habitual es "las notas de este vaso", y la lista de vasos sale de
+-- La consulta habitual es "las notas de este tema", y la lista de temas sale de
 -- un `select distinct tema`. El índice parcial sirve a las dos y se salta las
 -- notas sin clasificar, que son mayoría al principio.
 create index if not exists notas_tema_idx

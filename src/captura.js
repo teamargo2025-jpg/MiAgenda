@@ -11,7 +11,7 @@ import { encolar, nuevoId, soportaCola } from './cola.js';
 import { pendientesDe, sincronizarEnSegundoPlano } from './sincronizar.js';
 import { crearDictado, soportaVoz } from './voz.js';
 import { convertirA, lineasDe } from './formato.js';
-import { extraerTema } from './tema.js';
+import { extraerTema, leerTemaActivo, guardarTemaActivo } from './tema.js';
 
 const form = document.getElementById('form');
 const texto = document.getElementById('texto');
@@ -32,15 +32,46 @@ const decir = (mensaje, estado = 'neutro') => {
 
 // --- Tema ---
 
-const avisoVaso = document.getElementById('vaso');
+const avisoTema = document.getElementById('tema');
+const banda = document.getElementById('banda-tema');
+const bandaNombre = document.getElementById('banda-tema-nombre');
+const bandaSalir = document.getElementById('banda-tema-salir');
+
+// Se puede entrar a un tema desde la lista (…/?tema=salud) o venir de una
+// sesión anterior. El parámetro manda: es una acción que se acaba de hacer.
+const temaDeLaUrl = new URLSearchParams(location.search).get('tema');
+let temaActivo = temaDeLaUrl || leerTemaActivo();
+if (temaDeLaUrl) {
+  guardarTemaActivo(temaDeLaUrl);
+  // Se limpia la URL para que recargar o compartir el enlace no vuelva a
+  // meterte en un tema del que ya saliste.
+  history.replaceState(null, '', location.pathname);
+}
+
+const pintarBanda = () => {
+  banda.hidden = !temaActivo;
+  if (temaActivo) bandaNombre.textContent = `Añadiendo a #${temaActivo}`;
+};
+
+bandaSalir.addEventListener('click', () => {
+  temaActivo = null;
+  guardarTemaActivo(null);
+  pintarBanda();
+  texto.focus();
+});
+
+pintarBanda();
 
 // Se muestra en cuanto se teclea la almohadilla. La etiqueta se quita del texto
 // al guardar, así que verla reconocida antes evita la sensación de que algo se
 // borró solo.
-const repasarVaso = () => {
+const repasarTema = () => {
   const { tema } = extraerTema(texto.value);
-  avisoVaso.hidden = !tema;
-  if (tema) avisoVaso.textContent = `→ vaso #${tema}`;
+  // Escribir una etiqueta gana al tema activo: lo explícito manda sobre lo
+  // heredado. Solo se avisa si de verdad cambia el destino.
+  const distinto = tema && tema !== temaActivo;
+  avisoTema.hidden = !distinto;
+  if (distinto) avisoTema.textContent = `→ tema #${tema}`;
 };
 
 // --- Formato ---
@@ -78,7 +109,7 @@ for (const chip of chipsFormato) {
 
 texto.addEventListener('input', () => {
   repasarFormato();
-  repasarVaso();
+  repasarTema();
 });
 
 // --- Dictado ---
@@ -95,7 +126,7 @@ const dictado = crearDictado({
     const separador = textoPrevio && !textoPrevio.endsWith(' ') ? ' ' : '';
     texto.value = textoPrevio + separador + transcrito;
     repasarFormato();
-    repasarVaso();
+    repasarTema();
   },
   alEstado(estado) {
     const escuchando = estado === 'escuchando';
@@ -214,7 +245,8 @@ form.addEventListener('submit', async (evento) => {
   const recordarEn = cuando.valor();
   // El tema se separa ANTES de dar formato: si no, "#salud" acabaría
   // convertido en una línea más de la lista o en una casilla de la checklist.
-  const { tema, limpio } = extraerTema(contenido);
+  const { tema: temaEscrito, limpio } = extraerTema(contenido);
+  const tema = temaEscrito ?? temaActivo;
 
   if (!limpio) {
     decir('Eso es solo una etiqueta. Escribe también qué quieres anotar.', 'falla');
@@ -243,14 +275,14 @@ form.addEventListener('submit', async (evento) => {
   formatoElegido = 'texto';
   pintarFormato();
   repasarFormato();
-  repasarVaso();
+  repasarTema();
   cuando.limpiar();
   texto.focus();
 
-  const enVaso = tema ? ` en #${tema}` : '';
+  const enTema = tema ? ` en #${tema}` : '';
   const base = recordarEn
-    ? `Guardado${enVaso}. Te aviso ${describirCuando(recordarEn)}`
-    : `Guardado${enVaso}`;
+    ? `Guardado${enTema}. Te aviso ${describirCuando(recordarEn)}`
+    : `Guardado${enTema}`;
   decir(
     guardado === 'cola' ? `${base} — se subirá al volver la conexión.` : `${base}.`,
     'ok',
