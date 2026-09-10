@@ -208,7 +208,7 @@ async function pintarRecientes() {
         // Cuando hay recordatorio se muestra ese, no la fecha de creación: es
         // el dato que importa mirar de un vistazo.
         marca.dateTime = nota.recordar_en;
-        marca.textContent = `⏰ ${describirCuando(nota.recordar_en)}`;
+        marca.textContent = `Aviso ${describirCuando(nota.recordar_en)}`;
         marca.classList.add('con-alarma');
       } else {
         marca.dateTime = nota.creada_en;
@@ -262,6 +262,10 @@ form.addEventListener('submit', async (evento) => {
     recordar_en: recordarEn,
     formato: formatoElegido,
     tema,
+    // La hora la pone el dispositivo y no el servidor: si la nota se captura
+    // sin señal y sube tres horas después, la fecha correcta es cuando se te
+    // ocurrió, no cuando hubo cobertura.
+    creada_en: new Date().toISOString(),
   };
 
   const guardado = await guardar(fila);

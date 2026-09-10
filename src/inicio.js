@@ -13,7 +13,7 @@ import { db, configurado } from './supabase.js';
 import { exigirSesion } from './sesion.js';
 import { pendientesDe, sincronizarEnSegundoPlano } from './sincronizar.js';
 import { describirCuando } from './cuando.js';
-import { resumen, delMes } from './finanzas.js';
+import { resumen, delMes } from './cuentas.js';
 
 const estado = document.getElementById('estado');
 const seccionHoy = document.getElementById('seccion-hoy');

@@ -84,6 +84,19 @@ Si a las dos semanas sigo anotando en otro lado, la app no resolvió la fricció
 
 ## Decisiones tomadas
 
+- **Sección Gym, empezando por lo que se usa de pie** (10/09/2026). Será un
+  asistente de entrenamiento —rutinas, ejercicios, peso levantado—, pero eso
+  necesita modelo de datos y pantallas de administración. Lo primero es el
+  cronómetro de descanso y la cuenta de series, que no necesitan nada y sirven
+  el próximo día que pise el gimnasio. No toca la base ni exige sesión: es una
+  herramienta de mano, funciona sin señal.
+- **"Dinero" pasa a llamarse "Finanzas"** (10/09/2026).
+- **Todas las notas muestran cuándo se crearon.** Una nota sin fecha es un
+  trozo de texto suelto; saber cuándo se te ocurrió es la mitad de lo que la
+  hace entendible tres semanas después. La hora la pone el dispositivo al
+  capturar, no el servidor al recibir: si se captura sin señal y sube tres horas
+  después, la fecha correcta es cuando se te ocurrió.
+
 - **Se entra a un lobby, no al cuadro de texto** (10/09/2026). Abrir la app y
   encontrarse el teclado levantándose es brusco: pide antes de saludar. Pero un
   lobby que solo saluda es un toque de más, así que se gana el sitio contando lo

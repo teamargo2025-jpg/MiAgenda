@@ -33,10 +33,18 @@ const SECCIONES = [
       '<path d="M9 6h12"/><path d="M9 12h12"/><path d="M9 18h12"/><path d="M4 6h.01"/><path d="M4 12h.01"/><path d="M4 18h.01"/>',
   },
   {
-    id: 'dinero',
-    href: '/dinero.html',
-    etiqueta: 'Dinero',
+    id: 'finanzas',
+    href: '/finanzas.html',
+    etiqueta: 'Finanzas',
     icono: '<rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="2.5"/>',
+  },
+  {
+    id: 'gym',
+    href: '/gym.html',
+    etiqueta: 'Gym',
+    // Una barra con discos: se reconoce de un vistazo a tamaño de pestaña,
+    // que es lo único que se le pide a un icono aquí.
+    icono: '<path d="M6.5 6.5v11"/><path d="M17.5 6.5v11"/><path d="M3.5 9.5v5"/><path d="M20.5 9.5v5"/><path d="M6.5 12h11"/>',
   },
 ];
 
@@ -47,8 +55,9 @@ const PAGINAS = {
   'index.html': 'inicio',
   'capturar.html': 'capturar',
   'notas.html': 'notas',
-  'dinero.html': 'dinero',
-  'analisis.html': 'dinero',
+  'finanzas.html': 'finanzas',
+  'analisis.html': 'finanzas',
+  'gym.html': 'gym',
 };
 
 const barra = (actual) => `    <nav class="barra-nav" aria-label="Secciones">

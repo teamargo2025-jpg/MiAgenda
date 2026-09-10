@@ -1030,3 +1030,86 @@ body.captura #app {
   text-transform: uppercase;
   color: var(--tenue);
 }
+
+.nota-creada {
+  font-family: var(--mono);
+  font-size: .7rem;
+  color: var(--tenue);
+  white-space: nowrap;
+}
+
+/* --- Gym --- */
+
+/* El cronómetro se mira de reojo, sudando, a metro y medio del suelo con el
+   celular apoyado en el banco. Por eso ocupa lo que ocupa. */
+.crono {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--e2);
+  margin-bottom: var(--e5);
+  padding: var(--e5) var(--e4);
+  border: var(--borde);
+  background: var(--tarjeta);
+  box-shadow: var(--relieve);
+}
+
+.crono-etiqueta {
+  font-family: var(--mono);
+  font-size: .72rem;
+  font-weight: 700;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--tenue);
+}
+
+.crono-cifra {
+  font-family: var(--mono);
+  font-size: 4rem;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -.04em;
+  font-variant-numeric: tabular-nums;
+}
+
+.crono-botones { width: 100%; margin-top: var(--e2); }
+
+.crono-botones button { width: 100%; }
+
+/* Al acabar, la tarjeta entera se invierte: es una señal que se ve desde lejos
+   y sin leer, que es justo lo que hace falta cuando estás a mitad de otra cosa. */
+.crono[data-estado="terminado"] {
+  background: var(--tinta);
+  color: var(--tarjeta);
+}
+
+.crono[data-estado="terminado"] .crono-etiqueta { color: var(--tarjeta); }
+
+.crono[data-estado="terminado"] .crono-botones button {
+  background: var(--tarjeta);
+  color: var(--tinta);
+  box-shadow: 4px 4px 0 var(--tinta), 4px 4px 0 var(--linea) var(--tarjeta);
+}
+
+.contador {
+  display: grid;
+  grid-template-columns: var(--tocable) 1fr var(--tocable);
+  align-items: center;
+  gap: var(--e4);
+  margin-bottom: var(--e3);
+}
+
+.contador button {
+  width: var(--tocable);
+  padding: 0;
+  font-size: 1.5rem;
+  line-height: 1;
+}
+
+.contador strong {
+  text-align: center;
+  font-family: var(--mono);
+  font-size: 2.4rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}

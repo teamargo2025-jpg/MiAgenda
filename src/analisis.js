@@ -14,7 +14,7 @@ import {
   variacion,
   delMes,
   mesAnteriorA,
-} from './finanzas.js';
+} from './cuentas.js';
 
 const estado = document.getElementById('estado');
 const contenido = document.getElementById('contenido');

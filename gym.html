@@ -5,52 +5,57 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <meta name="theme-color" content="#ebebeb" media="(prefers-color-scheme: light)" />
     <meta name="theme-color" content="#0c0c0c" media="(prefers-color-scheme: dark)" />
-    <title>Mis notas — MiAgenda</title>
+    <title>Gym — MiAgenda</title>
     <link rel="manifest" href="/manifest.webmanifest" />
     <link rel="icon" href="/icono-192.png" />
     <link rel="apple-touch-icon" href="/icono-192.png" />
     <link rel="stylesheet" href="/src/style.css" />
   </head>
-  <body class="notas">
+  <body class="gym">
     <main id="app">
       <header class="barra">
-        <h1>Mis notas</h1>
-        <div class="acciones-barra">
-          <!-- El diagnóstico es donde se suscribe un dispositivo nuevo a las
-               notificaciones. No estorba en la captura, pero tiene que ser
-               alcanzable sin escribir la URL a mano. -->
-          <a class="enlace-discreto" href="/diagnostico.html">Ajustes</a>
-          <button id="salir" type="button" class="salir">Salir</button>
-        </div>
+        <h1>Gym</h1>
+        <button id="reiniciar" type="button" class="salir">Reiniciar</button>
       </header>
 
-      <!-- Las pestañas se generan desde las notas: no hay lista de temas que
-           mantener, así que un tema vacío desaparece solo. -->
-      <nav id="temas" class="chips temas" hidden aria-label="Filtrar por tema"></nav>
-
-      <p id="estado" class="resultado">Cargando…</p>
-
-      <section id="seccion-pendientes" hidden>
-        <h2>Pendientes</h2>
-        <ul id="pendientes" class="notas-lista"></ul>
-      </section>
-
-      <section id="seccion-hechas" hidden>
-        <div class="cabecera-seccion">
-          <h2>Hechas</h2>
-          <button id="vaciar-hechas" type="button" class="salir" hidden>Borrar</button>
+      <!-- El cronómetro ocupa la pantalla porque es lo que se mira de reojo,
+           sudando, a metro y medio del suelo mientras el celular está apoyado
+           en el banco. -->
+      <section class="crono" id="crono" data-estado="parado">
+        <span class="crono-etiqueta" id="crono-etiqueta">Descanso</span>
+        <strong class="crono-cifra" id="crono-cifra">0:00</strong>
+        <div class="crono-botones">
+          <button id="crono-accion" type="button">Empezar descanso</button>
         </div>
-        <ul id="hechas" class="notas-lista"></ul>
       </section>
 
-      <p id="vacio" hidden class="nota">
-        Todavía no hay nada. <a href="/">Captura algo</a>.
+      <section class="panel">
+        <h2>Cuánto descanso</h2>
+        <div class="chips" role="group" aria-label="Duración del descanso">
+          <button type="button" class="chip" data-segundos="60">1:00</button>
+          <button type="button" class="chip" data-segundos="90" aria-pressed="true">1:30</button>
+          <button type="button" class="chip" data-segundos="120">2:00</button>
+          <button type="button" class="chip" data-segundos="180">3:00</button>
+          <button type="button" class="chip" data-segundos="300">5:00</button>
+        </div>
+      </section>
+
+      <section class="panel">
+        <h2>Series de hoy</h2>
+        <div class="contador">
+          <button id="menos" type="button" aria-label="Quitar una serie">−</button>
+          <strong id="series">0</strong>
+          <button id="mas" type="button" aria-label="Añadir una serie">+</button>
+        </div>
+        <p id="lectura-series" class="lectura"></p>
+      </section>
+
+      <p class="nota">
+        Rutinas guardadas, ejercicios y peso levantado llegarán después. Esto es
+        lo que sirve con el celular en la mano entre series.
       </p>
     </main>
 
-    <!-- Barra fija abajo: en el celular es donde llega el pulgar sin recolocar
-         la mano. Los enlaces en el pie obligaban a estirarse hasta arriba o a
-         hacer scroll, que para moverse entre tres pantallas es demasiado. -->
     <nav class="barra-nav" aria-label="Secciones">
       <a href="/" class="pestana">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V20h14V9.5"/></svg>
@@ -60,7 +65,7 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
         <span>Capturar</span>
       </a>
-      <a href="/notas.html" class="pestana" aria-current="page">
+      <a href="/notas.html" class="pestana">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6h12"/><path d="M9 12h12"/><path d="M9 18h12"/><path d="M4 6h.01"/><path d="M4 12h.01"/><path d="M4 18h.01"/></svg>
         <span>Notas</span>
       </a>
@@ -68,20 +73,12 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="2.5"/></svg>
         <span>Finanzas</span>
       </a>
-      <a href="/gym.html" class="pestana">
+      <a href="/gym.html" class="pestana" aria-current="page">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6.5 6.5v11"/><path d="M17.5 6.5v11"/><path d="M3.5 9.5v5"/><path d="M20.5 9.5v5"/><path d="M6.5 12h11"/></svg>
         <span>Gym</span>
       </a>
     </nav>
 
-
-    <!-- El aviso de borrado vive fuera de la lista para que no se vaya con la
-         fila que acaba de desaparecer. -->
-    <div id="deshacer" class="deshacer" hidden>
-      <span id="deshacer-texto"></span>
-      <button id="deshacer-boton" type="button">Deshacer</button>
-    </div>
-
-    <script type="module" src="/src/notas.js"></script>
+    <script type="module" src="/src/gym.js"></script>
   </body>
 </html>

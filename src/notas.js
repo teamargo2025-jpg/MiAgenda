@@ -22,6 +22,34 @@ const barraDeshacer = document.getElementById('deshacer');
 const textoDeshacer = document.getElementById('deshacer-texto');
 const botonDeshacer = document.getElementById('deshacer-boton');
 
+// Fecha y hora de creación, siempre visibles. Una nota sin fecha es un trozo
+// de texto suelto: saber cuándo se te ocurrió es la mitad de lo que la hace
+// entendible tres semanas después.
+const creadaEnTexto = (iso) => {
+  const cuando = new Date(iso);
+  const hoy = new Date();
+  const ayer = new Date(hoy);
+  ayer.setDate(hoy.getDate() - 1);
+
+  const hora = cuando.toLocaleTimeString('es-PE', {
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+  });
+
+  // Para lo reciente, "hoy 14:32" se sitúa más rápido que "10 set., 14:32".
+  const mismoDia = (a, b) => a.toDateString() === b.toDateString();
+  if (mismoDia(cuando, hoy)) return `hoy ${hora}`;
+  if (mismoDia(cuando, ayer)) return `ayer ${hora}`;
+
+  const mismoAnio = cuando.getFullYear() === hoy.getFullYear();
+  return cuando.toLocaleDateString('es-PE', {
+    day: 'numeric',
+    month: 'short',
+    ...(mismoAnio ? {} : { year: 'numeric' }),
+  }) + ` ${hora}`;
+};
+
 const decir = (mensaje, tipo = 'neutro') => {
   estado.textContent = mensaje;
   estado.dataset.estado = tipo;
@@ -136,14 +164,28 @@ function crearFilaPendiente(nota) {
   // se puede comprobar.
   const texto = crearCuerpo(nota, { soloLectura: true });
 
+  const pie = document.createElement('div');
+  pie.className = 'nota-chips';
+
+  // La hora de creación se conoce aunque no haya subido: la puso el dispositivo
+  // al capturarla.
+  if (nota.creada_en) {
+    const creada = document.createElement('time');
+    creada.className = 'nota-creada';
+    creada.dateTime = nota.creada_en;
+    creada.textContent = creadaEnTexto(nota.creada_en);
+    pie.append(creada);
+  }
+
   const marca = document.createElement('span');
   marca.className = 'marca-espera';
   marca.textContent = nota.recordar_en
-    ? `en el dispositivo · ⏰ ${describirCuando(nota.recordar_en)}`
+    ? `en el dispositivo · aviso ${describirCuando(nota.recordar_en)}`
     : 'en el dispositivo';
   marca.title = 'Se subirá cuando vuelva la conexión';
+  pie.append(marca);
 
-  cuerpo.append(texto, marca);
+  cuerpo.append(texto, pie);
 
   const borrar = document.createElement('button');
   borrar.type = 'button';
@@ -193,9 +235,14 @@ function crearFila(nota) {
     cambiarFormato(nota, FORMATOS[(actual + 1) % FORMATOS.length]);
   });
 
+  const creada = document.createElement('time');
+  creada.className = 'nota-creada';
+  creada.dateTime = nota.creada_en;
+  creada.textContent = creadaEnTexto(nota.creada_en);
+
   const chips = document.createElement('div');
   chips.className = 'nota-chips';
-  chips.append(alarma, formatoBoton);
+  chips.append(creada, alarma, formatoBoton);
 
   if (nota.tema) {
     const tema = document.createElement('button');
@@ -354,7 +401,7 @@ function pintarAlarma(boton, nota) {
     return;
   }
   const vencida = new Date(nota.recordar_en) <= new Date();
-  boton.textContent = `⏰ ${describirCuando(nota.recordar_en)}`;
+  boton.textContent = `Aviso ${describirCuando(nota.recordar_en)}`;
   boton.classList.toggle('vencida', vencida && !nota.notificada_en);
   boton.classList.toggle('activa', !vencida);
 }

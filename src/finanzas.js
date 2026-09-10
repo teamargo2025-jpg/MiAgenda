@@ -1,113 +1,322 @@
-// Los números del apartado financiero.
+// Anotar dinero: lo que sale y lo que entra.
 //
-// Todo el cálculo vive aquí, separado de la pantalla, porque es lo único de la
-// app donde equivocarse no se nota: una lista mal ordenada salta a la vista, un
-// promedio mal calculado se cree.
+// Mismo criterio que la captura de notas: si apuntar cuesta, no se apunta, y un
+// registro incompleto de gastos no sirve para nada — peor aún, engaña, porque
+// los totales parecen datos.
 //
-// Sin IA: son sumas, porcentajes y una regla de tres. La gracia no está en el
-// cálculo sino en elegir qué cuatro números merecen mirarse.
+// La categoría se escribe dentro de la descripción con almohadilla ("almuerzo
+// #comida"), igual que los temas de las notas. Sin lista de categorías que
+// mantener y sin elegir una antes de apuntar.
 
-// El dinero se maneja en céntimos enteros para sumar. Sumar decimales en coma
-// flotante da 0.1 + 0.2 = 0.30000000000000004, y ese error crece con cada
-// apunte hasta aparecer en un total que no cuadra con lo anotado.
-const aCentimos = (monto) => Math.round(Number(monto) * 100);
-const aSoles = (centimos) => centimos / 100;
+import { db, configurado } from './supabase.js';
+import { exigirSesion } from './sesion.js';
+import { encolar, nuevoId, soportaCola, quitarDeCola } from './cola.js';
+import { pendientesDe, sincronizarEnSegundoPlano } from './sincronizar.js';
+import { extraerTema } from './tema.js';
+import { resumen, delMes } from './cuentas.js';
 
-export function limitesDelMes(referencia = new Date()) {
-  const desde = new Date(referencia.getFullYear(), referencia.getMonth(), 1);
-  const hasta = new Date(referencia.getFullYear(), referencia.getMonth() + 1, 1);
-  return { desde, hasta };
+const form = document.getElementById('form');
+const monto = document.getElementById('monto');
+const descripcion = document.getElementById('descripcion');
+const boton = document.getElementById('guardar');
+const aviso = document.getElementById('aviso');
+const avisoCategoria = document.getElementById('categoria-detectada');
+const seccionLista = document.getElementById('seccion-lista');
+const lista = document.getElementById('lista');
+const vacio = document.getElementById('vacio');
+const barraDeshacer = document.getElementById('deshacer');
+const textoDeshacer = document.getElementById('deshacer-texto');
+const botonDeshacer = document.getElementById('deshacer-boton');
+
+const cifras = {
+  balance: document.getElementById('balance'),
+  ingresos: document.getElementById('ingresos'),
+  gastos: document.getElementById('gastos'),
+};
+
+const decir = (mensaje, estado = 'neutro') => {
+  aviso.textContent = mensaje;
+  aviso.dataset.estado = estado;
+};
+
+const soles = (n) =>
+  new Intl.NumberFormat('es-PE', {
+    style: 'currency',
+    currency: 'PEN',
+    minimumFractionDigits: 2,
+  }).format(n);
+
+const fechaCorta = (iso) =>
+  new Date(iso).toLocaleDateString('es-PE', { day: 'numeric', month: 'short' });
+
+// Acepta "18", "18.50" y "18,50": en el teclado del celular la coma sale antes
+// que el punto, y rechazar por eso sería absurdo.
+function leerMonto(texto) {
+  const limpio = texto.trim().replace(',', '.');
+  if (!/^\d+(\.\d{1,2})?$/.test(limpio)) return null;
+  const valor = Number(limpio);
+  return valor > 0 ? valor : null;
 }
 
-export function mesAnteriorA(referencia = new Date()) {
-  return new Date(referencia.getFullYear(), referencia.getMonth() - 1, 1);
-}
+// --- Tipo ---
 
-export function delMes(movimientos, referencia = new Date()) {
-  const { desde, hasta } = limitesDelMes(referencia);
-  return movimientos.filter((m) => {
-    const cuando = new Date(m.ocurrido_en);
-    return cuando >= desde && cuando < hasta;
+const chipsTipo = [...form.querySelectorAll('[data-tipo]')];
+let tipoElegido = 'gasto';
+
+const pintarTipo = () => {
+  for (const chip of chipsTipo) {
+    chip.setAttribute('aria-pressed', String(chip.dataset.tipo === tipoElegido));
+  }
+  form.dataset.tipo = tipoElegido;
+};
+
+for (const chip of chipsTipo) {
+  chip.addEventListener('click', () => {
+    tipoElegido = chip.dataset.tipo;
+    pintarTipo();
+    monto.focus();
   });
 }
 
-export function resumen(movimientos) {
-  let ingresos = 0;
-  let gastos = 0;
+pintarTipo();
 
-  for (const m of movimientos) {
-    const centimos = aCentimos(m.monto);
-    if (m.tipo === 'ingreso') ingresos += centimos;
-    else gastos += centimos;
+// --- Categoría ---
+
+descripcion.addEventListener('input', () => {
+  const { tema } = extraerTema(descripcion.value);
+  avisoCategoria.hidden = !tema;
+  if (tema) avisoCategoria.textContent = `→ categoría #${tema}`;
+});
+
+// --- Datos ---
+
+async function traerMovimientos() {
+  const { data, error } = await db
+    .from('movimientos')
+    .select('id, tipo, monto, descripcion, categoria, ocurrido_en')
+    .order('ocurrido_en', { ascending: false })
+    .limit(60);
+
+  if (error) throw new Error(error.message);
+  return data ?? [];
+}
+
+function pintarResumen(movimientos) {
+  const { ingresos, gastos, balance } = resumen(delMes(movimientos));
+
+  cifras.ingresos.textContent = soles(ingresos);
+  cifras.gastos.textContent = soles(gastos);
+  cifras.balance.textContent = soles(balance);
+  // Un balance negativo no se marca solo con el signo: el menos delante de una
+  // cifra se pasa por alto justo cuando más importa verlo.
+  cifras.balance.dataset.negativo = String(balance < 0);
+}
+
+function crearFila(movimiento) {
+  const li = document.createElement('li');
+  li.className = 'nota-fila gasto-fila';
+  li.dataset.tipo = movimiento.tipo;
+  if (movimiento.sinSubir) li.classList.add('sin-subir');
+
+  const cuerpo = document.createElement('div');
+  cuerpo.className = 'nota-cuerpo';
+
+  const texto = document.createElement('div');
+  texto.className = 'nota-texto';
+  texto.textContent = movimiento.descripcion;
+
+  const pie = document.createElement('div');
+  pie.className = 'nota-chips';
+
+  const cuando = document.createElement('span');
+  cuando.className = movimiento.sinSubir ? 'marca-espera' : 'gasto-fecha';
+  cuando.textContent = movimiento.sinSubir
+    ? 'en el dispositivo'
+    : fechaCorta(movimiento.ocurrido_en);
+  pie.append(cuando);
+
+  if (movimiento.categoria) {
+    const etiqueta = document.createElement('span');
+    etiqueta.className = 'nota-tema';
+    etiqueta.textContent = `#${movimiento.categoria}`;
+    pie.append(etiqueta);
   }
 
-  return {
-    ingresos: aSoles(ingresos),
-    gastos: aSoles(gastos),
-    balance: aSoles(ingresos - gastos),
-    // Qué proporción de lo que entró se ha ido. Es el número que dice si el mes
-    // va bien, mejor que el balance a secas: 200 de balance significa cosas muy
-    // distintas si ingresaste 300 o 3000.
-    proporcionGastada: ingresos > 0 ? gastos / ingresos : null,
-  };
+  cuerpo.append(texto, pie);
+
+  const importe = document.createElement('strong');
+  importe.className = 'gasto-monto';
+  // El signo hace evidente de un vistazo en qué dirección va el dinero, sin
+  // tener que fijarse en el color ni en la posición.
+  const signo = movimiento.tipo === 'ingreso' ? '+' : '−';
+  importe.textContent = `${signo} ${soles(Number(movimiento.monto))}`;
+
+  const borrar = document.createElement('button');
+  borrar.type = 'button';
+  borrar.className = 'nota-borrar';
+  borrar.textContent = 'x';
+  borrar.setAttribute('aria-label', 'Borrar movimiento');
+  borrar.addEventListener('click', () => borrar1(movimiento));
+
+  li.append(cuerpo, importe, borrar);
+  return li;
 }
 
-// Reparto del gasto por categoría, de mayor a menor. Lo que no lleva etiqueta
-// se agrupa bajo null y se muestra aparte: esconderlo daría una distribución
-// que no suma el total y haría desconfiar de todo lo demás.
-export function distribucion(movimientos) {
-  const soloGastos = movimientos.filter((m) => m.tipo !== 'ingreso');
-  const total = soloGastos.reduce((suma, m) => suma + aCentimos(m.monto), 0);
-  if (total === 0) return [];
-
-  const porCategoria = new Map();
-  for (const m of soloGastos) {
-    const clave = m.categoria || null;
-    porCategoria.set(clave, (porCategoria.get(clave) ?? 0) + aCentimos(m.monto));
+async function pintarTodo() {
+  // Si el servidor no responde se sigue con lista vacía: lo que está en el
+  // dispositivo tiene que verse igual. Salir aquí dejaría la pantalla en blanco
+  // justo cuando acabas de anotar algo sin señal.
+  let movimientos = [];
+  try {
+    movimientos = await traerMovimientos();
+  } catch (e) {
+    if (navigator.onLine) decir(`No se pudieron cargar: ${e.message}`, 'falla');
   }
 
-  return [...porCategoria.entries()]
-    .map(([categoria, centimos]) => ({
-      categoria,
-      monto: aSoles(centimos),
-      parte: centimos / total,
-    }))
-    .sort((a, b) => b.monto - a.monto);
+  const enCola = (await pendientesDe('movimiento')).map((e) => ({ ...e, sinSubir: true }));
+  const todos = [...enCola, ...movimientos];
+
+  lista.replaceChildren(...todos.map(crearFila));
+  seccionLista.hidden = todos.length === 0;
+  vacio.hidden = todos.length > 0;
+
+  // Lo pendiente de subir cuenta en el resumen: un balance que no incluye lo
+  // que acabas de anotar sin señal es un balance equivocado, y encima justo
+  // cuando lo estás mirando para decidir si gastas más.
+  pintarResumen(todos);
 }
 
-// Media de gasto por día y proyección a fin de mes.
-//
-// La media se calcula sobre los días TRANSCURRIDOS, no sobre los 30 del mes: el
-// día 3 llevas gastado lo de tres días, y dividir entre 30 daría una media
-// tranquilizadora y falsa.
-export function ritmo(movimientos, referencia = new Date()) {
-  const { desde, hasta } = limitesDelMes(referencia);
-  const gastado = movimientos
-    .filter((m) => m.tipo !== 'ingreso')
-    .reduce((suma, m) => suma + aCentimos(m.monto), 0);
+// --- Acciones ---
 
-  const diasDelMes = Math.round((hasta - desde) / 86400000);
-  const transcurridos = Math.min(
-    diasDelMes,
-    Math.max(1, Math.floor((referencia - desde) / 86400000) + 1),
-  );
+form.addEventListener('submit', async (evento) => {
+  evento.preventDefault();
 
-  const mediaDiaria = gastado / transcurridos;
+  const valor = leerMonto(monto.value);
+  if (valor === null) {
+    decir('El monto no se entiende. Prueba con algo como 18.50', 'falla');
+    monto.focus();
+    return;
+  }
 
-  return {
-    mediaDiaria: aSoles(Math.round(mediaDiaria)),
-    proyeccion: aSoles(Math.round(mediaDiaria * diasDelMes)),
-    transcurridos,
-    diasDelMes,
-    // La proyección solo orienta cuando hay días suficientes detrás. Con dos
-    // días de datos, multiplicar por treinta es adivinar con aire de dato.
-    fiable: transcurridos >= 7,
+  const { tema: categoria, limpio } = extraerTema(descripcion.value);
+  if (!limpio) {
+    decir('Falta decir en qué.', 'falla');
+    descripcion.focus();
+    return;
+  }
+
+  boton.disabled = true;
+  decir('Guardando…');
+
+  const fila = {
+    id: nuevoId(),
+    tipo: tipoElegido,
+    monto: valor,
+    descripcion: limpio,
+    categoria,
+    ocurrido_en: new Date().toISOString(),
   };
+
+  const guardado = await guardar(fila);
+  boton.disabled = false;
+  if (guardado === 'falla') return;
+
+  monto.value = '';
+  descripcion.value = '';
+  avisoCategoria.hidden = true;
+  monto.focus();
+
+  const verbo = tipoElegido === 'ingreso' ? 'Ingreso' : 'Gasto';
+  const enCategoria = categoria ? ` en #${categoria}` : '';
+  const cola = guardado === 'cola' ? ' — se subirá al volver la conexión' : '';
+  decir(`${verbo} de ${soles(valor)}${enCategoria} anotado${cola}.`, 'ok');
+  pintarTodo();
+});
+
+// Devuelve 'servidor', 'cola' o 'falla'. Mismo criterio que en las notas: solo
+// se guarda en local lo que falló por no poder llegar al servidor; un error de
+// datos no se arregla esperando, así que se dice.
+async function guardar(fila) {
+  if (navigator.onLine) {
+    const { error } = await db.from('movimientos').insert(fila);
+    if (!error) return 'servidor';
+    if (error.code && error.message !== 'Failed to fetch') {
+      decir(`No se pudo guardar: ${error.message}. Los datos siguen aquí.`, 'falla');
+      return 'falla';
+    }
+  }
+
+  if (!soportaCola) {
+    decir('Sin conexión y este navegador no puede guardar en el dispositivo.', 'falla');
+    return 'falla';
+  }
+
+  try {
+    await encolar({ ...fila, coleccion: 'movimiento' });
+    return 'cola';
+  } catch {
+    decir('No se pudo guardar en el dispositivo. Los datos siguen aquí.', 'falla');
+    return 'falla';
+  }
 }
 
-// Cuánto ha cambiado respecto al mes pasado. Devuelve null cuando no hay con
-// qué comparar, en vez de un 0 % que parecería "igual que siempre".
-export function variacion(actual, anterior) {
-  if (!anterior) return null;
-  return (actual - anterior) / anterior;
+let deshacerPendiente = null;
+
+async function borrar1(movimiento) {
+  // Lo que todavía está en la cola se quita de ahí: intentar borrarlo del
+  // servidor no haría nada, porque nunca llegó.
+  if (movimiento.sinSubir) {
+    await quitarDeCola(movimiento.id);
+    pintarTodo();
+    return;
+  }
+
+  const { error } = await db.from('movimientos').delete().eq('id', movimiento.id);
+  if (error) {
+    decir(`No se pudo borrar: ${error.message}`, 'falla');
+    return;
+  }
+
+  pintarTodo();
+
+  clearTimeout(deshacerPendiente);
+  textoDeshacer.textContent = `Borrado ${soles(Number(movimiento.monto))} · ${movimiento.descripcion}`;
+  barraDeshacer.hidden = false;
+
+  botonDeshacer.onclick = async () => {
+    barraDeshacer.hidden = true;
+    clearTimeout(deshacerPendiente);
+    const { error: fallo } = await db.from('movimientos').insert({
+      id: movimiento.id,
+      tipo: movimiento.tipo,
+      monto: movimiento.monto,
+      descripcion: movimiento.descripcion,
+      categoria: movimiento.categoria,
+      ocurrido_en: movimiento.ocurrido_en,
+    });
+    if (fallo) decir(`No se pudo restaurar: ${fallo.message}`, 'falla');
+    pintarTodo();
+  };
+
+  deshacerPendiente = setTimeout(() => {
+    barraDeshacer.hidden = true;
+  }, 7000);
+}
+
+// Enter en el monto salta a la descripción en vez de enviar a medias.
+monto.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') {
+    e.preventDefault();
+    descripcion.focus();
+  }
+});
+
+// --- Arranque ---
+
+if (!configurado) {
+  decir('Falta configurar Supabase — mira el diagnóstico.', 'falla');
+} else {
+  await exigirSesion();
+  sincronizarEnSegundoPlano(() => pintarTodo());
+  pintarTodo();
 }
