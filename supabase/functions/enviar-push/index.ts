@@ -56,6 +56,32 @@ const responder = (cuerpo: unknown, status = 200) =>
 // para siempre, así que se borra.
 const ENDPOINT_MUERTO = [404, 410];
 
+// Los servicios de push (FCM, Mozilla) explican el rechazo en el cuerpo de la
+// respuesta HTTP, no en el mensaje del error. Sin leerlo, el fallo llega vacío
+// y no hay forma de saber si es la clave, el correo de contacto o el propio
+// endpoint.
+async function describirError(e: unknown): Promise<string> {
+  const err = e as { name?: string; message?: string; response?: Response };
+  const partes: string[] = [];
+
+  if (err?.name) partes.push(err.name);
+  if (err?.message) partes.push(err.message);
+
+  const respuesta = err?.response;
+  if (respuesta) {
+    partes.push(`HTTP ${respuesta.status} ${respuesta.statusText}`);
+    try {
+      const texto = await respuesta.clone().text();
+      if (texto) partes.push(texto.slice(0, 300));
+    } catch {
+      // El cuerpo ya se había consumido; el status por sí solo ya orienta.
+    }
+  }
+
+  if (partes.length === 0) partes.push(`sin detalle (${Object.prototype.toString.call(e)})`);
+  return partes.join(' | ');
+}
+
 async function enviarATodos(carga: Record<string, unknown>) {
   const { data: suscripciones, error } = await db.from('suscripciones').select('*');
   if (error) throw error;
@@ -73,7 +99,7 @@ async function enviarATodos(carga: Record<string, unknown>) {
         .update({ ultimo_ok: new Date().toISOString(), ultimo_erro: null })
         .eq('id', fila.id);
     } catch (e) {
-      const mensaje = e instanceof Error ? e.message : String(e);
+      const mensaje = await describirError(e);
       fallos.push(`${fila.etiqueta ?? fila.id}: ${mensaje}`);
 
       const codigo = (e as { response?: { status?: number } })?.response?.status;
