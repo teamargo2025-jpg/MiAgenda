@@ -84,6 +84,15 @@ Si a las dos semanas sigo anotando en otro lado, la app no resolvió la fricció
 
 ## Decisiones tomadas
 
+- **Diseño brutalista y monocromo** (10/09/2026). Bordes de 2 px, esquinas
+  rectas, sombras duras sin desenfoque, monoespaciada para los datos. No es
+  solo gusto: a un brazo de distancia, con una mano y con prisa, el contraste
+  alto y los bordes evidentes hacen que cada zona tocable se lea de un vistazo.
+  Sin color de acento — el énfasis es **invertir** tinta y papel, no teñir. El
+  rojo se reserva para fallos y alarmas vencidas, y siempre acompañado de una
+  barra o un borde, para quien no distinga el tono. La variable `--acento` se
+  conserva: si algún día vuelve el color, son dos líneas.
+
 - **Destilar con IA se mantiene, pero va al final** (10/09/2026). Se confirma que
   los compilados se quieren: no se descarta la fase 2, se reordena. Primero la
   interfaz y el uso real, porque destilar necesita material dentro y hoy el
