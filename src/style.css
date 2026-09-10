@@ -415,3 +415,55 @@ a { color: var(--tenue); }
 .gasto-fila.sin-subir .gasto-fecha {
   color: #d8a657;
 }
+
+/* --- Dictado --- */
+
+.visualmente-oculto {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.campo-con-voz { position: relative; display: flex; }
+
+/* El micrófono se superpone en la esquina del campo. Al dictar desde el
+   celular el pulgar ya está ahí, y no roba una línea de pantalla. */
+.microfono {
+  position: absolute;
+  right: .6rem;
+  bottom: .6rem;
+  flex: none;
+  width: 2.75rem;
+  height: 2.75rem;
+  padding: 0;
+  border: 1px solid #2b303b;
+  border-radius: 50%;
+  background: #1d212a;
+  font-size: 1.15rem;
+  line-height: 1;
+}
+
+.microfono.escuchando {
+  border-color: var(--ok);
+  background: color-mix(in srgb, var(--ok) 20%, #1d212a);
+  animation: latido 1.4s ease-in-out infinite;
+}
+
+@keyframes latido {
+  0%, 100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--ok) 55%, transparent); }
+  50%      { box-shadow: 0 0 0 .5rem color-mix(in srgb, var(--ok) 0%, transparent); }
+}
+
+/* Quien prefiere menos movimiento no necesita un latido para saber que está
+   grabando: el color y el borde ya lo dicen. */
+@media (prefers-reduced-motion: reduce) {
+  .microfono.escuchando { animation: none; }
+}
+
+/* Sitio para que el texto no pase por debajo del botón. */
+#texto { padding-right: 4rem; }

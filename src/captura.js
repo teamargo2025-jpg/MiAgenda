@@ -9,6 +9,7 @@ import { crearSelectorDeCuando, describirCuando } from './cuando.js';
 import { exigirSesion } from './sesion.js';
 import { encolar, nuevoId, soportaCola } from './cola.js';
 import { pendientesDe, sincronizarEnSegundoPlano } from './sincronizar.js';
+import { crearDictado, soportaVoz } from './voz.js';
 
 const form = document.getElementById('form');
 const texto = document.getElementById('texto');
@@ -26,6 +27,48 @@ const decir = (mensaje, estado = 'neutro') => {
   aviso.textContent = mensaje;
   aviso.dataset.estado = estado;
 };
+
+// --- Dictado ---
+
+const microfono = document.getElementById('microfono');
+
+// Lo que había escrito antes de empezar a dictar. El dictado se añade a
+// continuación en vez de reemplazarlo: se puede escribir media frase, dictar el
+// resto, y seguir escribiendo.
+let textoPrevio = '';
+
+const dictado = crearDictado({
+  alTexto(transcrito) {
+    const separador = textoPrevio && !textoPrevio.endsWith(' ') ? ' ' : '';
+    texto.value = textoPrevio + separador + transcrito;
+  },
+  alEstado(estado) {
+    const escuchando = estado === 'escuchando';
+    microfono.setAttribute('aria-pressed', String(escuchando));
+    microfono.classList.toggle('escuchando', escuchando);
+    if (escuchando) decir('Escuchando…');
+    else if (aviso.textContent === 'Escuchando…') decir('');
+  },
+  alError(mensaje) {
+    decir(mensaje, 'falla');
+  },
+});
+
+if (soportaVoz && dictado) {
+  microfono.hidden = false;
+
+  microfono.addEventListener('click', () => {
+    if (!dictado.escuchando && !navigator.onLine) {
+      // Chrome manda el audio a Google para transcribirlo, así que el dictado
+      // necesita internet aunque el resto de la captura no. Decirlo antes es
+      // mejor que dejar que falle con un error de red.
+      decir('El dictado necesita internet. Sin señal puedes escribir igual.', 'falla');
+      return;
+    }
+    textoPrevio = dictado.escuchando ? textoPrevio : texto.value.trim();
+    dictado.alternar();
+  });
+}
 
 const formatearFecha = (iso) =>
   new Date(iso).toLocaleString('es-PE', {
@@ -123,6 +166,8 @@ form.addEventListener('submit', async (evento) => {
 
   if (guardado === 'falla') return;
 
+  dictado?.parar();
+  textoPrevio = '';
   texto.value = '';
   cuando.limpiar();
   texto.focus();

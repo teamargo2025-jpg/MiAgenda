@@ -16,13 +16,22 @@
       <form id="form" autocomplete="off">
         <!-- Sin etiqueta, sin categorías, sin desplegables: el peaje de treinta
              segundos es justo lo que este proyecto viene a eliminar. -->
-        <textarea
-          id="texto"
-          rows="4"
-          placeholder="¿Qué se te ocurrió?"
-          autofocus
-          enterkeyhint="done"
-        ></textarea>
+        <!-- El micrófono va pegado al campo, no en una barra aparte: hablar y
+             escribir son la misma acción con distinta entrada, y separarlos
+             obligaría a decidir cuál usar antes de empezar. -->
+        <div class="campo-con-voz">
+          <textarea
+            id="texto"
+            rows="4"
+            placeholder="¿Qué se te ocurrió?"
+            autofocus
+            enterkeyhint="done"
+          ></textarea>
+          <button id="microfono" type="button" class="microfono" hidden aria-pressed="false">
+            <span aria-hidden="true">🎤</span>
+            <span class="visualmente-oculto">Dictar</span>
+          </button>
+        </div>
         <!-- Atajos para los casos de siempre. Elegir día y hora en un
              calendario son cinco toques; esto es uno. La fecha libre queda
              detrás de "Otra…" para quien de verdad la necesite. -->

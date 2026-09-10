@@ -244,8 +244,8 @@ que estas solo las puedes hacer tú):
 **Duración estimada:** 4 a 6 días
 **Terminó cuando:** desde el celular dicto "llamar al dentista el jueves a las 3", queda guardado, y el jueves a las 3 me llega la notificación.
 
-- [~] Pantalla de captura: un campo, un botón de micrófono, nada más *(el campo está; falta el micrófono)*
-- [ ] Dictado por voz que rellena el campo
+- [x] Pantalla de captura: un campo, un botón de micrófono, nada más
+- [x] Dictado por voz que rellena el campo *(construido; falta comprobar qué tal transcribe)*
 - [x] Guardar en Supabase
 - [x] Ponerle fecha y hora opcional a una nota
 - [x] Lista de lo capturado, ordenada por fecha
