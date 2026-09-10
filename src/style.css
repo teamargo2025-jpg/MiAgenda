@@ -305,3 +305,27 @@ a { color: var(--tenue); }
   padding: .35rem .75rem;
   font-size: .85rem;
 }
+
+.salir {
+  flex: none;
+  padding: .3rem .7rem;
+  border: 1px solid #2b303b;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--tenue);
+  font-size: .8rem;
+}
+
+/* --- Pantalla de entrada --- */
+
+#correo, #clave {
+  width: 100%;
+  padding: .9rem 1rem;
+  border: 1px solid #262a33;
+  border-radius: .6rem;
+  background: #171a21;
+  color: var(--texto);
+  font: inherit;
+}
+
+#correo:focus, #clave:focus { outline: 2px solid var(--ok); outline-offset: 2px; }

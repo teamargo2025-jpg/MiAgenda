@@ -9,7 +9,16 @@ export const configurado = Boolean(url && anon);
 // diagnóstico tiene que poder decir "falta configurar Supabase" en vez de
 // quedarse en blanco con un error en consola.
 export const db = configurado
-  ? createClient(url, anon, { auth: { persistSession: false } })
+  ? createClient(url, anon, {
+      auth: {
+        // La sesión se guarda y se renueva sola. Tener que entrar cada vez
+        // sería devolver por la puerta de atrás justo la fricción que este
+        // proyecto viene a eliminar.
+        persistSession: true,
+        autoRefreshToken: true,
+        storageKey: 'miagenda-sesion',
+      },
+    })
   : null;
 
 export const VAPID_PUBLICA = import.meta.env.VITE_VAPID_PUBLIC_KEY;

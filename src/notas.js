@@ -6,6 +6,7 @@
 
 import { db, configurado } from './supabase.js';
 import { describirCuando } from './cuando.js';
+import { exigirSesion, salir } from './sesion.js';
 
 const estado = document.getElementById('estado');
 const vacio = document.getElementById('vacio');
@@ -298,5 +299,7 @@ function ofrecerDeshacer(nota) {
 if (!configurado) {
   decir('Falta configurar Supabase — mira el diagnóstico.', 'falla');
 } else {
+  await exigirSesion();
+  document.getElementById('salir')?.addEventListener('click', salir);
   pintarTodo();
 }

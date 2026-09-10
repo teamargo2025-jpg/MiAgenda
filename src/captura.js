@@ -6,6 +6,7 @@
 
 import { db, configurado } from './supabase.js';
 import { crearSelectorDeCuando, describirCuando } from './cuando.js';
+import { exigirSesion } from './sesion.js';
 
 const form = document.getElementById('form');
 const texto = document.getElementById('texto');
@@ -114,7 +115,11 @@ form.addEventListener('submit', async (evento) => {
   cuando.limpiar();
   texto.focus();
   decir(recordarEn ? `Guardado. Te aviso ${describirCuando(recordarEn)}.` : 'Guardado.', 'ok');
-  pintarRecientes();
+  // La sesión se comprueba antes de pedir nada a la base: sin ella las
+// políticas devolverían cero filas y la pantalla mentiría diciendo que no hay
+// notas, en vez de mandarte a entrar.
+await exigirSesion();
+pintarRecientes();
 });
 
 // Ctrl+Enter (o Cmd+Enter) guarda sin levantar la mano del teclado. En el

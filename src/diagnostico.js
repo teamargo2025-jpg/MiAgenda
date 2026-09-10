@@ -4,6 +4,7 @@
 
 import { configurado, VAPID_PUBLICA } from './supabase.js';
 import { suscribir, probarDesdeServidor } from './push.js';
+import { exigirSesion } from './sesion.js';
 
 const set = (id, texto, estado = 'neutro') => {
   const el = document.getElementById(id);
@@ -207,3 +208,7 @@ botonServidor.addEventListener('click', async () => {
     botonServidor.disabled = false;
   }
 });
+
+// El diagnóstico también entra detrás de la puerta: suscribir un dispositivo
+// escribe en la base, y esa escritura ahora exige sesión.
+if (configurado) await exigirSesion();
