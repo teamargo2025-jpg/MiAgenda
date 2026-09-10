@@ -84,6 +84,11 @@ Si a las dos semanas sigo anotando en otro lado, la app no resolvió la fricció
 
 ## Decisiones tomadas
 
+- **Destilar con IA se mantiene, pero va al final** (10/09/2026). Se confirma que
+  los compilados se quieren: no se descarta la fase 2, se reordena. Primero la
+  interfaz y el uso real, porque destilar necesita material dentro y hoy el
+  cajón está casi vacío.
+
 - **La captura funciona sin conexión** (hecho el 10/09/2026). Si la app falla
   al abrirse sin señal, se rompe la premisa: anotar tiene que ser siempre más
   fácil que no anotar. La nota se guarda en el dispositivo y sube cuando vuelve
