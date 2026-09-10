@@ -84,6 +84,15 @@ Si a las dos semanas sigo anotando en otro lado, la app no resolvió la fricció
 
 ## Decisiones tomadas
 
+- **La captura tiene que funcionar sin conexión** (10/09/2026). Si la app falla
+  al abrirse sin señal, se rompe la premisa: anotar tiene que ser siempre más
+  fácil que no anotar. La nota se guarda en el dispositivo y sube cuando vuelve
+  la conexión. Esto añade entre día y medio y dos días a la fase 1 — se acepta
+  el coste porque afecta al núcleo del problema, no a un adorno.
+  Lo que no se resuelve: **la notificación necesita internet para llegar**. Sin
+  señal a la hora del recordatorio, el aviso entra al recuperarla. Es del
+  estándar de Web Push, no del diseño.
+
 - **Página web (PWA) y no app nativa.** Una app nativa implica tienda, permisos y semanas antes de escribir lo que importa. La PWA da notificación en celular y escritorio con un solo desarrollo.
 - **Capturar y recordar antes que destilar.** Destilar necesita material; recordar sirve solo desde el día uno.
 - **El lienzo visual al final.** Es lo más caro del proyecto; ponerlo primero mata la v1.
@@ -97,7 +106,7 @@ Si a las dos semanas sigo anotando en otro lado, la app no resolvió la fricció
 |---|---|---|
 | "Destilar" — ¿qué se espera exactamente de vuelta? ¿Un resumen agrupado, un plan, preguntas? | Yo, viendo notas reales | Antes de la fase 2 |
 | El lienzo, ¿nodos que se conectan (mapa mental) o notas sueltas que se mueven (pizarra)? | Yo | Antes de la fase 3 |
-| ¿Hace falta que funcione sin internet? | Yo | Antes de la fase 1 |
+| ~~¿Hace falta que funcione sin internet?~~ | — | **Respondida el 10/09/2026: sí** — ver decisiones |
 
 ## Enlaces del proyecto
 
