@@ -69,7 +69,12 @@ export function crearSelectorDeCuando({ contenedor, campoLibre }) {
         elegido = null;
         campoLibre.hidden = false;
         pintarSeleccion(chip);
-        campoLibre.showPicker?.() ?? campoLibre.focus();
+        campoLibre.focus();
+        try {
+          campoLibre.showPicker?.();
+        } catch {
+          // Ver nota en notas.js: el calendario emergente es opcional.
+        }
         return;
       }
 

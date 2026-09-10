@@ -10,6 +10,7 @@ export default defineConfig({
         // pero se conserva porque es donde se suscribe el dispositivo y donde
         // se ve qué soporta el navegador cuando algo falla.
         main: resolve(__dirname, 'index.html'),
+        notas: resolve(__dirname, 'notas.html'),
         diagnostico: resolve(__dirname, 'diagnostico.html'),
       },
     },

@@ -232,13 +232,13 @@ empezar a usar la app de verdad, al final de la fase 1.
 **Duración estimada:** 4 a 6 días
 **Terminó cuando:** desde el celular dicto "llamar al dentista el jueves a las 3", queda guardado, y el jueves a las 3 me llega la notificación.
 
-- [ ] Pantalla de captura: un campo, un botón de micrófono, nada más
+- [~] Pantalla de captura: un campo, un botón de micrófono, nada más *(el campo está; falta el micrófono)*
 - [ ] Dictado por voz que rellena el campo
-- [ ] Guardar en Supabase
-- [ ] Ponerle fecha y hora opcional a una nota
-- [ ] Lista de lo capturado, ordenada por fecha
-- [ ] Editar, marcar como hecha, borrar
-- [ ] El cron dispara los recordatorios reales a su hora
+- [x] Guardar en Supabase
+- [x] Ponerle fecha y hora opcional a una nota
+- [x] Lista de lo capturado, ordenada por fecha
+- [x] Editar, marcar como hecha, borrar
+- [x] El cron dispara los recordatorios reales a su hora
 - [ ] **Usarla una semana** y anotar qué molesta
 
 ### Fase 2 — Destilar

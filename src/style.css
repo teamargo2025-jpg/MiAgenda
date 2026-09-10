@@ -178,3 +178,130 @@ a { color: var(--tenue); }
 }
 
 #lista time.con-alarma { color: var(--ok); }
+
+/* --- Lista de notas --- */
+
+.barra {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.barra h1 { margin: 0; font-size: 1.35rem; }
+
+.volver { color: var(--ok); text-decoration: none; font-weight: 600; }
+
+.notas-lista {
+  list-style: none;
+  margin: 0 0 2rem;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: .5rem;
+}
+
+.nota-fila {
+  display: flex;
+  align-items: flex-start;
+  gap: .75rem;
+  padding: .75rem;
+  border: 1px solid #21252e;
+  border-radius: .6rem;
+}
+
+.nota-fila input[type="checkbox"] {
+  flex: none;
+  width: 1.15rem;
+  height: 1.15rem;
+  margin-top: .15rem;
+  accent-color: var(--ok);
+}
+
+.nota-cuerpo {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: .35rem;
+}
+
+.nota-texto {
+  overflow-wrap: anywhere;
+  cursor: text;
+  border-radius: .25rem;
+}
+
+.nota-texto:focus-visible { outline: 2px solid var(--ok); outline-offset: 2px; }
+
+.esta-hecha .nota-texto { color: var(--tenue); text-decoration: line-through; }
+
+.nota-alarma {
+  align-self: flex-start;
+  flex: none;
+  padding: .15rem .5rem;
+  border: 1px solid #2b303b;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--tenue);
+  font-size: .78rem;
+}
+
+.nota-alarma.activa { color: var(--ok); border-color: color-mix(in srgb, var(--ok) 45%, transparent); }
+
+/* Vencida y sin avisar: algo salió mal, y conviene que salte a la vista. */
+.nota-alarma.vencida { color: var(--falla); border-color: color-mix(in srgb, var(--falla) 45%, transparent); }
+
+.nota-borrar {
+  flex: none;
+  width: 2rem;
+  padding: 0;
+  border: 0;
+  border-radius: .4rem;
+  background: transparent;
+  color: var(--tenue);
+  font-size: 1.25rem;
+  line-height: 2rem;
+}
+
+.nota-borrar:hover { background: #21252e; color: var(--falla); }
+
+.nota-editor {
+  width: 100%;
+  padding: .4rem .5rem;
+  border: 1px solid var(--ok);
+  border-radius: .35rem;
+  background: #171a21;
+  color: var(--texto);
+  font: inherit;
+  resize: vertical;
+}
+
+/* La barra de deshacer se ancla abajo, fuera del flujo: la fila que la motivó
+   acaba de desaparecer, así que no puede colgar de ella. */
+.deshacer {
+  position: fixed;
+  left: 50%;
+  bottom: 1rem;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  width: calc(100% - 2rem);
+  max-width: 28rem;
+  padding: .75rem 1rem;
+  border: 1px solid #2b303b;
+  border-radius: .6rem;
+  background: #1d212a;
+  box-shadow: 0 8px 24px rgb(0 0 0 / .45);
+  font-size: .9rem;
+}
+
+#deshacer-texto { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+#deshacer-boton {
+  flex: none;
+  padding: .35rem .75rem;
+  font-size: .85rem;
+}

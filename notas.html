@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="theme-color" content="#111318" />
+    <title>Mis notas — MiAgenda</title>
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <link rel="icon" href="/icono-192.png" />
+    <link rel="apple-touch-icon" href="/icono-192.png" />
+    <link rel="stylesheet" href="/src/style.css" />
+  </head>
+  <body class="notas">
+    <main id="app">
+      <header class="barra">
+        <h1>Mis notas</h1>
+        <a class="volver" href="/">+ Capturar</a>
+      </header>
+
+      <p id="estado" class="resultado">Cargando…</p>
+
+      <section id="seccion-pendientes" hidden>
+        <h2>Pendientes</h2>
+        <ul id="pendientes" class="notas-lista"></ul>
+      </section>
+
+      <section id="seccion-hechas" hidden>
+        <h2>Hechas</h2>
+        <ul id="hechas" class="notas-lista"></ul>
+      </section>
+
+      <p id="vacio" hidden class="nota">
+        Todavía no hay nada. <a href="/">Captura algo</a>.
+      </p>
+    </main>
+
+    <!-- El aviso de borrado vive fuera de la lista para que no se vaya con la
+         fila que acaba de desaparecer. -->
+    <div id="deshacer" class="deshacer" hidden>
+      <span id="deshacer-texto"></span>
+      <button id="deshacer-boton" type="button">Deshacer</button>
+    </div>
+
+    <script type="module" src="/src/notas.js"></script>
+  </body>
+</html>
