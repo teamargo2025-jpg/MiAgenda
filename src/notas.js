@@ -60,9 +60,10 @@ function crearFilaPendiente(nota) {
   const cuerpo = document.createElement('div');
   cuerpo.className = 'nota-cuerpo';
 
-  const texto = document.createElement('div');
-  texto.className = 'nota-texto';
-  texto.textContent = nota.texto;
+  // Se pinta con el mismo formato que tendrá una vez subida. Enseñar "[ ] pan"
+  // en crudo haría dudar de si se guardó bien, justo en el momento en que menos
+  // se puede comprobar.
+  const texto = crearCuerpo(nota, { soloLectura: true });
 
   const marca = document.createElement('span');
   marca.className = 'marca-espera';
@@ -141,10 +142,16 @@ function crearFila(nota) {
 // El cuerpo cambia según el formato. Texto suelto se edita tocándolo; las
 // listas se pintan como tales, y en la checklist cada línea es una casilla que
 // se marca sin entrar a editar.
-function crearCuerpo(nota) {
+function crearCuerpo(nota, { soloLectura = false } = {}) {
   const formato = nota.formato ?? 'texto';
 
-  if (formato === 'texto') return crearTextoEditable(nota);
+  if (formato === 'texto') {
+    if (!soloLectura) return crearTextoEditable(nota);
+    const plano = document.createElement('div');
+    plano.className = 'nota-texto';
+    plano.textContent = nota.texto;
+    return plano;
+  }
 
   const contenedor = document.createElement('ul');
   contenedor.className = formato === 'checklist' ? 'nota-checklist' : 'nota-viñetas';
@@ -157,7 +164,10 @@ function crearCuerpo(nota) {
       casilla.type = 'checkbox';
       casilla.checked = item.marcada;
       casilla.setAttribute('aria-label', item.texto);
-      casilla.addEventListener('change', () => marcarItem(nota, indice));
+      // Sin subir aún no se puede marcar: la casilla se guarda escribiendo en
+      // el servidor, y esa nota todavía no existe allí.
+      if (soloLectura) casilla.disabled = true;
+      else casilla.addEventListener('change', () => marcarItem(nota, indice));
 
       const etiqueta = document.createElement('span');
       etiqueta.textContent = item.texto;
@@ -177,12 +187,14 @@ function crearCuerpo(nota) {
   envoltorio.className = 'nota-texto';
   envoltorio.append(contenedor);
 
-  const editar = document.createElement('button');
-  editar.type = 'button';
-  editar.className = 'nota-editar-texto';
-  editar.textContent = 'Editar líneas';
-  editar.addEventListener('click', () => editarTexto(nota, envoltorio));
-  envoltorio.append(editar);
+  if (!soloLectura) {
+    const editar = document.createElement('button');
+    editar.type = 'button';
+    editar.className = 'nota-editar-texto';
+    editar.textContent = 'Editar líneas';
+    editar.addEventListener('click', () => editarTexto(nota, envoltorio));
+    envoltorio.append(editar);
+  }
 
   return envoltorio;
 }
