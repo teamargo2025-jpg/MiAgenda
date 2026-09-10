@@ -17,15 +17,23 @@
      al sistema en vez de quedarse oscuros sobre fondo claro. */
   color-scheme: light dark;
 
-  --papel: #f2efe6;
-  --tarjeta: #fffdf7;
-  --tinta: #14141a;
-  --tenue: #55555f;
-  --apagado: #85858f;
+  --papel: #ebebeb;
+  --tarjeta: #ffffff;
+  --tinta: #111111;
+  --tenue: #575757;
+  --apagado: #8a8a8a;
 
-  --acento: #16c46a;
-  --sobre-acento: #08120c;
-  --falla: #e5484d;
+  /* Sin color de acento: el énfasis se consigue invirtiendo tinta y papel, no
+     tiñendo. --acento es "lo que se rellena para destacar", y hoy vale tinta.
+     Se conserva como variable por si algún día vuelve a ser un color: cambiar
+     estas dos líneas devuelve el acento cromático a toda la app. */
+  --acento: var(--tinta);
+  --sobre-acento: var(--tarjeta);
+
+  /* El rojo se queda solo para los fallos y las alarmas vencidas. Es la única
+     información que no puede depender de la forma, y va siempre acompañada de
+     una barra o un borde para quien no distinga el tono. */
+  --falla: #d92b2b;
 
   /* El grosor del borde es un valor propio y no un número suelto: en
      brutalismo ES el lenguaje, y tener que cambiarlo en cuarenta sitios sería
@@ -37,6 +45,11 @@
      y pegado encima, en vez de un elemento flotando. */
   --relieve: 4px 4px 0 var(--tinta);
   --relieve-corto: 3px 3px 0 var(--tinta);
+
+  /* Para lo que va relleno de tinta. Una sombra de tinta bajo un bloque de
+     tinta se lee como una mancha, no como relieve: aquí la sombra es un bloque
+     de papel con su propio contorno, y el escalón vuelve a verse. */
+  --relieve-invertido: 4px 4px 0 var(--tarjeta), 4px 4px 0 var(--linea) var(--tinta);
 
   --e1: .25rem;
   --e2: .5rem;
@@ -56,14 +69,12 @@
    un diseño construido sobre esa metáfora. */
 @media (prefers-color-scheme: dark) {
   :root {
-    --papel: #0d0d10;
-    --tarjeta: #17171d;
-    --tinta: #f0efe9;
-    --tenue: #a5a5ae;
-    --apagado: #74747e;
+    --papel: #0c0c0c;
+    --tarjeta: #191919;
+    --tinta: #f2f2f2;
+    --tenue: #a8a8a8;
+    --apagado: #767676;
 
-    --acento: #2ee27c;
-    --sobre-acento: #06140c;
     --falla: #ff6b6b;
   }
 }
@@ -139,7 +150,7 @@ button {
   border: var(--borde);
   border-radius: 0;
   background: var(--acento);
-  box-shadow: var(--relieve);
+  box-shadow: var(--relieve-invertido);
   color: var(--sobre-acento);
   font: inherit;
   font-weight: 700;

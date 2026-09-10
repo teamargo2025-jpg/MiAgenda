@@ -4,9 +4,11 @@
 import { deflateSync } from 'node:zlib';
 import { writeFileSync, mkdirSync } from 'node:fs';
 
-const PAPEL = [0xf2, 0xef, 0xe6];
-const TINTA = [0x14, 0x14, 0x1a];
-const ACENTO = [0x16, 0xc4, 0x6a];
+const PAPEL = [0xeb, 0xeb, 0xeb];
+const TINTA = [0x11, 0x11, 0x11];
+// Sin acento cromático: el interior es papel y los renglones son tinta, igual
+// que la app. El icono tiene que anunciar lo que se abre.
+const ACENTO = [0xff, 0xff, 0xff];
 
 const tablaCrc = Array.from({ length: 256 }, (_, n) => {
   let c = n;
