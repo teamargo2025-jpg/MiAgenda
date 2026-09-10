@@ -18,7 +18,8 @@ export default defineConfig({
         // se ve qué soporta el navegador cuando algo falla.
         main: resolve(__dirname, 'index.html'),
         notas: resolve(__dirname, 'notas.html'),
-        gastos: resolve(__dirname, 'gastos.html'),
+        dinero: resolve(__dirname, 'dinero.html'),
+        analisis: resolve(__dirname, 'analisis.html'),
         entrar: resolve(__dirname, 'entrar.html'),
         diagnostico: resolve(__dirname, 'diagnostico.html'),
       },

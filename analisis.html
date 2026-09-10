@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="theme-color" content="#ebebeb" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#0c0c0c" media="(prefers-color-scheme: dark)" />
+    <title>Análisis — MiAgenda</title>
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <link rel="icon" href="/icono-192.png" />
+    <link rel="apple-touch-icon" href="/icono-192.png" />
+    <link rel="stylesheet" href="/src/style.css" />
+  </head>
+  <body class="analisis">
+    <main id="app">
+      <header class="barra">
+        <h1 id="titulo">Análisis</h1>
+        <a class="enlace-discreto" href="/dinero.html">Anotar</a>
+      </header>
+
+      <p id="estado" class="resultado">Cargando…</p>
+
+      <section id="contenido" hidden>
+        <section class="panel">
+          <h2>El mes</h2>
+          <dl class="cifras">
+            <div>
+              <dt>Entró</dt>
+              <dd id="ingresos">—</dd>
+            </div>
+            <div>
+              <dt>Salió</dt>
+              <dd id="gastos">—</dd>
+            </div>
+            <div>
+              <dt>Queda</dt>
+              <dd id="balance">—</dd>
+            </div>
+          </dl>
+          <p id="proporcion" class="lectura"></p>
+        </section>
+
+        <section class="panel">
+          <h2>Ritmo</h2>
+          <dl class="cifras">
+            <div>
+              <dt>Al día</dt>
+              <dd id="media">—</dd>
+            </div>
+            <div>
+              <dt>Fin de mes</dt>
+              <dd id="proyeccion">—</dd>
+            </div>
+          </dl>
+          <p id="aviso-ritmo" class="lectura"></p>
+        </section>
+
+        <section class="panel">
+          <h2>En qué se va</h2>
+          <ul id="distribucion" class="distribucion"></ul>
+          <p id="sin-distribucion" class="nota" hidden>
+            Aún no hay gastos este mes.
+          </p>
+        </section>
+
+        <section class="panel">
+          <h2>Frente al mes pasado</h2>
+          <dl class="cifras">
+            <div>
+              <dt>Gasto</dt>
+              <dd id="var-gastos">—</dd>
+            </div>
+            <div>
+              <dt>Ingreso</dt>
+              <dd id="var-ingresos">—</dd>
+            </div>
+          </dl>
+          <p id="lectura-comparacion" class="lectura"></p>
+        </section>
+      </section>
+    </main>
+
+    <nav class="barra-nav" aria-label="Secciones">
+      <a href="/" class="pestana">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+        <span>Capturar</span>
+      </a>
+      <a href="/notas.html" class="pestana">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6h12"/><path d="M9 12h12"/><path d="M9 18h12"/><path d="M4 6h.01"/><path d="M4 12h.01"/><path d="M4 18h.01"/></svg>
+        <span>Notas</span>
+      </a>
+      <a href="/dinero.html" class="pestana" aria-current="page">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="2.5"/></svg>
+        <span>Dinero</span>
+      </a>
+    </nav>
+
+    <script type="module" src="/src/analisis.js"></script>
+  </body>
+</html>

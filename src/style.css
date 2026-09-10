@@ -799,3 +799,145 @@ body.captura #app {
   text-decoration: none;
   text-transform: uppercase;
 }
+
+/* --- Dinero --- */
+
+.balance {
+  margin-bottom: var(--e5);
+  border: var(--borde);
+  background: var(--tarjeta);
+  box-shadow: var(--relieve);
+}
+
+.balance-principal {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: var(--e4);
+}
+
+.balance-principal strong {
+  font-family: var(--mono);
+  font-size: 2.1rem;
+  font-weight: 700;
+  letter-spacing: -.02em;
+}
+
+/* Un balance en rojo no basta: el color solo excluye a quien no lo distingue,
+   y aquí el dato es importante. La franja de arriba lo dice sin depender del
+   tono. */
+.balance-principal strong[data-negativo="true"] { color: var(--falla); }
+
+.balance:has(strong[data-negativo="true"]) { border-top: 6px solid var(--falla); }
+
+.balance-detalle {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  margin: 0;
+  border-top: var(--borde);
+}
+
+.balance-detalle > div { padding: var(--e3) var(--e4); }
+
+.balance-detalle > div + div { border-left: var(--borde); }
+
+.balance-detalle dt {
+  font-family: var(--mono);
+  font-size: .68rem;
+  font-weight: 700;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--tenue);
+}
+
+.balance-detalle dd {
+  margin: 0;
+  font-family: var(--mono);
+  font-size: 1.05rem;
+  font-weight: 700;
+}
+
+/* El ingreso se marca con una franja lateral además del signo: dos señales
+   distintas para el mismo dato, y ninguna depende del color. */
+.gasto-fila[data-tipo="ingreso"] { border-left-width: 6px; }
+
+/* --- Análisis --- */
+
+.cifras {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(5.5rem, 1fr));
+  gap: var(--e3);
+  margin: 0 0 var(--e3);
+}
+
+.cifras dt {
+  font-family: var(--mono);
+  font-size: .66rem;
+  font-weight: 700;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--tenue);
+}
+
+.cifras dd {
+  margin: 0;
+  font-family: var(--mono);
+  font-size: 1.2rem;
+  font-weight: 700;
+}
+
+.cifras dd[data-negativo="true"], .cifras dd[data-alerta="true"] { color: var(--falla); }
+
+/* La frase que interpreta las cifras. Es la diferencia entre un panel de datos
+   y algo que te dice cómo va el mes. */
+.lectura {
+  margin: 0;
+  padding-top: var(--e3);
+  border-top: var(--linea) dashed var(--tenue);
+  font-size: .9rem;
+}
+
+.lectura[data-alerta="true"] {
+  padding-left: var(--e2);
+  border-left: 4px solid var(--falla);
+  color: var(--falla);
+}
+
+.distribucion {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--e3);
+}
+
+.distribucion-cabecera {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: var(--e3);
+  margin-bottom: var(--e1);
+}
+
+.distribucion-nombre {
+  font-family: var(--mono);
+  font-size: .8rem;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+.distribucion-cifra {
+  flex: none;
+  font-family: var(--mono);
+  font-size: .76rem;
+  color: var(--tenue);
+}
+
+.barra-dato {
+  height: 1.1rem;
+  border: var(--borde);
+  background: var(--papel);
+}
+
+.barra-relleno { height: 100%; background: var(--tinta); }

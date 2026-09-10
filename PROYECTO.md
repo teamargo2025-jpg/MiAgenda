@@ -84,6 +84,15 @@ Si a las dos semanas sigo anotando en otro lado, la app no resolvió la fricció
 
 ## Decisiones tomadas
 
+- **La parte financiera crece hacia asistente, sin IA** (10/09/2026). Entran
+  ingresos además de gastos, categorías por etiqueta (`almuerzo #comida`) y una
+  pantalla de análisis: balance, ritmo diario, proyección a fin de mes,
+  distribución por categoría y comparación con el mes anterior. Todo es
+  aritmética; lo que lo hace asistente no es el cálculo sino **sacar la
+  conclusión en una frase** en vez de dejar doce cifras sobre la mesa.
+  La tabla `gastos` pasa a `movimientos`: una tabla llamada gastos que guarda
+  ingresos es una mentira que confunde cada vez que se lee una consulta.
+
 - **Agrupar por temas escritos, no por tableros** (10/09/2026). El tema va
   dentro de la nota con almohadilla; el vaso existe mientras alguna nota lo use
   y desaparece cuando ninguna lo hace. No hay pantalla de administrar temas ni

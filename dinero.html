@@ -5,27 +5,46 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <meta name="theme-color" content="#ebebeb" media="(prefers-color-scheme: light)" />
     <meta name="theme-color" content="#0c0c0c" media="(prefers-color-scheme: dark)" />
-    <title>Gastos — MiAgenda</title>
+    <title>Dinero — MiAgenda</title>
     <link rel="manifest" href="/manifest.webmanifest" />
     <link rel="icon" href="/icono-192.png" />
     <link rel="apple-touch-icon" href="/icono-192.png" />
     <link rel="stylesheet" href="/src/style.css" />
   </head>
-  <body class="gastos">
+  <body class="dinero">
     <main id="app">
       <header class="barra">
-        <h1>Gastos</h1>
+        <h1>Dinero</h1>
+        <a class="enlace-discreto" href="/analisis.html">Análisis</a>
       </header>
 
-      <!-- El total del mes va arriba: es el único número que hace útil apuntar
-           gastos sin categorías. Verlo al abrir es la mitad del valor. -->
-      <section class="total">
-        <span class="total-etiqueta">Este mes</span>
-        <strong id="total-mes">—</strong>
-        <span id="total-detalle" class="total-detalle"></span>
+      <!-- Tres cifras y no una: el balance a secas engaña, porque 200 de saldo
+           significa cosas distintas si entraron 300 o 3000. -->
+      <section class="balance">
+        <div class="balance-principal">
+          <span class="total-etiqueta">Balance del mes</span>
+          <strong id="balance">—</strong>
+        </div>
+        <dl class="balance-detalle">
+          <div>
+            <dt>Entró</dt>
+            <dd id="ingresos">—</dd>
+          </div>
+          <div>
+            <dt>Salió</dt>
+            <dd id="gastos">—</dd>
+          </div>
+        </dl>
       </section>
 
       <form id="form" autocomplete="off">
+        <!-- El tipo va antes del monto porque cambia lo que significa la cifra
+             que estás a punto de escribir. -->
+        <div class="chips" role="group" aria-label="Tipo de movimiento">
+          <button type="button" class="chip" data-tipo="gasto" aria-pressed="true">Gasto</button>
+          <button type="button" class="chip" data-tipo="ingreso" aria-pressed="false">Ingreso</button>
+        </div>
+
         <div class="fila-gasto">
           <div class="campo-monto">
             <span class="moneda">S/</span>
@@ -44,12 +63,15 @@
           <input
             id="descripcion"
             type="text"
-            placeholder="¿En qué?"
+            placeholder="¿En qué? #categoría"
             required
             aria-label="Descripción"
           />
         </div>
-        <button id="guardar" type="submit">Anotar gasto</button>
+
+        <p id="categoria-detectada" class="tema-detectado" hidden></p>
+
+        <button id="guardar" type="submit">Anotar</button>
       </form>
 
       <p id="aviso" class="resultado"></p>
@@ -62,9 +84,6 @@
       <p id="vacio" hidden class="nota">Todavía no has anotado nada.</p>
     </main>
 
-    <!-- Barra fija abajo: en el celular es donde llega el pulgar sin recolocar
-         la mano. Los enlaces en el pie obligaban a estirarse hasta arriba o a
-         hacer scroll, que para moverse entre tres pantallas es demasiado. -->
     <nav class="barra-nav" aria-label="Secciones">
       <a href="/" class="pestana">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
@@ -74,18 +93,17 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6h12"/><path d="M9 12h12"/><path d="M9 18h12"/><path d="M4 6h.01"/><path d="M4 12h.01"/><path d="M4 18h.01"/></svg>
         <span>Notas</span>
       </a>
-      <a href="/gastos.html" class="pestana" aria-current="page">
+      <a href="/dinero.html" class="pestana" aria-current="page">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="2.5"/></svg>
-        <span>Gastos</span>
+        <span>Dinero</span>
       </a>
     </nav>
-
 
     <div id="deshacer" class="deshacer" hidden>
       <span id="deshacer-texto"></span>
       <button id="deshacer-boton" type="button">Deshacer</button>
     </div>
 
-    <script type="module" src="/src/gastos.js"></script>
+    <script type="module" src="/src/dinero.js"></script>
   </body>
 </html>

@@ -311,7 +311,7 @@ async function guardar(fila) {
   }
 
   try {
-    await encolar({ ...fila, tipo: 'nota' });
+    await encolar({ ...fila, coleccion: 'nota' });
     return 'cola';
   } catch {
     decir('No se pudo guardar en el dispositivo. El texto sigue aquí.', 'falla');
