@@ -200,31 +200,43 @@ documento señalaba como más incierta:
 
 **Falta de la fase 0:** el cron, medir su retraso, y probar el dictado por voz.
 
-#### Dónde nos quedamos — 9 de septiembre de 2026
+#### Dónde nos quedamos — 10 de septiembre de 2026
 
-**Listo:** app desplegada en Vercel, PWA instalable, service worker con los
-handlers de push escritos, proyecto Supabase creado, las tres tablas creadas,
-variables de entorno cargadas en Vercel y verificadas dentro del bundle
-publicado, Edge Function `enviar-push` desplegada desde el editor web.
+**Funcionando y verificado en producción:**
 
-**Siguiente paso:** cargar los dos secretos de la Edge Function en
-Supabase → Edge Functions → Secrets. La función lee `VAPID_JWKS` en su primera
-línea, así que sin él revienta antes de atender nada — ahora mismo devuelve 500.
-
-| Secreto | Valor |
+| Pieza | Estado |
 |---|---|
-| `VAPID_JWKS` | la línea correspondiente de `secretos.local.txt` (fuera de git) |
-| `CORREO_CONTACTO` | `mailto:fchoquequ@unsa.edu.pe` |
+| Capturar notas | ✅ |
+| Fecha y hora con atajos | ✅ |
+| Recordatorio que llega solo al celular | ✅ 40,2 s de retraso medidos |
+| Lista: editar, marcar hecha, borrar con deshacer | ✅ |
+| Acceso cerrado con sesión | ✅ sin sesión la API devuelve `[]` |
+| Gastos: monto, descripción, total del mes | ✅ |
+| Capturar sin conexión (notas y gastos) | ✅ cola en IndexedDB |
 
-**Después:** volver a llamar a la función para confirmar que arranca → suscribir
-el celular desde la app → "Pedir push al servidor" → programar el cron con
-`supabase/cron.sql` → medir el retraso con `select * from public.retrasos`.
+**Lo único que queda de la fase 1: el dictado por voz.**
 
-**Sin comprobar:** nunca se confirmó si el aviso de prueba local (botón
-"Mandarme un aviso de prueba") llegó al celular.
+Antes de construirlo hay que responder la pregunta que sigue abierta desde la
+fase 0: **¿la Web Speech API transcribe bien en español?** Se prueba en diez
+segundos desde /diagnostico.html en el celular. Si transcribe mal, el bloque se
+replantea en vez de construirse.
 
-**Deuda anotada:** RLS está abierto a la clave `anon`. Cerrarlo antes de
-empezar a usar la app de verdad, al final de la fase 1.
+**Pendiente de prueba en el mundo real** (yo ya no tengo acceso a la base, así
+que estas solo las puedes hacer tú):
+
+- Modo avión → capturar → quitar modo avión → comprobar que sube
+- Que el total del mes de gastos cuadre con lo anotado
+
+**Cosas que hay que saber para trabajar en esto:**
+
+- El editor SQL de Supabase **censura el texto que reconoce como clave de API**,
+  sustituyéndolo carácter por carácter. El largo se conserva, así que comprobar
+  la longitud no detecta nada. Para meter una clave en la base: codificarla en
+  base64 y decodificar con `convert_from(decode(...), 'UTF8')`.
+- `cron.job_run_details` marca "succeeded" aunque la llamada HTTP falle: el job
+  solo encola la petición. El resultado real está en `net._http_response`.
+- La Edge Function se despliega pegándola en el editor web del panel; usa
+  especificadores `jsr:` completos justo para eso.
 
 ### Fase 1 — Capturar y recordar
 
