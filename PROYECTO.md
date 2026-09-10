@@ -77,7 +77,7 @@ Si a las dos semanas sigo anotando en otro lado, la app no resolvió la fricció
 |---|---|---|
 | Las notificaciones push llegan al celular de forma confiable | **Medio.** Sin esto no hay producto, pero el teléfono es **Android**, donde el push web es camino trillado — funciona incluso desde una pestaña, sin instalar | **Fase 0**, primer día: una PWA vacía que mande una notificación de prueba al celular real |
 | `pg_cron` gratuito dispara con precisión suficiente | Alto: si un recordatorio llega tarde, se pierde la confianza en la app | En la misma fase 0, programar un aviso y medir el retraso |
-| El dictado del navegador transcribe bien en español | Medio: si falla, se captura por texto y la voz se resuelve después | Probarlo el primer día — son diez minutos |
+| ~~El dictado del navegador transcribe bien en español~~ | — | **Comprobado el 10/09/2026: sí.** Web Speech API en `es-PE`, sin coste. Se descarta la transcripción de pago que se había previsto como plan B |
 | Escribir la nota es realmente más rápido que abrir las notas del celular | **Alto — es la premisa del proyecto.** Si no gana en velocidad, no se va a usar | Cronometrar ambos caminos al terminar la fase 1 |
 | El lienzo visual es abordable | Medio: es la parte más compleja, pero llega cuando ya hay algo usable | No se prueba antes; a propósito queda al final |
 | 6 h diarias se sostienen | Medio: el ritmo real suele bajar | El roadmap está por fases: si el ritmo cae, la fase 1 ya entrega algo usable |
@@ -135,7 +135,7 @@ Si a las dos semanas sigo anotando en otro lado, la app no resolvió la fricció
 - [x] Edge Function que envía un push de prueba *(desplegada y arrancando; verificada devolviendo 200 en ambos modos)*
 - [x] `pg_cron` llamándola cada minuto
 - [x] **Probar en el celular real** y anotar cuánto se retrasa *(40,2 s medidos)*
-- [ ] Probar diez segundos de dictado por voz en español y anotar qué tan bien salió
+- [x] Probar diez segundos de dictado por voz en español y anotar qué tan bien salió *(bien)*
 
 > Si aquí falla el push, **parar y replantear** antes de seguir. Ese es el propósito de esta fase.
 
@@ -177,7 +177,6 @@ tenerlos escritos porque ninguno era evidente:
 todas las llamadas fallaban, porque el job solo encola la petición. El
 resultado real de la llamada HTTP está en `net._http_response`.
 
-**Falta de la fase 0:** probar el dictado por voz en español.
 
 #### Historial
 
@@ -198,31 +197,35 @@ documento señalaba como más incierta:
    creó. Al cambiar la clave hay que desuscribir en el dispositivo; borrar la
    fila en la base no basta.
 
-**Falta de la fase 0:** el cron, medir su retraso, y probar el dictado por voz.
 
 #### Dónde nos quedamos — 10 de septiembre de 2026
 
-**Funcionando y verificado en producción:**
+**La fase 1 está completa.** Todo verificado en producción:
 
 | Pieza | Estado |
 |---|---|
 | Capturar notas | ✅ |
+| Dictado por voz en español | ✅ Web Speech API en `es-PE`, sin coste |
 | Fecha y hora con atajos | ✅ |
 | Recordatorio que llega solo al celular | ✅ 40,2 s de retraso medidos |
 | Lista: editar, marcar hecha, borrar con deshacer | ✅ |
 | Acceso cerrado con sesión | ✅ sin sesión la API devuelve `[]` |
-| Gastos: monto, descripción, total del mes | ✅ |
+| Gastos: monto, descripción, total del mes | ✅ *(adelantado de la fase 4)* |
 | Capturar sin conexión (notas y gastos) | ✅ cola en IndexedDB |
 
-**Lo único que queda de la fase 1: el dictado por voz.**
+**Lo siguiente NO es código: es usarla.**
 
-Antes de construirlo hay que responder la pregunta que sigue abierta desde la
-fase 0: **¿la Web Speech API transcribe bien en español?** Se prueba en diez
-segundos desde /diagnostico.html en el celular. Si transcribe mal, el bloque se
-replantea en vez de construirse.
+El propio documento fija la señal de éxito —capturar aquí y no en las notas del
+celular durante dos semanas seguidas, sin que se pase ninguna actividad con
+fecha—. Construir la fase 2 (destilar con IA) antes de tener notas reales
+dentro sería destilar un cajón vacío, que es exactamente lo que el plan quería
+evitar.
 
-**Pendiente de prueba en el mundo real** (yo ya no tengo acceso a la base, así
-que estas solo las puedes hacer tú):
+Durante esa semana, lo que hay que anotar es **qué molesta**: eso es lo que
+decide qué se construye después.
+
+**Dos comprobaciones pendientes en el mundo real** (yo ya no tengo acceso a la
+base, así que solo las puedes hacer tú):
 
 - Modo avión → capturar → quitar modo avión → comprobar que sube
 - Que el total del mes de gastos cuadre con lo anotado
@@ -237,6 +240,8 @@ que estas solo las puedes hacer tú):
   solo encola la petición. El resultado real está en `net._http_response`.
 - La Edge Function se despliega pegándola en el editor web del panel; usa
   especificadores `jsr:` completos justo para eso.
+- El dictado necesita internet aunque el resto de la captura no: Chrome manda
+  el audio a Google en vez de transcribir en el dispositivo.
 
 ### Fase 1 — Capturar y recordar
 
@@ -245,7 +250,7 @@ que estas solo las puedes hacer tú):
 **Terminó cuando:** desde el celular dicto "llamar al dentista el jueves a las 3", queda guardado, y el jueves a las 3 me llega la notificación.
 
 - [x] Pantalla de captura: un campo, un botón de micrófono, nada más
-- [x] Dictado por voz que rellena el campo *(construido; falta comprobar qué tal transcribe)*
+- [x] Dictado por voz que rellena el campo *(probado en el celular: transcribe bien en español)*
 - [x] Guardar en Supabase
 - [x] Ponerle fecha y hora opcional a una nota
 - [x] Lista de lo capturado, ordenada por fecha
