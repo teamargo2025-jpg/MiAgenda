@@ -11,6 +11,7 @@ import { encolar, nuevoId, soportaCola } from './cola.js';
 import { pendientesDe, sincronizarEnSegundoPlano } from './sincronizar.js';
 import { crearDictado, soportaVoz } from './voz.js';
 import { convertirA, lineasDe } from './formato.js';
+import { extraerTema } from './tema.js';
 
 const form = document.getElementById('form');
 const texto = document.getElementById('texto');
@@ -27,6 +28,19 @@ const cuando = crearSelectorDeCuando({
 const decir = (mensaje, estado = 'neutro') => {
   aviso.textContent = mensaje;
   aviso.dataset.estado = estado;
+};
+
+// --- Tema ---
+
+const avisoVaso = document.getElementById('vaso');
+
+// Se muestra en cuanto se teclea la almohadilla. La etiqueta se quita del texto
+// al guardar, así que verla reconocida antes evita la sensación de que algo se
+// borró solo.
+const repasarVaso = () => {
+  const { tema } = extraerTema(texto.value);
+  avisoVaso.hidden = !tema;
+  if (tema) avisoVaso.textContent = `→ vaso #${tema}`;
 };
 
 // --- Formato ---
@@ -62,7 +76,10 @@ for (const chip of chipsFormato) {
   });
 }
 
-texto.addEventListener('input', repasarFormato);
+texto.addEventListener('input', () => {
+  repasarFormato();
+  repasarVaso();
+});
 
 // --- Dictado ---
 
@@ -78,6 +95,7 @@ const dictado = crearDictado({
     const separador = textoPrevio && !textoPrevio.endsWith(' ') ? ' ' : '';
     texto.value = textoPrevio + separador + transcrito;
     repasarFormato();
+    repasarVaso();
   },
   alEstado(estado) {
     const escuchando = estado === 'escuchando';
@@ -194,13 +212,24 @@ form.addEventListener('submit', async (evento) => {
   decir('Guardando…');
 
   const recordarEn = cuando.valor();
+  // El tema se separa ANTES de dar formato: si no, "#salud" acabaría
+  // convertido en una línea más de la lista o en una casilla de la checklist.
+  const { tema, limpio } = extraerTema(contenido);
+
+  if (!limpio) {
+    decir('Eso es solo una etiqueta. Escribe también qué quieres anotar.', 'falla');
+    boton.disabled = false;
+    return;
+  }
+
   // El id se genera aquí: la nota tiene identidad antes de existir en el
   // servidor, así que reintentar la subida no puede duplicarla.
   const fila = {
     id: nuevoId(),
-    texto: convertirA(formatoElegido, contenido),
+    texto: convertirA(formatoElegido, limpio),
     recordar_en: recordarEn,
     formato: formatoElegido,
+    tema,
   };
 
   const guardado = await guardar(fila);
@@ -214,10 +243,14 @@ form.addEventListener('submit', async (evento) => {
   formatoElegido = 'texto';
   pintarFormato();
   repasarFormato();
+  repasarVaso();
   cuando.limpiar();
   texto.focus();
 
-  const base = recordarEn ? `Guardado. Te aviso ${describirCuando(recordarEn)}` : 'Guardado';
+  const enVaso = tema ? ` en #${tema}` : '';
+  const base = recordarEn
+    ? `Guardado${enVaso}. Te aviso ${describirCuando(recordarEn)}`
+    : `Guardado${enVaso}`;
   decir(
     guardado === 'cola' ? `${base} — se subirá al volver la conexión.` : `${base}.`,
     'ok',

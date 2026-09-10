@@ -10,6 +10,7 @@ import { exigirSesion, salir } from './sesion.js';
 import { pendientesDe } from './sincronizar.js';
 import { quitarDeCola } from './cola.js';
 import { itemsDe, alternarItem, convertirA, progreso, ETIQUETAS, FORMATOS } from './formato.js';
+import { extraerTema, temasDe } from './tema.js';
 
 const estado = document.getElementById('estado');
 const vacio = document.getElementById('vacio');
@@ -32,7 +33,7 @@ const decir = (mensaje, tipo = 'neutro') => {
 async function traerNotas() {
   const { data, error } = await db
     .from('notas')
-    .select('id, texto, recordar_en, notificada_en, hecha, creada_en, formato')
+    .select('id, texto, recordar_en, notificada_en, hecha, creada_en, formato, tema')
     .order('creada_en', { ascending: false });
 
   if (error) throw new Error(error.message);
@@ -47,6 +48,63 @@ function ordenarPendientes(notas) {
   conHora.sort((a, b) => new Date(a.recordar_en) - new Date(b.recordar_en));
   return [...conHora, ...sinHora];
 }
+
+// --- Vasos ---
+
+const barraVasos = document.getElementById('vasos');
+
+// null = todos. La cadena vacía es un valor real (el vaso "sin tema"), así que
+// no puede usarse para decir "sin filtro".
+let vasoActivo = null;
+
+function pintarVasos(notas) {
+  const temas = temasDe(notas);
+  const sinTema = notas.filter((n) => !n.tema).length;
+
+  // Con un solo vaso no hay nada que filtrar, y una fila de pestañas que no
+  // sirve para nada es ruido.
+  if (temas.length === 0) {
+    barraVasos.hidden = true;
+    vasoActivo = null;
+    return;
+  }
+
+  const opciones = [
+    { clave: null, etiqueta: 'Todos', total: notas.length },
+    ...temas.map((t) => ({ clave: t.tema, etiqueta: `#${t.tema}`, total: t.total })),
+  ];
+
+  if (sinTema > 0) opciones.push({ clave: '', etiqueta: 'Sin vaso', total: sinTema });
+
+  // Si el vaso activo se quedó sin notas —se movió la última, o se borró—, el
+  // filtro volvería a una pantalla vacía sin explicar por qué. Se vuelve a
+  // Todos.
+  if (vasoActivo !== null && !opciones.some((o) => o.clave === vasoActivo)) {
+    vasoActivo = null;
+  }
+
+  barraVasos.replaceChildren(
+    ...opciones.map((opcion) => {
+      const boton = document.createElement('button');
+      boton.type = 'button';
+      boton.className = 'chip';
+      boton.textContent = `${opcion.etiqueta} ${opcion.total}`;
+      boton.setAttribute('aria-pressed', String(opcion.clave === vasoActivo));
+      boton.addEventListener('click', () => {
+        vasoActivo = opcion.clave === vasoActivo ? null : opcion.clave;
+        pintarTodo();
+      });
+      return boton;
+    }),
+  );
+  barraVasos.hidden = false;
+}
+
+const enVasoActivo = (nota) => {
+  if (vasoActivo === null) return true;
+  if (vasoActivo === '') return !nota.tema;
+  return nota.tema === vasoActivo;
+};
 
 // --- Pintado ---
 
@@ -125,6 +183,21 @@ function crearFila(nota) {
   const chips = document.createElement('div');
   chips.className = 'nota-chips';
   chips.append(alarma, formatoBoton);
+
+  if (nota.tema) {
+    const vaso = document.createElement('button');
+    vaso.type = 'button';
+    vaso.className = 'nota-vaso';
+    vaso.textContent = `#${nota.tema}`;
+    vaso.setAttribute('aria-label', `Ver solo el vaso ${nota.tema}`);
+    // Tocar el vaso de una nota filtra por él: es el gesto que uno intenta
+    // instintivamente al ver una etiqueta.
+    vaso.addEventListener('click', () => {
+      vasoActivo = nota.tema;
+      pintarTodo();
+    });
+    chips.append(vaso);
+  }
 
   cuerpo.append(texto, chips);
 
@@ -286,9 +359,15 @@ async function pintarTodo() {
 
   decir('');
 
-  const pendientes = ordenarPendientes(notas.filter((n) => !n.hecha));
-  const hechas = notas.filter((n) => n.hecha);
-  const sinSubir = await pendientesDe('nota');
+  // Las pestañas se calculan sobre TODAS las notas, no sobre las filtradas: si
+  // no, al entrar en un vaso desaparecerían los demás y no habría forma de
+  // volver.
+  pintarVasos(notas);
+
+  const visibles = notas.filter(enVasoActivo);
+  const pendientes = ordenarPendientes(visibles.filter((n) => !n.hecha));
+  const hechas = visibles.filter((n) => n.hecha);
+  const sinSubir = (await pendientesDe('nota')).filter(enVasoActivo);
 
   listaPendientes.replaceChildren(
     ...sinSubir.map(crearFilaPendiente),
@@ -301,7 +380,7 @@ async function pintarTodo() {
   botonVaciar.hidden = hechas.length === 0;
   botonVaciar.textContent = `Borrar ${hechas.length}`;
   botonVaciar.onclick = () => vaciarHechas(hechas);
-  vacio.hidden = notas.length + sinSubir.length > 0;
+  vacio.hidden = visibles.length + sinSubir.length > 0;
 }
 
 // --- Acciones ---
@@ -382,8 +461,18 @@ function editarTexto(nota, elemento) {
       return;
     }
 
-    elemento.textContent = nuevo;
-    const { error } = await db.from('notas').update({ texto: nuevo }).eq('id', nota.id);
+    // Se vuelve a leer el tema: escribir "#otro" al editar mueve la nota de
+    // vaso, igual que al capturarla. Es la única forma de cambiarla de vaso, y
+    // funciona sin aprender nada nuevo.
+    const { tema, limpio } = extraerTema(nuevo);
+    const textoFinal = limpio || nuevo;
+
+    elemento.textContent = textoFinal;
+    const { error } = await db
+      .from('notas')
+      .update({ texto: textoFinal, tema })
+      .eq('id', nota.id);
+
     if (error) {
       // Se revierte lo mostrado: dejar en pantalla algo que no está guardado
       // es peor que no haber editado.
@@ -391,7 +480,9 @@ function editarTexto(nota, elemento) {
       decir(`No se pudo guardar el cambio: ${error.message}`, 'falla');
       return;
     }
-    nota.texto = nuevo;
+    nota.texto = textoFinal;
+    nota.tema = tema;
+    pintarTodo();
   };
 
   campo.addEventListener('blur', () => terminar(true));

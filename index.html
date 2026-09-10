@@ -33,6 +33,11 @@
             <span class="visualmente-oculto">Dictar</span>
           </button>
         </div>
+        <!-- Confirma el vaso detectado mientras escribes. Sin esto, escribir
+             "#salud" y ver que la etiqueta desaparece al guardar parecería que
+             se perdió algo. -->
+        <p id="vaso" class="vaso-detectado" hidden></p>
+
         <!-- El formato solo aparece cuando la nota tiene más de una línea:
              para una frase suelta no significa nada, y mostrarlo siempre sería
              añadir una decisión a la captura de dos segundos. -->

@@ -2,6 +2,13 @@ import { defineConfig } from 'vite';
 import { resolve } from 'node:path';
 
 export default defineConfig({
+  server: {
+    // Sin esto Vite se queda siempre en 5173 y choca con cualquier otro
+    // servidor de desarrollo que ya lo tenga. Nada aquí depende de ese puerto
+    // en concreto —no hay callbacks de OAuth ni webhooks apuntando a él—, así
+    // que se acepta el que asigne el entorno.
+    port: Number(process.env.PORT) || 5173,
+  },
   build: {
     rollupOptions: {
       input: {

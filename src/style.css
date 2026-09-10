@@ -490,10 +490,14 @@ body.captura #app {
 
 .nota-alarma:active, .nota-formato:active { transform: none; box-shadow: none; }
 
+/* Relleno y contorno significan cosas distintas: relleno es a qué PERTENECE la
+   nota (su vaso), contorno es un atributo suyo (cuándo avisa, qué formato
+   tiene). Antes la alarma futura salía rellena igual que el vaso y las dos
+   marcas se confundían. */
 .nota-alarma.activa, .nota-formato.completa {
   border-color: var(--tinta);
-  background: var(--acento);
-  color: var(--sobre-acento);
+  background: transparent;
+  color: var(--tinta);
 }
 
 /* Vencida y sin avisar: algo salió mal, y conviene que salte a la vista. */
@@ -718,3 +722,32 @@ body.captura #app {
 
 .diag dd[data-estado="ok"] { color: var(--tinta); font-weight: 700; }
 .diag dd[data-estado="falla"] { color: var(--falla); font-weight: 700; }
+
+/* --- Vasos --- */
+
+.vasos { margin-bottom: var(--e4); }
+
+/* La marca del vaso se distingue de los otros chips de la fila por ir en
+   negativo: es a lo que pertenece la nota, no un ajuste suyo. */
+.nota-vaso {
+  flex: none;
+  min-height: 0;
+  padding: 2px var(--e2);
+  border: var(--borde);
+  background: var(--tinta);
+  box-shadow: none;
+  color: var(--tarjeta);
+  font-family: var(--mono);
+  font-size: .7rem;
+  font-weight: 700;
+}
+
+.nota-vaso:active { transform: none; box-shadow: none; }
+
+.vaso-detectado {
+  margin: 0;
+  font-family: var(--mono);
+  font-size: .75rem;
+  font-weight: 700;
+  color: var(--tenue);
+}

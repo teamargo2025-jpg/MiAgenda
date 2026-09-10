@@ -43,7 +43,7 @@ Eso es todo. Es poco a propósito: es lo mínimo que ya resuelve el problema 1 y
 | **Destilar ideas con IA** | Necesita tener notas adentro para funcionar. No se puede destilar un cajón vacío — llega en la fase 2, cuando ya haya material real |
 | **Lienzo visual para hilar ideas** | Es, de lejos, la parte más cara del proyecto. Si entra a la v1, la v1 no llega. Fase 3 |
 | **Apartado de gastos y finanzas** | Es un producto entero aparte. Anotado para no perderlo, pero fuera del plan inicial |
-| **Tableros al estilo Trello** | Es justo la fricción que estamos eliminando. Si después de usarlo dos semanas hace falta agrupar, se agrega sabiendo cómo |
+| ~~**Tableros al estilo Trello**~~ | **Resuelto el 10/09/2026 sin tableros:** los temas se escriben dentro de la nota con almohadilla (`#salud`) y el vaso nace de ahí. Se agrupa sin decidir nada antes de escribir, que era la fricción que se quería evitar |
 | **Compartir, colaborar, cuentas de usuario** | Es de uso personal. Cada pieza de esto son días de trabajo que no aportan nada aquí |
 
 ## Cómo sabremos que funcionó
@@ -83,6 +83,13 @@ Si a las dos semanas sigo anotando en otro lado, la app no resolvió la fricció
 | 6 h diarias se sostienen | Medio: el ritmo real suele bajar | El roadmap está por fases: si el ritmo cae, la fase 1 ya entrega algo usable |
 
 ## Decisiones tomadas
+
+- **Agrupar por temas escritos, no por tableros** (10/09/2026). El tema va
+  dentro de la nota con almohadilla; el vaso existe mientras alguna nota lo use
+  y desaparece cuando ninguna lo hace. No hay pantalla de administrar temas ni
+  decisión previa a escribir — que es exactamente lo que hizo abandonar Trello.
+  Una nota pertenece a un solo vaso: permitir varios obligaría a decidir en cuál
+  aparece al filtrar.
 
 - **Diseño brutalista y monocromo** (10/09/2026). Bordes de 2 px, esquinas
   rectas, sombras duras sin desenfoque, monoespaciada para los datos. No es
