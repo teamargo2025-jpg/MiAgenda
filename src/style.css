@@ -951,12 +951,15 @@ body.captura #app {
 
 .saludo { margin-bottom: var(--e5); }
 
+.marca { margin: 0 0 var(--e1); }
+
+/* El saludo baja de tamaño y deja las mayúsculas: es una frase dirigida a
+   alguien, no un rótulo. Mantenerlo en versalitas competiría con el nombre
+   justo encima y las dos líneas se leerían como una sola. */
 .momento {
   margin: 0;
-  font-size: 1.65rem;
-  font-weight: 800;
-  letter-spacing: -.03em;
-  text-transform: uppercase;
+  font-size: 1.05rem;
+  font-weight: 500;
 }
 
 .fecha-larga {
