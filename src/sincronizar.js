@@ -6,7 +6,7 @@
 import { db } from './supabase.js';
 import { vaciarCola, leerCola, soportaCola } from './cola.js';
 
-const TABLAS = { nota: 'notas', movimiento: 'movimientos' };
+const TABLAS = { nota: 'notas', movimiento: 'movimientos', serie: 'series_hechas' };
 
 // Compatibilidad con la cola anterior, que usaba `tipo` como discriminador.
 // Ahora `tipo` es un campo real de los movimientos (gasto o ingreso), así que

@@ -1167,3 +1167,162 @@ body.captura #app {
   height: 5px;
   background: currentColor;
 }
+
+/* --- Ejercicios --- */
+
+.ejercicios { display: flex; flex-direction: column; gap: var(--e3); margin-bottom: var(--e5); }
+
+.ejercicio {
+  padding: var(--e3);
+  border: var(--borde);
+  background: var(--tarjeta);
+  box-shadow: var(--relieve-corto);
+}
+
+.ejercicio-cabecera {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--e3);
+  margin-bottom: var(--e2);
+}
+
+.ejercicio-nombre { margin: 0; font-size: 1rem; font-weight: 700; overflow-wrap: anywhere; }
+
+.ejercicio-objetivo {
+  flex: none;
+  font-family: var(--mono);
+  font-size: .78rem;
+  font-weight: 700;
+  color: var(--tenue);
+}
+
+/* Un punto por serie: se ve cuánto queda sin leer un número, que es lo que se
+   necesita mirando de reojo entre repeticiones. */
+.series-puntos { display: flex; flex-wrap: wrap; gap: var(--e2); margin-bottom: var(--e3); }
+
+.punto {
+  width: 1.5rem;
+  height: 1.5rem;
+  min-height: 0;
+  padding: 0;
+  border: var(--borde);
+  background: var(--papel);
+  box-shadow: none;
+}
+
+.punto[data-hecha="true"] { background: var(--tinta); }
+
+.punto:disabled { opacity: .6; }
+
+.punto:active { transform: none; box-shadow: none; }
+
+.ejercicio-controles { display: flex; gap: var(--e2); align-items: stretch; }
+
+.campo-numero {
+  display: flex;
+  align-items: center;
+  gap: var(--e1);
+  flex: 0 0 5rem;
+  padding: 0 var(--e2);
+  border: var(--borde);
+  background: var(--tarjeta);
+  font-family: var(--mono);
+  font-size: .8rem;
+  color: var(--tenue);
+}
+
+.campo-numero input {
+  width: 100%;
+  min-width: 0;
+  padding: var(--e2) 0;
+  border: 0;
+  background: transparent;
+  font-family: var(--mono);
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--tinta);
+}
+
+.campo-numero input:focus-visible { outline: none; }
+
+.campo-numero:focus-within { outline: var(--linea) solid var(--tinta); outline-offset: 2px; }
+
+.anotar-serie { flex: 1; min-height: 0; }
+
+.ejercicio-linea {
+  margin: var(--e2) 0 0;
+  font-family: var(--mono);
+  font-size: .74rem;
+}
+
+.ejercicio-linea.tenue { color: var(--tenue); }
+
+/* El cronómetro se pega arriba mientras corre: entre series es lo único que se
+   mira, y buscarlo con el pulgar mientras cuentas segundos es justo lo que no
+   puede pasar. */
+.crono[data-estado="corriendo"],
+.crono[data-estado="terminado"] {
+  position: sticky;
+  top: var(--e2);
+  z-index: 5;
+}
+
+.crono-duraciones { justify-content: center; margin-top: var(--e2); }
+
+.crono-duraciones .chip { box-shadow: none; font-size: .68rem; padding: var(--e1) var(--e2); }
+
+.crono[data-estado="terminado"] .chip { background: var(--tarjeta); color: var(--tinta); }
+
+.crono[data-estado="terminado"] .chip[aria-pressed="true"] {
+  background: var(--tinta);
+  color: var(--tarjeta);
+  outline: var(--linea) solid var(--tarjeta);
+}
+
+/* --- Historial --- */
+
+.sesion {
+  margin-bottom: var(--e3);
+  padding: var(--e3);
+  border: var(--borde);
+  background: var(--tarjeta);
+  box-shadow: var(--relieve-corto);
+}
+
+.sesion-cabecera {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--e2);
+  margin-bottom: var(--e2);
+  padding-bottom: var(--e2);
+  border-bottom: var(--linea) dashed var(--tenue);
+}
+
+.sesion-fecha { margin: 0; font-size: .95rem; font-weight: 700; }
+
+.sesion-volumen {
+  flex: none;
+  font-family: var(--mono);
+  font-size: .72rem;
+  color: var(--tenue);
+}
+
+.sesion-ejercicios { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: var(--e1); }
+
+.sesion-ejercicios li {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: var(--e3);
+}
+
+.sesion-ejercicio { overflow-wrap: anywhere; font-size: .9rem; }
+
+.sesion-detalle {
+  flex: none;
+  font-family: var(--mono);
+  font-size: .74rem;
+  color: var(--tenue);
+}

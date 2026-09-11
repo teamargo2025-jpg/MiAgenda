@@ -55,10 +55,19 @@ export function cargarRutinas(alRefrescar) {
       .select('dia, texto')
       .then(({ data, error }) => {
         if (error || !data) return;
-        const fresco = {};
-        for (const fila of data) fresco[fila.dia] = fila.texto;
-        guardarCopia(fresco);
-        alRefrescar?.(fresco);
+
+        // Se FUSIONA, no se reemplaza. Una respuesta vacía no significa "no
+        // hay rutinas": significa que el servidor no devolvió ninguna, y eso
+        // pasa también cuando la sesión caducó y RLS no deja ver nada —sin dar
+        // error—. Reemplazar borraría lo que tienes escrito en el dispositivo.
+        //
+        // El servidor gana día por día; los días que no vengan conservan lo
+        // local, que es lo que protege una rutina escrita sin señal.
+        const fusionado = { ...leerCopia() };
+        for (const fila of data) fusionado[fila.dia] = fila.texto;
+
+        guardarCopia(fusionado);
+        alRefrescar?.(fusionado);
       });
   }
 

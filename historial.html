@@ -5,66 +5,44 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <meta name="theme-color" content="#ebebeb" media="(prefers-color-scheme: light)" />
     <meta name="theme-color" content="#0c0c0c" media="(prefers-color-scheme: dark)" />
-    <title>Gym — MiAgenda</title>
+    <title>Historial — MiAgenda</title>
     <link rel="manifest" href="/manifest.webmanifest" />
     <link rel="icon" href="/icono-192.png" />
     <link rel="apple-touch-icon" href="/icono-192.png" />
     <link rel="stylesheet" href="/src/style.css" />
   </head>
-  <body class="gym">
+  <body class="historial">
     <main id="app">
       <header class="barra">
-        <h1>Gym</h1>
-        <a class="enlace-discreto" href="/historial.html">Historial</a>
+        <h1>Historial</h1>
+        <a class="enlace-discreto" href="/gym.html">Entrenar</a>
       </header>
 
-      <!-- La semana entera a la vista: elegir día es de un toque y se ve de un
-           vistazo qué toca hoy sin abrir nada. -->
-      <nav class="semana" id="semana" aria-label="Día de la semana"></nav>
-
-      <!-- El cronómetro va pegado arriba mientras corre: entre series es lo
-           único que se mira, y tener que buscarlo con el pulgar mientras
-           cuentas segundos es exactamente lo que no puede pasar. -->
-      <section class="crono" id="crono" data-estado="parado">
-        <span class="crono-etiqueta" id="crono-etiqueta">Descanso</span>
-        <strong class="crono-cifra" id="crono-cifra">1:30</strong>
-        <div class="chips crono-duraciones" role="group" aria-label="Duración del descanso">
-          <button type="button" class="chip" data-segundos="60">1:00</button>
-          <button type="button" class="chip" data-segundos="90" aria-pressed="true">1:30</button>
-          <button type="button" class="chip" data-segundos="120">2:00</button>
-          <button type="button" class="chip" data-segundos="180">3:00</button>
-        </div>
-        <div class="crono-botones">
-          <button id="crono-accion" type="button">Empezar descanso</button>
-        </div>
-      </section>
-
-      <section>
-        <div class="cabecera-seccion">
-          <h2 id="titulo-rutina">Rutina</h2>
-          <button id="editar-rutina" type="button" class="salir">Editar</button>
-        </div>
-        <div id="rutina-vista"></div>
-        <p id="rutina-aviso" class="resultado"></p>
-      </section>
-
-      <section class="panel" id="panel-hoy" hidden>
-        <h2>Sesión de hoy</h2>
+      <section class="panel">
+        <h2>Últimas 4 semanas</h2>
         <dl class="cifras">
+          <div>
+            <dt>Sesiones</dt>
+            <dd id="total-sesiones">0</dd>
+          </div>
           <div>
             <dt>Series</dt>
             <dd id="total-series">0</dd>
-          </div>
-          <div>
-            <dt>Repeticiones</dt>
-            <dd id="total-reps">0</dd>
           </div>
           <div>
             <dt>Volumen</dt>
             <dd id="total-volumen">0 kg</dd>
           </div>
         </dl>
-        <p class="lectura" id="lectura-hoy"></p>
+        <p class="lectura" id="lectura"></p>
+      </section>
+
+      <section>
+        <h2>Sesiones</h2>
+        <div id="sesiones"></div>
+        <p id="vacio" hidden class="nota">
+          Todavía no has registrado ninguna serie.
+        </p>
       </section>
     </main>
 
@@ -91,6 +69,6 @@
       </a>
     </nav>
 
-    <script type="module" src="/src/gym.js"></script>
+    <script type="module" src="/src/historial.js"></script>
   </body>
 </html>

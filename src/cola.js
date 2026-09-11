@@ -52,6 +52,11 @@ function transaccion(modo, trabajo) {
 
 export const soportaCola = typeof indexedDB !== 'undefined';
 
+// supabase-js no marca el fallo de red con un código propio: cuando no hay
+// respuesta llega un TypeError de fetch sin `code`. Es lo que se usa para
+// separarlo de un rechazo del servidor.
+const esDeRed = (error) => !error.code || error.message === 'Failed to fetch';
+
 export function encolar(entrada) {
   return transaccion('readwrite', (almacen) => almacen.put(entrada));
 }
@@ -72,6 +77,7 @@ export async function vaciarCola(insertar) {
 
   const entradas = await leerCola();
   let subidas = 0;
+  const fallos = [];
 
   for (const entrada of entradas) {
     const { error } = await insertar(entrada);
@@ -85,14 +91,19 @@ export async function vaciarCola(insertar) {
       continue;
     }
 
-    // Un fallo de red detiene el vaciado: reintentar el resto solo sumaría
-    // esperas. Uno de datos (un texto vacío, una fila mal formada) también,
-    // pero ese hay que verlo, no esconderlo.
-    break;
+    // Un fallo de red detiene el vaciado: sin conexión, reintentar el resto
+    // solo suma esperas.
+    if (esDeRed(error)) break;
+
+    // Un fallo de datos NO detiene el vaciado. Antes sí, y eso convertía una
+    // sola entrada envenenada —una tabla que todavía no existe, por ejemplo—
+    // en un tapón que impedía subir todo lo demás: las notas se quedaban en el
+    // dispositivo por culpa de una serie de gimnasio. Se anota y se sigue.
+    fallos.push({ id: entrada.id, error });
   }
 
   const restantes = await leerCola();
-  return { subidas, pendientes: restantes.length };
+  return { subidas, pendientes: restantes.length, fallos };
 }
 
 // El id se genera aquí y no en la base: así la fila tiene identidad antes de

@@ -21,6 +21,7 @@ export default defineConfig({
         notas: resolve(__dirname, 'notas.html'),
         finanzas: resolve(__dirname, 'finanzas.html'),
         gym: resolve(__dirname, 'gym.html'),
+        historial: resolve(__dirname, 'historial.html'),
         analisis: resolve(__dirname, 'analisis.html'),
         entrar: resolve(__dirname, 'entrar.html'),
         diagnostico: resolve(__dirname, 'diagnostico.html'),

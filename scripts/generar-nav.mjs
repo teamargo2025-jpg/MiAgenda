@@ -48,9 +48,9 @@ const SECCIONES = [
   },
 ];
 
-// Qué sección queda marcada en cada página. Análisis marca Dinero porque es
-// donde vive: una pestaña que no se ilumina en ninguna parte deja al usuario
-// sin saber dónde está.
+// Qué sección queda marcada en cada página. Análisis marca Finanzas e Historial
+// marca Gym porque es donde viven: una pestaña que no se ilumina en ninguna
+// parte deja al usuario sin saber dónde está.
 const PAGINAS = {
   'index.html': 'inicio',
   'capturar.html': 'capturar',
@@ -58,6 +58,7 @@ const PAGINAS = {
   'finanzas.html': 'finanzas',
   'analisis.html': 'finanzas',
   'gym.html': 'gym',
+  'historial.html': 'gym',
 };
 
 const barra = (actual) => `    <nav class="barra-nav" aria-label="Secciones">

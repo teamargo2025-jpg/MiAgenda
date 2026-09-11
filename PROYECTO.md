@@ -84,6 +84,18 @@ Si a las dos semanas sigo anotando en otro lado, la app no resolvió la fricció
 
 ## Decisiones tomadas
 
+- **El gimnasio registra series, y la rutina sigue siendo texto** (11/09/2026).
+  Cada línea de la rutina —"Press banca 4x8 60kg"— se interpreta para poder
+  contar series y comparar con la última vez, pero se edita como texto: escribir
+  esa línea es más rápido que rellenar cuatro casillas, y el plan entero se
+  corrige de una vez. No hay tabla de ejercicios ni pantalla de administrarlos.
+- **No hay tabla de sesiones.** Una sesión son las series hechas un día;
+  agrupar por fecha da lo mismo sin tener que abrirla, cerrarla, ni decidir qué
+  pasa cuando te olvidas de cerrarla. Ese estado extra solo se paga en fallos.
+- **Las series se guardan por el NOMBRE del ejercicio**, no por una referencia a
+  la rutina: así reescribir o reordenar la rutina no rompe el historial de lo
+  que ya levantaste, que es justo lo que lo hace valioso.
+
 - **La rutina se asigna al día de la semana, no a una fecha** (10/09/2026). La
   del lunes es la del lunes, todos los lunes: siete filas como mucho. Cuando
   haga falta llevar historial de lo que se hizo cada día concreto, eso será otra
