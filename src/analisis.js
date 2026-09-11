@@ -1,6 +1,6 @@
 // Análisis del mes. Sin IA: sumas, porcentajes y una regla de tres.
 //
-// El trabajo aquí no es calcular —eso está en finanzas.js y son cuatro
+// El trabajo aquí no es calcular —eso está en cuentas.js y son cuatro
 // operaciones— sino elegir qué mirar y decirlo en una frase. Un panel con doce
 // cifras no informa: obliga a hacer el análisis a quien lo mira, que es
 // exactamente lo que debería ahorrarle.
