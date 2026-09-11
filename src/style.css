@@ -21,7 +21,10 @@
   --tarjeta: #ffffff;
   --tinta: #111111;
   --tenue: #575757;
-  --apagado: #8a8a8a;
+  /* Medido, no elegido a ojo: a #8a8a8a los marcadores de posición y los
+     botones desactivados se quedaban en 3.4:1 sobre blanco, por debajo del
+     mínimo legible. Este cumple 4.5:1 contra los dos fondos. */
+  --apagado: #6a6a6a;
 
   /* Sin color de acento: el énfasis se consigue invirtiendo tinta y papel, no
      tiñendo. --acento es "lo que se rellena para destacar", y hoy vale tinta.
@@ -32,8 +35,10 @@
 
   /* El rojo se queda solo para los fallos y las alarmas vencidas. Es la única
      información que no puede depender de la forma, y va siempre acompañada de
-     una barra o un borde para quien no distinga el tono. */
-  --falla: #d92b2b;
+     una barra o un borde para quien no distinga el tono.
+     Oscurecido desde #d92b2b, que sobre el papel claro daba 4.07:1: un mensaje
+     de error ilegible es peor que no darlo. */
+  --falla: #bd1c1c;
 
   /* El grosor del borde es un valor propio y no un número suelto: en
      brutalismo ES el lenguaje, y tener que cambiarlo en cuarenta sitios sería
@@ -73,7 +78,7 @@
     --tarjeta: #191919;
     --tinta: #f2f2f2;
     --tenue: #a8a8a8;
-    --apagado: #767676;
+    --apagado: #929292;
 
     --falla: #ff6b6b;
   }

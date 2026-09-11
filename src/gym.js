@@ -224,7 +224,7 @@ function pintarRutina() {
   if (!texto) {
     const vacio = document.createElement('p');
     vacio.className = 'nota';
-    vacio.textContent = 'Sin rutina para este día.';
+    vacio.textContent = 'Escribe la rutina de este día y la verás aquí.';
     vistaRutina.replaceChildren(vacio);
     return;
   }

@@ -1,0 +1,8 @@
+# MiAgenda es una aplicación personal de un solo usuario. No hay nada que
+# indexar: todo lo que contiene está detrás de una sesión y es privado.
+#
+# Esto no es una medida de seguridad —un buscador que ignore el fichero entrará
+# igual, y la protección real es RLS en la base— sino de higiene: que las
+# páginas de una app personal no acaben apareciendo en resultados de búsqueda.
+User-agent: *
+Disallow: /
