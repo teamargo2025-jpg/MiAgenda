@@ -1,133 +1,179 @@
 /* MiAgenda — hoja de estilos.
  *
- * Diseño brutalista: bordes gruesos, esquinas rectas, sombras duras sin
- * desenfoque, y la estructura de la página a la vista en vez de disimulada.
+ * Serio pero alegre. La seriedad viene de la disciplina: una sola familia
+ * tipográfica, tres radios con significado, y espacios de una escala corta. La
+ * alegría viene del color — pero del color que INFORMA, no del que decora.
  *
- * No es solo un gusto. En una app que se usa a un brazo de distancia, con una
- * mano y a veces con prisa, el contraste alto y los bordes evidentes hacen que
- * cada zona tocable se lea de un vistazo. Lo que en otro contexto sería
- * agresivo, aquí es legible.
+ * Cada sección tiene su propio tono. Como solo se ve una sección a la vez,
+ * nunca hay más de un color en pantalla: el conjunto es vivo y cada pantalla,
+ * tranquila. Y el tono dice dónde estás antes de que leas el título.
  *
- * Organizada por capas: primero los valores, luego lo común, y al final lo
- * propio de cada pantalla.
+ * Tres cosas evitadas a conciencia, porque son el aspecto por defecto de
+ * cualquier app y no dirían nada de esta:
+ *   - el mismo radio y la misma sombra gris bajo todas las tarjetas,
+ *   - el fondo crema con acento terracota,
+ *   - rótulos en versalitas monoespaciadas encima de cada bloque.
  */
 
+/* Variable, 20 KB, servida desde el propio dominio. Cross-origin no la
+   cachearía el service worker, y esta app tiene que abrir sin señal. */
+@font-face {
+  font-family: 'Figtree';
+  src: url('/tipos/figtree-latin.woff2') format('woff2');
+  font-weight: 300 900;
+  font-style: normal;
+  font-display: swap;
+}
+
 :root {
-  /* Ambos temas: los controles nativos (casillas, calendario, teclado) siguen
-     al sistema en vez de quedarse oscuros sobre fondo claro. */
   color-scheme: light dark;
 
-  --papel: #ebebeb;
-  --tarjeta: #ffffff;
-  --tinta: #111111;
-  --tenue: #575757;
-  /* Medido, no elegido a ojo: a #8a8a8a los marcadores de posición y los
-     botones desactivados se quedaban en 3.4:1 sobre blanco, por debajo del
-     mínimo legible. Este cumple 4.5:1 contra los dos fondos. */
-  --apagado: #6a6a6a;
+  --lienzo: #f3f3f9;
+  --superficie: #ffffff;
+  --elevado: #ffffff;
 
-  /* Sin color de acento: el énfasis se consigue invirtiendo tinta y papel, no
-     tiñendo. --acento es "lo que se rellena para destacar", y hoy vale tinta.
-     Se conserva como variable por si algún día vuelve a ser un color: cambiar
-     estas dos líneas devuelve el acento cromático a toda la app. */
-  --acento: var(--tinta);
-  --sobre-acento: var(--tarjeta);
+  /* Tinta añil en vez de negro. El negro puro es duro en pantalla y no dice
+     nada; un añil muy oscuro se lee igual de serio y bastante más amable. */
+  --tinta: #1d1d33;
+  --tinta-media: #52526d;
+  /* Medido, no elegido a ojo: a #76768f los textos secundarios se quedaban en
+     3.99:1 sobre el lienzo, por debajo del mínimo legible. */
+  --tinta-suave: #686881;
+  --borde: #e4e3ef;
+  --borde-firme: #cecde0;
 
-  /* El rojo se queda solo para los fallos y las alarmas vencidas. Es la única
-     información que no puede depender de la forma, y va siempre acompañada de
-     una barra o un borde para quien no distinga el tono.
-     Oscurecido desde #d92b2b, que sobre el papel claro daba 4.07:1: un mensaje
-     de error ilegible es peor que no darlo. */
-  --falla: #bd1c1c;
+  /* Tono de la sección. El valor por defecto es el añil de Inicio; cada
+     pantalla lo redefine más abajo. */
+  --tono: #4f46e5;
+  --tono-suave: #eef0ff;
+  --sobre-tono: #ffffff;
 
-  /* El grosor del borde es un valor propio y no un número suelto: en
-     brutalismo ES el lenguaje, y tener que cambiarlo en cuarenta sitios sería
-     no poder cambiarlo. */
-  --linea: 2px;
-  --borde: var(--linea) solid var(--tinta);
+  --alerta: #c2371f;
+  --alerta-suave: #fdeeeb;
 
-  /* Sombra dura, sin desenfoque. Es lo que da la sensación de papel recortado
-     y pegado encima, en vez de un elemento flotando. */
-  --relieve: 4px 4px 0 var(--tinta);
-  --relieve-corto: 3px 3px 0 var(--tinta);
-
-  /* Para lo que va relleno de tinta. Una sombra de tinta bajo un bloque de
-     tinta se lee como una mancha, no como relieve: aquí la sombra es un bloque
-     de papel con su propio contorno, y el escalón vuelve a verse. */
-  --relieve-invertido: 4px 4px 0 var(--tarjeta), 4px 4px 0 var(--linea) var(--tinta);
-
+  /* Escala de espacios de seis pasos. Tener seis y no dieciséis es lo que hace
+     que dos pantallas escritas en días distintos se parezcan. */
   --e1: .25rem;
   --e2: .5rem;
   --e3: .75rem;
   --e4: 1rem;
   --e5: 1.5rem;
-  --e6: 2rem;
+  --e6: 2.25rem;
+
+  /* El radio codifica jerarquía en vez de ser el mismo en todo: cuanto más
+     importante es el bloque, más redondo. Un radio único en toda la interfaz
+     es precisamente lo que hace que nada destaque. */
+  --r-control: 10px;
+  --r-tarjeta: 16px;
+  --r-foco: 24px;
+
+  /* Sombra teñida con el tono de la sección y solo bajo el elemento principal.
+     Una sombra gris idéntica bajo cada tarjeta aplana la pantalla entera. */
+  --sombra: 0 14px 30px -14px color-mix(in srgb, var(--tono) 55%, transparent);
+  --sombra-sutil: 0 2px 6px -2px color-mix(in srgb, var(--tinta) 12%, transparent);
 
   --tocable: 2.75rem;
-  --nav-alto: 4rem;
-
-  --mono: ui-monospace, "SF Mono", "Cascadia Mono", "Segoe UI Mono", "Roboto Mono", monospace;
 }
 
-/* Tema oscuro. Solo se redefinen los valores; ni una regla de más abajo cambia.
-   La tinta y el papel se intercambian, que es exactamente lo que uno espera de
-   un diseño construido sobre esa metáfora. */
+/* Tono por sección. Cada uno es legible sobre blanco a tamaño de texto, y su
+   versión suave sirve de relleno sin gritar. */
+body.inicio      { --tono: #4f46e5; --tono-suave: #eceafe; }
+/* El verde azulado va oscurecido desde #0d8f86: a ese valor daba 3.59:1 sobre
+   el lienzo, y encima el blanco de los botones sobre él era ilegible. */
+body.captura     { --tono: #0a7369; --tono-suave: #e1f4f2; }
+body.notas       { --tono: #7c3aed; --tono-suave: #f2eafe; }
+body.finanzas,
+body.analisis    { --tono: #a35a09; --tono-suave: #fdf1e3; }
+body.gym,
+body.historial   { --tono: #c93756; --tono-suave: #fdecef; }
+
 @media (prefers-color-scheme: dark) {
   :root {
-    --papel: #0c0c0c;
-    --tarjeta: #191919;
-    --tinta: #f2f2f2;
-    --tenue: #a8a8a8;
-    --apagado: #929292;
+    --lienzo: #121225;
+    --superficie: #1b1b31;
+    --elevado: #23233d;
 
-    --falla: #ff6b6b;
+    --tinta: #eeeef8;
+    --tinta-media: #a9a9c4;
+    --tinta-suave: #83839f;
+    --borde: #2e2e4c;
+    --borde-firme: #3d3d61;
+
+    --tono: #8b8bf7;
+    --tono-suave: #262547;
+    --sobre-tono: #16162c;
+
+    --alerta: #ff8577;
+    --alerta-suave: #3a2220;
+
+    --sombra: 0 16px 34px -16px color-mix(in srgb, var(--tono) 45%, transparent);
+    --sombra-sutil: 0 2px 8px -2px rgb(0 0 0 / .45);
   }
+
+  body.inicio      { --tono: #8b8bf7; --tono-suave: #262547; }
+  body.captura     { --tono: #3ed0c2; --tono-suave: #16352f; }
+  body.notas       { --tono: #b295fb; --tono-suave: #2c2348; }
+  body.finanzas,
+  body.analisis    { --tono: #f0ab4e; --tono-suave: #3a2c15; }
+  body.gym,
+  body.historial   { --tono: #ff7a96; --tono-suave: #3d1f2a; }
 }
 
 * { box-sizing: border-box; }
 
 /* El [hidden] del navegador es `display: none`, pero cualquier regla de autor
-   que fije display —como el `flex` de .deshacer— lo pisa, porque los estilos de
-   autor ganan a los del navegador. */
+   que fije display —como el `flex` de .deshacer— lo pisa. */
 [hidden] { display: none !important; }
 
 body {
   margin: 0;
   padding: var(--e5) var(--e4);
-  padding-bottom: calc(var(--nav-alto) + var(--e6) + env(safe-area-inset-bottom));
-  background: var(--papel);
+  padding-bottom: calc(5rem + var(--e6) + env(safe-area-inset-bottom));
+  background: var(--lienzo);
   color: var(--tinta);
-  font: 16px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif;
+  font-family: 'Figtree', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  font-size: 1rem;
+  line-height: 1.55;
   -webkit-font-smoothing: antialiased;
 }
 
 #app { max-width: 32rem; margin: 0 auto; }
 
+/* Títulos en caja normal y con el tracking cerrado. Las versalitas sobre cada
+   bloque son el tic más reconocible de una interfaz generada, y además hacen
+   que todo parezca igual de importante. */
 h1 {
   margin: 0 0 var(--e1);
-  font-size: 1.65rem;
-  font-weight: 800;
-  letter-spacing: -.03em;
-  text-transform: uppercase;
+  font-size: 1.75rem;
+  font-weight: 700;
+  letter-spacing: -.022em;
+  line-height: 1.15;
 }
 
-/* Los rótulos de sección van en monoespaciada y con las letras separadas: se
-   leen como una etiqueta pegada al papel, no como una frase. */
 h2 {
   margin: 0 0 var(--e3);
-  font-family: var(--mono);
-  font-size: .7rem;
-  font-weight: 700;
-  letter-spacing: .14em;
-  text-transform: uppercase;
-  color: var(--tenue);
+  font-size: 1.0625rem;
+  font-weight: 650;
+  letter-spacing: -.012em;
+  color: var(--tinta);
 }
 
-.lead { margin: 0 0 var(--e5); color: var(--tenue); }
+h3 { margin: 0; font-size: 1rem; font-weight: 650; letter-spacing: -.01em; }
 
-.nota { margin: 0 0 var(--e4); color: var(--tenue); font-size: .9rem; }
+.lead { margin: 0 0 var(--e5); color: var(--tinta-media); }
 
-a { color: var(--tinta); }
+.nota { margin: 0 0 var(--e4); color: var(--tinta-media); font-size: .9375rem; }
+
+a { color: var(--tono); text-underline-offset: .2em; }
+
+/* Las cifras llevan numeración tabular de la misma familia. Cambiar a
+   monoespaciada para los datos es otro tic; lo que se necesita es que los
+   dígitos no bailen, y eso lo da tabular-nums. */
+.cifra, .tarjeta-cifra, .crono-cifra, .gasto-monto, .balance-principal strong,
+.total strong, .cifras dd, .contador strong, .campo-numero input, #monto {
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -.02em;
+}
 
 .visualmente-oculto {
   position: absolute;
@@ -140,81 +186,84 @@ a { color: var(--tinta); }
   white-space: nowrap;
 }
 
-/* El foco no es un halo suave: es otro borde. Coherente con el resto y visible
-   sobre cualquier fondo. */
+/* Un anillo del tono de la sección, separado del borde para que se vea encima
+   de cualquier fondo. :focus-visible y no :focus, para que no aparezca al
+   tocar con el dedo. */
 :where(a, button, input, textarea, [tabindex]):focus-visible {
-  outline: var(--linea) solid var(--acento);
+  outline: 2px solid var(--tono);
   outline-offset: 2px;
+  border-radius: var(--r-control);
 }
 
 /* --- Controles --- */
 
 button {
   min-height: var(--tocable);
-  padding: var(--e3) var(--e4);
-  border: var(--borde);
-  border-radius: 0;
-  background: var(--acento);
-  box-shadow: var(--relieve-invertido);
-  color: var(--sobre-acento);
+  padding: var(--e3) var(--e5);
+  border: 0;
+  border-radius: var(--r-control);
+  background: var(--tono);
+  color: var(--sobre-tono);
   font: inherit;
-  font-weight: 700;
+  font-weight: 620;
+  letter-spacing: -.005em;
   cursor: pointer;
-  /* Solo la sombra y la posición se animan: son las dos cosas que cambian al
-     pulsar, y animar el color en un diseño de contraste alto lo emborrona. */
-  transition: transform .06s, box-shadow .06s;
+  /* La transición responde a una acción de la persona, que es donde el
+     movimiento sí aporta: confirma que el toque llegó. */
+  transition: transform .12s ease, filter .12s ease;
 }
 
-/* Al pulsar, el botón se hunde hasta el papel: la sombra desaparece y el botón
-   se mueve justo lo que medía. Es el gesto que hace que el relieve se lea como
-   relieve y no como decoración. */
-button:active {
-  transform: translate(4px, 4px);
-  box-shadow: 0 0 0 var(--tinta);
-}
+button:hover { filter: brightness(1.06); }
+button:active { transform: scale(.975); }
 
 button:disabled {
-  background: var(--papel);
-  box-shadow: none;
-  color: var(--apagado);
+  background: var(--borde);
+  color: var(--tinta-suave);
   cursor: not-allowed;
   transform: none;
+  filter: none;
 }
 
 @media (prefers-reduced-motion: reduce) {
   button { transition: none; }
+  button:active { transform: none; }
 }
 
 input, textarea {
   width: 100%;
   padding: var(--e3) var(--e4);
-  border: var(--borde);
-  border-radius: 0;
-  background: var(--tarjeta);
+  border: 1.5px solid var(--borde);
+  border-radius: var(--r-control);
+  background: var(--superficie);
   color: var(--tinta);
   font: inherit;
+  transition: border-color .12s ease;
 }
 
-input::placeholder, textarea::placeholder { color: var(--apagado); }
+input:focus, textarea:focus { border-color: var(--tono); }
+
+input::placeholder, textarea::placeholder { color: var(--tinta-suave); }
 
 .resultado {
   margin: var(--e3) 0 var(--e4);
   min-height: 1.4em;
-  font-family: var(--mono);
-  font-size: .8rem;
+  font-size: .875rem;
+  color: var(--tinta-media);
 }
 
-.resultado[data-estado="ok"] { color: var(--tinta); }
+.resultado[data-estado="ok"] { color: var(--tono); font-weight: 560; }
 
-/* Un fallo se marca con una barra a la izquierda, no solo con color: quien no
-   distingue bien el rojo lo ve igual. */
+/* El fallo lleva fondo y barra además de color: quien no distingue bien el
+   rojo lo ve igual. */
 .resultado[data-estado="falla"] {
-  padding-left: var(--e2);
-  border-left: 4px solid var(--falla);
-  color: var(--falla);
+  padding: var(--e2) var(--e3);
+  border-left: 3px solid var(--alerta);
+  border-radius: 0 var(--r-control) var(--r-control) 0;
+  background: var(--alerta-suave);
+  color: var(--alerta);
 }
 
-/* --- Cabecera de sección --- */
+/* --- Cabeceras --- */
 
 .barra {
   display: flex;
@@ -222,48 +271,62 @@ input::placeholder, textarea::placeholder { color: var(--apagado); }
   justify-content: space-between;
   gap: var(--e3);
   margin-bottom: var(--e5);
-  padding-bottom: var(--e3);
-  border-bottom: var(--borde);
 }
 
 .barra h1 { margin: 0; }
 
 .acciones-barra { display: flex; align-items: center; gap: var(--e2); }
 
-.volver { color: var(--tinta); text-decoration: none; font-weight: 700; }
+.volver { color: var(--tono); text-decoration: none; font-weight: 620; }
 
 .salir, .enlace-discreto {
   min-height: 0;
-  padding: var(--e1) var(--e2);
-  border: var(--borde);
-  border-radius: 0;
-  background: var(--tarjeta);
-  box-shadow: var(--relieve-corto);
-  color: var(--tinta);
-  font-family: var(--mono);
-  font-size: .7rem;
-  font-weight: 700;
-  text-transform: uppercase;
+  padding: var(--e2) var(--e3);
+  border: 1.5px solid var(--borde);
+  border-radius: 999px;
+  background: var(--superficie);
+  color: var(--tinta-media);
+  font-size: .8125rem;
+  font-weight: 560;
   text-decoration: none;
 }
 
-.salir:active, .enlace-discreto:active {
-  transform: translate(3px, 3px);
-  box-shadow: 0 0 0 var(--tinta);
+.salir:hover, .enlace-discreto:hover {
+  border-color: var(--tono);
+  color: var(--tono);
+  filter: none;
 }
+
+.cabecera-seccion {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--e3);
+  margin-bottom: var(--e3);
+}
+
+.cabecera-seccion h2 { margin: 0; }
 
 /* --- Navegación --- */
 
 .barra-nav {
   position: fixed;
-  left: 0;
-  right: 0;
-  bottom: 0;
+  left: 50%;
+  bottom: calc(var(--e3) + env(safe-area-inset-bottom));
+  transform: translateX(-50%);
   z-index: 10;
   display: flex;
-  padding-bottom: env(safe-area-inset-bottom);
-  border-top: var(--linea) solid var(--tinta);
-  background: var(--tarjeta);
+  gap: var(--e1);
+  width: calc(100% - var(--e4) * 2);
+  max-width: 32rem;
+  padding: var(--e1);
+  border: 1px solid var(--borde);
+  border-radius: 999px;
+  /* Flotante y redondeada: separa la navegación del contenido sin una línea
+     dura, y deja ver que la página sigue debajo. */
+  background: color-mix(in srgb, var(--superficie) 88%, transparent);
+  backdrop-filter: blur(14px);
+  box-shadow: 0 10px 28px -12px color-mix(in srgb, var(--tinta) 30%, transparent);
 }
 
 .pestana {
@@ -272,39 +335,127 @@ input::placeholder, textarea::placeholder { color: var(--apagado); }
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 3px;
-  min-height: var(--nav-alto);
-  color: var(--tinta);
-  font-family: var(--mono);
-  font-size: .65rem;
-  font-weight: 700;
-  letter-spacing: .06em;
-  text-transform: uppercase;
+  gap: 1px;
+  min-height: 3.25rem;
+  border-radius: 999px;
+  color: var(--tinta-suave);
+  font-size: .6875rem;
+  font-weight: 560;
   text-decoration: none;
+  transition: color .15s ease, background-color .15s ease;
 }
 
-/* Las pestañas se separan con una línea, como celdas de una tabla: la
-   estructura se ve, no se insinúa. */
-.pestana + .pestana { border-left: var(--linea) solid var(--tinta); }
+.pestana svg { width: 1.25rem; height: 1.25rem; }
 
-.pestana svg { width: 1.4rem; height: 1.4rem; }
-
-/* La sección actual se rellena entera en vez de solo teñir el texto. A un brazo
-   de distancia, un bloque de color se identifica antes que un matiz. */
+/* La sección actual se rellena con su propio tono: el color dice dónde estás
+   antes de que leas la etiqueta. */
 .pestana[aria-current="page"] {
-  background: var(--acento);
-  color: var(--sobre-acento);
+  background: var(--tono);
+  color: var(--sobre-tono);
+  font-weight: 640;
 }
 
-/* --- Pantalla de captura --- */
+@media (prefers-reduced-motion: reduce) {
+  .pestana { transition: none; }
+}
+
+/* --- Tarjetas --- */
+
+.panel {
+  margin-bottom: var(--e5);
+  padding: var(--e4);
+  border: 1px solid var(--borde);
+  border-radius: var(--r-tarjeta);
+  background: var(--superficie);
+}
+
+/* --- Lobby --- */
+
+.saludo { margin-bottom: var(--e5); }
+
+.marca {
+  margin: 0 0 var(--e1);
+  font-size: 1.75rem;
+  font-weight: 800;
+  letter-spacing: -.03em;
+  color: var(--tono);
+}
+
+.momento { margin: 0; font-size: 1.0625rem; font-weight: 500; }
+
+.fecha-larga { margin: 0; font-size: .875rem; color: var(--tinta-suave); }
+
+/* El elemento principal de la pantalla: radio mayor y la única sombra teñida.
+   Es lo que se hace cien veces al día, así que se ve desde la puerta. */
+.boton-grande {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--e3);
+  margin-bottom: var(--e5);
+  padding: var(--e5);
+  border-radius: var(--r-foco);
+  background: var(--tono);
+  box-shadow: var(--sombra);
+  color: var(--sobre-tono);
+  font-size: 1.0625rem;
+  font-weight: 640;
+  text-decoration: none;
+  transition: transform .12s ease;
+}
+
+.boton-grande:active { transform: scale(.985); }
+
+.boton-grande svg { width: 1.375rem; height: 1.375rem; }
+
+@media (prefers-reduced-motion: reduce) {
+  .boton-grande { transition: none; }
+  .boton-grande:active { transform: none; }
+}
+
+.notas-lista.compacta { margin-bottom: 0; gap: var(--e2); }
+
+.marca-vencida {
+  align-self: flex-start;
+  padding: 1px var(--e2);
+  border-radius: 999px;
+  background: var(--alerta-suave);
+  color: var(--alerta);
+  font-size: .8125rem;
+  font-weight: 560;
+}
+
+.tarjetas { display: grid; grid-template-columns: 1fr 1fr; gap: var(--e3); }
+
+.tarjeta {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  padding: var(--e4);
+  border: 1px solid var(--borde);
+  border-radius: var(--r-tarjeta);
+  background: var(--superficie);
+  color: var(--tinta);
+  text-decoration: none;
+  transition: border-color .15s ease;
+}
+
+.tarjeta:hover { border-color: var(--tono); }
+
+.tarjeta-cifra { font-size: 1.625rem; font-weight: 700; letter-spacing: -.03em; }
+
+.tarjeta-cifra[data-negativo="true"] { color: var(--alerta); }
+
+.tarjeta-etiqueta { font-size: .8125rem; color: var(--tinta-suave); }
+
+/* --- Captura --- */
 
 /* `safe center` y no `center` a secas: cuando el contenido no cabe —con la
-   lista llena, o con el teclado abierto— el centrado normal recorta por arriba,
-   y justo arriba está el campo de escribir.
- *
- * 100dvh y no 100vh: en el móvil, vh no descuenta la barra del navegador. */
+   lista llena, o con el teclado abierto— el centrado normal recorta por
+   arriba, y justo arriba está el campo de escribir.
+   100dvh y no 100vh: en el móvil, vh no descuenta la barra del navegador. */
 body.captura #app {
-  min-height: calc(100dvh - var(--nav-alto) - var(--e5) * 2);
+  min-height: calc(100dvh - 7rem);
   display: flex;
   flex-direction: column;
   justify-content: safe center;
@@ -318,15 +469,15 @@ body.captura #app {
 #texto {
   padding: var(--e4);
   /* Sitio para que el texto no pase por debajo del micrófono. */
-  padding-right: 4.25rem;
-  box-shadow: var(--relieve);
+  padding-right: 4rem;
+  border-radius: var(--r-tarjeta);
   font-size: 1.125rem;
-  line-height: 1.45;
+  line-height: 1.5;
   resize: vertical;
 }
 
-/* El micrófono se superpone en la esquina del campo: al dictar desde el celular
-   el pulgar ya está ahí, y no roba una línea de pantalla. */
+/* El micrófono se superpone en la esquina del campo: al dictar desde el
+   celular el pulgar ya está ahí, y no roba una línea de pantalla. */
 .microfono {
   position: absolute;
   right: var(--e3);
@@ -337,23 +488,23 @@ body.captura #app {
   height: var(--tocable);
   min-height: 0;
   padding: 0;
-  background: var(--tarjeta);
-  box-shadow: var(--relieve-corto);
-  color: var(--tinta);
+  border-radius: 50%;
+  background: var(--tono-suave);
+  color: var(--tono);
 }
 
-.microfono svg { width: 1.35rem; height: 1.35rem; }
+.microfono svg { width: 1.25rem; height: 1.25rem; }
 
 .microfono.escuchando {
-  background: var(--falla);
-  color: var(--tarjeta);
-  animation: latido .9s steps(2, end) infinite;
+  background: var(--tono);
+  color: var(--sobre-tono);
+  animation: latido 1.6s ease-in-out infinite;
 }
 
-/* Parpadeo a saltos, no un desvanecido: este diseño no interpola. */
+/* Un pulso suave alrededor: dice "te estoy oyendo" sin parpadear. */
 @keyframes latido {
-  0%, 100% { box-shadow: var(--relieve-corto); }
-  50%      { box-shadow: 0 0 0 var(--tinta); transform: translate(3px, 3px); }
+  0%, 100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--tono) 50%, transparent); }
+  50%      { box-shadow: 0 0 0 .55rem color-mix(in srgb, var(--tono) 0%, transparent); }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -368,21 +519,53 @@ body.captura #app {
   flex: 0 0 auto;
   min-height: 0;
   padding: var(--e2) var(--e3);
-  background: var(--tarjeta);
-  box-shadow: var(--relieve-corto);
-  color: var(--tinta);
-  font-family: var(--mono);
-  font-size: .72rem;
-  font-weight: 700;
-  letter-spacing: .04em;
-  text-transform: uppercase;
+  border: 1.5px solid var(--borde);
+  border-radius: 999px;
+  background: var(--superficie);
+  color: var(--tinta-media);
+  font-size: .8125rem;
+  font-weight: 560;
 }
 
-.chip:active { transform: translate(3px, 3px); box-shadow: 0 0 0 var(--tinta); }
+.chip:hover { border-color: var(--borde-firme); filter: none; }
 
 .chip[aria-pressed="true"] {
-  background: var(--acento);
-  color: var(--sobre-acento);
+  border-color: transparent;
+  background: var(--tono);
+  color: var(--sobre-tono);
+  font-weight: 640;
+}
+
+.tema-detectado {
+  margin: 0;
+  font-size: .8125rem;
+  font-weight: 560;
+  color: var(--tono);
+}
+
+/* Contexto de tema activo: lleno del tono, porque mientras dure manda sobre
+   todo lo que escribas. */
+.banda-tema {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--e3);
+  padding: var(--e2) var(--e2) var(--e2) var(--e4);
+  border-radius: 999px;
+  background: var(--tono);
+  color: var(--sobre-tono);
+  font-size: .875rem;
+  font-weight: 560;
+}
+
+.banda-tema button {
+  flex: none;
+  min-height: 0;
+  padding: var(--e1) var(--e3);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--sobre-tono) 22%, transparent);
+  color: var(--sobre-tono);
+  font-size: .8125rem;
 }
 
 /* --- Últimas capturas --- */
@@ -393,7 +576,7 @@ body.captura #app {
   padding: 0;
   display: flex;
   flex-direction: column;
-  gap: var(--e3);
+  gap: var(--e2);
 }
 
 #lista li {
@@ -401,41 +584,35 @@ body.captura #app {
   justify-content: space-between;
   align-items: baseline;
   gap: var(--e3);
-  padding: var(--e3);
-  border: var(--borde);
-  background: var(--tarjeta);
+  padding: var(--e3) var(--e4);
+  border: 1px solid var(--borde);
+  border-radius: var(--r-tarjeta);
+  background: var(--superficie);
 }
 
 #lista .texto { overflow-wrap: anywhere; }
 
-#lista time {
-  flex: none;
-  font-family: var(--mono);
-  font-size: .72rem;
-  color: var(--tenue);
-}
+#lista time { flex: none; font-size: .8125rem; color: var(--tinta-suave); }
 
-#lista time.con-alarma { color: var(--tinta); font-weight: 700; }
+#lista time.con-alarma { color: var(--tono); font-weight: 560; }
 
 /* Lo capturado sin señal: se ve igual, pero se distingue. Ocultarlo dejaría al
    usuario sin saber si su nota existe; disfrazarlo de subido sería mentirle.
-   El borde discontinuo dice "provisional" sin depender del color, así que
-   funciona igual para quien no distingue bien los tonos — por eso se sustituyó
-   el ámbar que marcaba esto en el diseño anterior. */
+   El borde discontinuo lo dice sin depender del color. */
 .sin-subir {
   border-style: dashed !important;
-  background: var(--papel) !important;
+  border-color: var(--borde-firme) !important;
+  background: transparent !important;
 }
 
-#lista li.sin-subir time,
-.gasto-fila.sin-subir .gasto-fecha,
-.marca-espera {
-  color: var(--tenue);
-  font-family: var(--mono);
-  font-size: .72rem;
+.marca-espera, #lista li.sin-subir time, .gasto-fila.sin-subir .gasto-fecha {
+  color: var(--tinta-suave);
+  font-size: .8125rem;
 }
 
 /* --- Lista de notas --- */
+
+.temas { margin-bottom: var(--e4); }
 
 .notas-lista {
   list-style: none;
@@ -443,25 +620,25 @@ body.captura #app {
   padding: 0;
   display: flex;
   flex-direction: column;
-  gap: var(--e3);
+  gap: var(--e2);
 }
 
 .nota-fila {
   display: flex;
   align-items: flex-start;
   gap: var(--e3);
-  padding: var(--e3);
-  border: var(--borde);
-  background: var(--tarjeta);
-  box-shadow: var(--relieve-corto);
+  padding: var(--e3) var(--e4);
+  border: 1px solid var(--borde);
+  border-radius: var(--r-tarjeta);
+  background: var(--superficie);
 }
 
 .nota-fila input[type="checkbox"] {
   flex: none;
   width: 1.15rem;
   height: 1.15rem;
-  margin-top: .2rem;
-  accent-color: var(--acento);
+  margin-top: .3rem;
+  accent-color: var(--tono);
 }
 
 .nota-cuerpo {
@@ -474,67 +651,69 @@ body.captura #app {
 
 .nota-texto { overflow-wrap: anywhere; cursor: text; }
 
-.esta-hecha { background: var(--papel); }
-.esta-hecha .nota-texto { color: var(--tenue); text-decoration: line-through; }
+.esta-hecha { background: transparent; }
+.esta-hecha .nota-texto { color: var(--tinta-suave); text-decoration: line-through; }
 
-.nota-chips { display: flex; flex-wrap: wrap; gap: var(--e2); }
+.nota-chips { display: flex; flex-wrap: wrap; align-items: center; gap: var(--e2); }
+
+.nota-creada { font-size: .8125rem; color: var(--tinta-suave); white-space: nowrap; }
 
 .nota-alarma, .nota-formato {
   flex: none;
   min-height: 0;
-  padding: 2px var(--e2);
-  border: var(--linea) solid var(--tenue);
+  padding: 1px var(--e2);
+  border: 1px solid var(--borde);
+  border-radius: 999px;
   background: transparent;
-  box-shadow: none;
-  color: var(--tenue);
-  font-family: var(--mono);
-  font-size: .7rem;
-  font-weight: 700;
-  text-transform: uppercase;
+  color: var(--tinta-suave);
+  font-size: .8125rem;
+  font-weight: 500;
 }
 
-.nota-alarma:active, .nota-formato:active { transform: none; box-shadow: none; }
-
-/* Relleno y contorno significan cosas distintas: relleno es a qué PERTENECE la
-   nota (su tema), contorno es un atributo suyo (cuándo avisa, qué formato
-   tiene). Antes la alarma futura salía rellena igual que el tema y las dos
-   marcas se confundían. */
 .nota-alarma.activa, .nota-formato.completa {
-  border-color: var(--tinta);
-  background: transparent;
-  color: var(--tinta);
+  border-color: color-mix(in srgb, var(--tono) 40%, transparent);
+  background: var(--tono-suave);
+  color: var(--tono);
+  font-weight: 560;
 }
 
 /* Vencida y sin avisar: algo salió mal, y conviene que salte a la vista. */
 .nota-alarma.vencida {
-  border-color: var(--tinta);
-  background: var(--falla);
-  color: var(--tarjeta);
+  border-color: transparent;
+  background: var(--alerta-suave);
+  color: var(--alerta);
+  font-weight: 560;
+}
+
+/* A qué pertenece la nota va relleno; sus atributos van perfilados. Dos pesos
+   visuales distintos para dos clases de información distintas. */
+.nota-tema {
+  flex: none;
+  min-height: 0;
+  padding: 1px var(--e2);
+  border: 0;
+  border-radius: 999px;
+  background: var(--tono);
+  color: var(--sobre-tono);
+  font-size: .8125rem;
+  font-weight: 560;
 }
 
 .nota-borrar {
   flex: none;
-  width: var(--tocable);
-  min-height: var(--tocable);
+  width: 2rem;
+  min-height: 2rem;
   padding: 0;
-  border-color: var(--tenue);
+  border-radius: 50%;
   background: transparent;
-  box-shadow: none;
-  color: var(--tinta);
-  font-size: 1.1rem;
+  color: var(--tinta-suave);
+  font-size: 1rem;
   line-height: 1;
 }
 
-.nota-borrar:hover { background: var(--falla); color: var(--tarjeta); }
-.nota-borrar:active { transform: none; box-shadow: none; }
+.nota-borrar:hover { background: var(--alerta-suave); color: var(--alerta); filter: none; }
 
-.nota-editor {
-  padding: var(--e2);
-  border-color: var(--acento);
-  resize: vertical;
-}
-
-/* --- Listas dentro de una nota --- */
+.nota-editor { padding: var(--e2) var(--e3); border-color: var(--tono); resize: vertical; }
 
 .nota-viñetas, .nota-checklist {
   margin: 0;
@@ -547,15 +726,15 @@ body.captura #app {
 
 .nota-viñetas li { position: relative; padding-left: var(--e4); }
 
-/* Cuadrado y no círculo: aquí no hay curvas que no hagan falta. */
 .nota-viñetas li::before {
   content: "";
   position: absolute;
   left: var(--e1);
-  top: .55em;
-  width: 6px;
-  height: 6px;
-  background: var(--tinta);
+  top: .62em;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--tono);
 }
 
 .nota-checklist li { display: flex; align-items: flex-start; gap: var(--e2); }
@@ -564,62 +743,57 @@ body.captura #app {
   flex: none;
   width: 1.05rem;
   height: 1.05rem;
-  margin-top: .22rem;
-  accent-color: var(--acento);
+  margin-top: .3rem;
+  accent-color: var(--tono);
 }
 
-.item-marcado { color: var(--tenue); text-decoration: line-through; }
+.item-marcado { color: var(--tinta-suave); text-decoration: line-through; }
 
-/* Editar el texto entero: discreto, porque marcar casillas es lo que se hace a
-   diario y reescribir las líneas es la excepción. */
 .nota-editar-texto {
   align-self: flex-start;
   min-height: 0;
   padding: 0;
-  border: 0;
   background: none;
-  box-shadow: none;
-  color: var(--tenue);
-  font-family: var(--mono);
-  font-size: .7rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  text-decoration: underline;
+  color: var(--tono);
+  font-size: .8125rem;
+  font-weight: 560;
 }
 
-.nota-editar-texto:active { transform: none; }
+.nota-editar-texto:hover { filter: none; text-decoration: underline; }
 
-.cabecera-seccion {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--e3);
-  margin-bottom: var(--e3);
+.entrar-tema {
+  flex: none;
+  padding: var(--e2) var(--e3);
+  border-radius: 999px;
+  background: var(--tono);
+  color: var(--sobre-tono);
+  font-size: .8125rem;
+  font-weight: 620;
+  text-decoration: none;
 }
-
-.cabecera-seccion h2 { margin: 0; }
 
 /* --- Deshacer --- */
 
-/* Se ancla abajo, fuera del flujo: la fila que la motivó acaba de desaparecer,
-   así que no puede colgar de ella. Va por encima de la navegación, porque su
-   ventana de siete segundos manda mientras dura. */
+/* Se ancla abajo, fuera del flujo: la fila que la motivó acaba de
+   desaparecer, así que no puede colgar de ella. Y por encima de la
+   navegación, porque su ventana de siete segundos manda mientras dura. */
 .deshacer {
   position: fixed;
   left: 50%;
-  bottom: calc(var(--nav-alto) + var(--e3) + env(safe-area-inset-bottom));
+  bottom: calc(5rem + env(safe-area-inset-bottom));
   transform: translateX(-50%);
   z-index: 20;
   display: flex;
   align-items: center;
   gap: var(--e3);
-  width: calc(100% - var(--e6));
-  max-width: 28rem;
-  padding: var(--e3);
-  border: var(--borde);
-  background: var(--tarjeta);
-  box-shadow: var(--relieve);
-  font-size: .85rem;
+  width: calc(100% - var(--e4) * 2);
+  max-width: 30rem;
+  padding: var(--e3) var(--e3) var(--e3) var(--e4);
+  border-radius: var(--r-tarjeta);
+  background: var(--tinta);
+  color: var(--lienzo);
+  box-shadow: 0 16px 34px -14px rgb(0 0 0 / .5);
+  font-size: .875rem;
 }
 
 #deshacer-texto { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -627,244 +801,73 @@ body.captura #app {
 #deshacer-boton {
   flex: none;
   min-height: 0;
-  padding: var(--e1) var(--e2);
-  font-family: var(--mono);
-  font-size: .7rem;
-  text-transform: uppercase;
-}
-
-/* --- Gastos --- */
-
-/* El total es el único número que hace útil apuntar gastos sin categorías, así
-   que se trata como un cartel: grande, en monoespaciada y con relieve. */
-.total {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  margin-bottom: var(--e5);
-  padding: var(--e4);
-  border: var(--borde);
-  background: var(--tarjeta);
-  box-shadow: var(--relieve);
-}
-
-.total-etiqueta {
-  font-family: var(--mono);
-  font-size: .7rem;
-  font-weight: 700;
-  letter-spacing: .14em;
-  text-transform: uppercase;
-  color: var(--tenue);
-}
-
-.total strong {
-  font-family: var(--mono);
-  font-size: 2.1rem;
-  font-weight: 700;
-  letter-spacing: -.02em;
-}
-
-.total-detalle {
-  font-family: var(--mono);
-  font-size: .72rem;
-  color: var(--tenue);
-}
-
-.fila-gasto { display: flex; gap: var(--e2); }
-
-.campo-monto { position: relative; flex: 0 0 8.5rem; display: flex; align-items: center; }
-
-.moneda {
-  position: absolute;
-  left: var(--e3);
-  font-family: var(--mono);
-  font-weight: 700;
-  color: var(--tenue);
-  pointer-events: none;
-}
-
-#monto { padding-left: 2.4rem; font-family: var(--mono); }
-
-#descripcion { flex: 1; }
-
-.gasto-fila { align-items: center; }
-
-.gasto-fecha { font-family: var(--mono); font-size: .72rem; color: var(--tenue); }
-
-.gasto-monto {
-  flex: none;
-  font-family: var(--mono);
-  font-size: 1rem;
-  white-space: nowrap;
-}
-
-/* --- Diagnóstico y entrada --- */
-
-.panel {
-  margin-bottom: var(--e5);
-  padding: var(--e4);
-  border: var(--borde);
-  background: var(--tarjeta);
-  box-shadow: var(--relieve-corto);
-}
-
-.acciones { display: flex; flex-wrap: wrap; gap: var(--e3); }
-
-.acciones button { flex: 1 1 12rem; }
-
-.diag {
-  display: grid;
-  grid-template-columns: auto 1fr;
-  gap: var(--e2) var(--e4);
-  margin: 0;
-  font-family: var(--mono);
-  font-size: .8rem;
-}
-
-.diag dt { color: var(--tenue); text-transform: uppercase; letter-spacing: .06em; }
-
-.diag dd { margin: 0; word-break: break-word; }
-
-.diag dd[data-estado="ok"] { color: var(--tinta); font-weight: 700; }
-.diag dd[data-estado="falla"] { color: var(--falla); font-weight: 700; }
-
-/* --- Temas --- */
-
-.temas { margin-bottom: var(--e4); }
-
-/* La marca del tema se distingue de los otros chips de la fila por ir en
-   negativo: es a lo que pertenece la nota, no un ajuste suyo. */
-.nota-tema {
-  flex: none;
-  min-height: 0;
-  padding: 2px var(--e2);
-  border: var(--borde);
-  background: var(--tinta);
-  box-shadow: none;
-  color: var(--tarjeta);
-  font-family: var(--mono);
-  font-size: .7rem;
-  font-weight: 700;
-}
-
-.nota-tema:active { transform: none; box-shadow: none; }
-
-.tema-detectado {
-  margin: 0;
-  font-family: var(--mono);
-  font-size: .75rem;
-  font-weight: 700;
-  color: var(--tenue);
-}
-
-/* --- Tema activo --- */
-
-/* Se ve siempre mientras dura: un contexto invisible que decide dónde van tus
-   notas sería peor que no tenerlo. */
-.banda-tema {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--e3);
   padding: var(--e2) var(--e3);
-  border: var(--borde);
-  background: var(--tinta);
-  color: var(--tarjeta);
-  font-family: var(--mono);
-  font-size: .75rem;
-  font-weight: 700;
-  text-transform: uppercase;
+  border-radius: var(--r-control);
+  background: var(--lienzo);
+  color: var(--tinta);
+  font-size: .8125rem;
 }
 
-.banda-tema button {
-  flex: none;
-  min-height: 0;
-  padding: 2px var(--e2);
-  border-color: var(--tarjeta);
-  background: transparent;
-  box-shadow: none;
-  color: var(--tarjeta);
-  font-family: var(--mono);
-  font-size: .68rem;
-  text-transform: uppercase;
-}
+/* --- Finanzas --- */
 
-.banda-tema button:active { transform: none; box-shadow: none; }
-
-.entrar-tema {
-  flex: none;
-  padding: var(--e2) var(--e3);
-  border: var(--borde);
-  background: var(--tinta);
-  color: var(--tarjeta);
-  font-family: var(--mono);
-  font-size: .72rem;
-  font-weight: 700;
-  letter-spacing: .04em;
-  text-decoration: none;
-  text-transform: uppercase;
-}
-
-/* --- Dinero --- */
-
+/* El balance es lo primero que se mira: radio mayor y la sombra teñida. */
 .balance {
   margin-bottom: var(--e5);
-  border: var(--borde);
-  background: var(--tarjeta);
-  box-shadow: var(--relieve);
+  border-radius: var(--r-foco);
+  background: var(--superficie);
+  border: 1px solid var(--borde);
+  box-shadow: var(--sombra);
+  overflow: hidden;
 }
 
-.balance-principal {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  padding: var(--e4);
-}
+.balance-principal { display: flex; flex-direction: column; padding: var(--e5) var(--e5) var(--e4); }
 
-.balance-principal strong {
-  font-family: var(--mono);
-  font-size: 2.1rem;
-  font-weight: 700;
-  letter-spacing: -.02em;
-}
+.balance-principal strong { font-size: 2.25rem; font-weight: 750; letter-spacing: -.035em; }
 
-/* Un balance en rojo no basta: el color solo excluye a quien no lo distingue,
-   y aquí el dato es importante. La franja de arriba lo dice sin depender del
-   tono. */
-.balance-principal strong[data-negativo="true"] { color: var(--falla); }
-
-.balance:has(strong[data-negativo="true"]) { border-top: 6px solid var(--falla); }
+.balance-principal strong[data-negativo="true"] { color: var(--alerta); }
 
 .balance-detalle {
   display: grid;
   grid-template-columns: 1fr 1fr;
   margin: 0;
-  border-top: var(--borde);
+  border-top: 1px solid var(--borde);
 }
 
-.balance-detalle > div { padding: var(--e3) var(--e4); }
+.balance-detalle > div { padding: var(--e3) var(--e5); }
+.balance-detalle > div + div { border-left: 1px solid var(--borde); }
 
-.balance-detalle > div + div { border-left: var(--borde); }
-
-.balance-detalle dt {
-  font-family: var(--mono);
-  font-size: .68rem;
-  font-weight: 700;
-  letter-spacing: .1em;
-  text-transform: uppercase;
-  color: var(--tenue);
+.balance-detalle dt, .total-etiqueta, .tarjeta-etiqueta, .cifras dt, .crono-etiqueta {
+  font-size: .8125rem;
+  font-weight: 500;
+  color: var(--tinta-suave);
 }
 
-.balance-detalle dd {
-  margin: 0;
-  font-family: var(--mono);
-  font-size: 1.05rem;
-  font-weight: 700;
+.balance-detalle dd { margin: 0; font-size: 1.0625rem; font-weight: 650; }
+
+.fila-gasto { display: flex; gap: var(--e2); }
+
+.campo-monto { position: relative; flex: 0 0 8rem; display: flex; align-items: center; }
+
+.moneda {
+  position: absolute;
+  left: var(--e4);
+  color: var(--tinta-suave);
+  font-weight: 560;
+  pointer-events: none;
 }
 
-/* El ingreso se marca con una franja lateral además del signo: dos señales
+#monto { padding-left: 2.5rem; font-weight: 600; }
+#descripcion { flex: 1; }
+
+.gasto-fila { align-items: center; }
+
+.gasto-fecha { font-size: .8125rem; color: var(--tinta-suave); }
+
+.gasto-monto { flex: none; font-size: 1rem; font-weight: 650; white-space: nowrap; }
+
+/* El ingreso se marca con una barra lateral además del signo: dos señales
    distintas para el mismo dato, y ninguna depende del color. */
-.gasto-fila[data-tipo="ingreso"] { border-left-width: 6px; }
+.gasto-fila[data-tipo="ingreso"] { border-left: 3px solid var(--tono); }
 
 /* --- Análisis --- */
 
@@ -875,47 +878,32 @@ body.captura #app {
   margin: 0 0 var(--e3);
 }
 
-.cifras dt {
-  font-family: var(--mono);
-  font-size: .66rem;
-  font-weight: 700;
-  letter-spacing: .1em;
-  text-transform: uppercase;
-  color: var(--tenue);
-}
+.cifras dd { margin: 0; font-size: 1.375rem; font-weight: 700; letter-spacing: -.025em; }
 
-.cifras dd {
-  margin: 0;
-  font-family: var(--mono);
-  font-size: 1.2rem;
-  font-weight: 700;
-}
-
-.cifras dd[data-negativo="true"], .cifras dd[data-alerta="true"] { color: var(--falla); }
+.cifras dd[data-negativo="true"], .cifras dd[data-alerta="true"] { color: var(--alerta); }
 
 /* La frase que interpreta las cifras. Es la diferencia entre un panel de datos
    y algo que te dice cómo va el mes. */
 .lectura {
   margin: 0;
   padding-top: var(--e3);
-  border-top: var(--linea) dashed var(--tenue);
-  font-size: .9rem;
+  border-top: 1px solid var(--borde);
+  font-size: .9375rem;
+  color: var(--tinta-media);
 }
 
 .lectura[data-alerta="true"] {
-  padding-left: var(--e2);
-  border-left: 4px solid var(--falla);
-  color: var(--falla);
+  margin-top: var(--e3);
+  padding: var(--e3);
+  border: 0;
+  border-left: 3px solid var(--alerta);
+  border-radius: 0 var(--r-control) var(--r-control) 0;
+  background: var(--alerta-suave);
+  color: var(--alerta);
+  font-weight: 500;
 }
 
-.distribucion {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: flex;
-  flex-direction: column;
-  gap: var(--e3);
-}
+.distribucion { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: var(--e3); }
 
 .distribucion-cabecera {
   display: flex;
@@ -925,131 +913,72 @@ body.captura #app {
   margin-bottom: var(--e1);
 }
 
-.distribucion-nombre {
-  font-family: var(--mono);
-  font-size: .8rem;
-  font-weight: 700;
-  overflow-wrap: anywhere;
+.distribucion-nombre { font-size: .9375rem; font-weight: 560; overflow-wrap: anywhere; }
+
+.distribucion-cifra { flex: none; font-size: .8125rem; color: var(--tinta-suave); font-variant-numeric: tabular-nums; }
+
+.barra-dato { height: .5rem; border-radius: 999px; background: var(--borde); overflow: hidden; }
+
+.barra-relleno { height: 100%; border-radius: 999px; background: var(--tono); }
+
+/* --- Gym: semana --- */
+
+.semana {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: var(--e1);
+  margin-bottom: var(--e4);
 }
 
-.distribucion-cifra {
-  flex: none;
-  font-family: var(--mono);
-  font-size: .76rem;
-  color: var(--tenue);
+.dia {
+  position: relative;
+  min-height: 3rem;
+  padding: var(--e2) 0;
+  border: 1px solid var(--borde);
+  border-radius: var(--r-control);
+  background: var(--superficie);
+  color: var(--tinta-media);
+  font-size: .9375rem;
+  font-weight: 560;
 }
 
-.barra-dato {
-  height: 1.1rem;
-  border: var(--borde);
-  background: var(--papel);
-}
+.dia:hover { border-color: var(--borde-firme); filter: none; }
 
-.barra-relleno { height: 100%; background: var(--tinta); }
-
-/* --- Lobby --- */
-
-.saludo { margin-bottom: var(--e5); }
-
-.marca { margin: 0 0 var(--e1); }
-
-/* El saludo baja de tamaño y deja las mayúsculas: es una frase dirigida a
-   alguien, no un rótulo. Mantenerlo en versalitas competiría con el nombre
-   justo encima y las dos líneas se leerían como una sola. */
-.momento {
-  margin: 0;
-  font-size: 1.05rem;
-  font-weight: 500;
-}
-
-.fecha-larga {
-  margin: 0;
-  font-family: var(--mono);
-  font-size: .75rem;
-  letter-spacing: .06em;
-  text-transform: uppercase;
-  color: var(--tenue);
-}
-
-/* Capturar es lo que más se hace: en el lobby tiene que ser lo más grande que
-   hay, o el lobby se convierte en un peaje. */
-.boton-grande {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: var(--e3);
-  margin-bottom: var(--e5);
-  padding: var(--e4);
-  border: var(--borde);
-  background: var(--tinta);
-  box-shadow: var(--relieve);
-  color: var(--tarjeta);
-  font-size: 1.05rem;
-  font-weight: 700;
-  text-decoration: none;
-}
-
-.boton-grande svg { width: 1.3rem; height: 1.3rem; }
-
-.notas-lista.compacta { margin-bottom: 0; gap: var(--e2); }
-
-.notas-lista.compacta .nota-fila { box-shadow: none; padding: var(--e2) var(--e3); }
-
-/* Vencido y todavía sin hacer: la barra lateral lo dice sin depender del color,
-   igual que en el resto de la app. */
-.marca-vencida {
-  align-self: flex-start;
-  padding-left: var(--e2);
-  border-left: 4px solid var(--falla);
-  color: var(--falla);
-  font-family: var(--mono);
-  font-size: .72rem;
+.dia[aria-pressed="true"] {
+  border-color: transparent;
+  background: var(--tono);
+  color: var(--sobre-tono);
   font-weight: 700;
 }
 
-.tarjetas { display: grid; grid-template-columns: 1fr 1fr; gap: var(--e3); }
-
-.tarjeta {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  padding: var(--e3) var(--e4);
-  border: var(--borde);
-  background: var(--tarjeta);
-  box-shadow: var(--relieve-corto);
-  color: var(--tinta);
-  text-decoration: none;
+/* Hoy va subrayado aunque estés mirando otro día: sin esa referencia, navegar
+   por la semana te deja sin saber dónde estás parado. */
+.dia[data-hoy="true"]::after {
+  content: "";
+  position: absolute;
+  left: 32%;
+  right: 32%;
+  bottom: 6px;
+  height: 2px;
+  border-radius: 2px;
+  background: currentColor;
 }
 
-.tarjeta-cifra {
-  font-family: var(--mono);
-  font-size: 1.5rem;
-  font-weight: 700;
-  letter-spacing: -.02em;
+/* Un punto arriba avisa de qué días tienen rutina puesta. */
+.dia[data-tiene="true"]::before {
+  content: "";
+  position: absolute;
+  top: 6px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: currentColor;
 }
 
-.tarjeta-cifra[data-negativo="true"] { color: var(--falla); }
+/* --- Gym: cronómetro --- */
 
-.tarjeta-etiqueta {
-  font-family: var(--mono);
-  font-size: .66rem;
-  font-weight: 700;
-  letter-spacing: .1em;
-  text-transform: uppercase;
-  color: var(--tenue);
-}
-
-.nota-creada {
-  font-family: var(--mono);
-  font-size: .7rem;
-  color: var(--tenue);
-  white-space: nowrap;
-}
-
-/* --- Gym --- */
-
-/* El cronómetro se mira de reojo, sudando, a metro y medio del suelo con el
-   celular apoyado en el banco. Por eso ocupa lo que ocupa. */
 .crono {
   display: flex;
   flex-direction: column;
@@ -1057,47 +986,172 @@ body.captura #app {
   gap: var(--e2);
   margin-bottom: var(--e5);
   padding: var(--e5) var(--e4);
-  border: var(--borde);
-  background: var(--tarjeta);
-  box-shadow: var(--relieve);
+  border: 1px solid var(--borde);
+  border-radius: var(--r-foco);
+  background: var(--superficie);
+  box-shadow: var(--sombra);
 }
 
-.crono-etiqueta {
-  font-family: var(--mono);
-  font-size: .72rem;
-  font-weight: 700;
-  letter-spacing: .14em;
-  text-transform: uppercase;
-  color: var(--tenue);
+.crono-cifra { font-size: 3.5rem; font-weight: 750; line-height: 1; letter-spacing: -.045em; }
+
+.crono-duraciones { justify-content: center; margin-top: var(--e1); }
+
+.crono-duraciones .chip { padding: var(--e1) var(--e3); font-size: .78rem; }
+
+.crono-botones { width: 100%; margin-top: var(--e2); }
+.crono-botones button { width: 100%; }
+
+/* Mientras corre se queda pegado arriba: entre series es lo único que se mira,
+   y buscarlo con el pulgar mientras cuentas segundos es justo lo que no puede
+   pasar. */
+.crono[data-estado="corriendo"], .crono[data-estado="terminado"] {
+  position: sticky;
+  top: var(--e2);
+  z-index: 5;
 }
 
-.crono-cifra {
-  font-family: var(--mono);
-  font-size: 4rem;
-  font-weight: 700;
-  line-height: 1;
-  letter-spacing: -.04em;
+/* Al acabar, la tarjeta entera toma el tono: se ve desde lejos y sin leer. */
+.crono[data-estado="terminado"] {
+  border-color: transparent;
+  background: var(--tono);
+  color: var(--sobre-tono);
+}
+
+.crono[data-estado="terminado"] .crono-etiqueta { color: color-mix(in srgb, var(--sobre-tono) 80%, transparent); }
+
+.crono[data-estado="terminado"] .chip {
+  border-color: color-mix(in srgb, var(--sobre-tono) 35%, transparent);
+  background: transparent;
+  color: var(--sobre-tono);
+}
+
+.crono[data-estado="terminado"] .chip[aria-pressed="true"] {
+  background: var(--sobre-tono);
+  color: var(--tono);
+}
+
+.crono[data-estado="terminado"] .crono-botones button {
+  background: var(--sobre-tono);
+  color: var(--tono);
+}
+
+/* --- Gym: ejercicios --- */
+
+.ejercicios { display: flex; flex-direction: column; gap: var(--e3); margin-bottom: var(--e5); }
+
+.ejercicio {
+  padding: var(--e4);
+  border: 1px solid var(--borde);
+  border-radius: var(--r-tarjeta);
+  background: var(--superficie);
+}
+
+.ejercicio-cabecera {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--e3);
+  margin-bottom: var(--e3);
+}
+
+.ejercicio-nombre { overflow-wrap: anywhere; }
+
+.ejercicio-objetivo {
+  flex: none;
+  padding: 1px var(--e2);
+  border-radius: 999px;
+  background: var(--tono-suave);
+  color: var(--tono);
+  font-size: .8125rem;
+  font-weight: 620;
   font-variant-numeric: tabular-nums;
 }
 
-.crono-botones { width: 100%; margin-top: var(--e2); }
+/* Un punto por serie: se ve cuánto queda sin leer un número, que es lo que se
+   necesita mirando de reojo entre repeticiones. */
+.series-puntos { display: flex; flex-wrap: wrap; gap: var(--e2); margin-bottom: var(--e3); }
 
-.crono-botones button { width: 100%; }
-
-/* Al acabar, la tarjeta entera se invierte: es una señal que se ve desde lejos
-   y sin leer, que es justo lo que hace falta cuando estás a mitad de otra cosa. */
-.crono[data-estado="terminado"] {
-  background: var(--tinta);
-  color: var(--tarjeta);
+.punto {
+  width: 1.4rem;
+  height: 1.4rem;
+  min-height: 0;
+  padding: 0;
+  border: 2px solid var(--borde-firme);
+  border-radius: 50%;
+  background: transparent;
 }
 
-.crono[data-estado="terminado"] .crono-etiqueta { color: var(--tarjeta); }
+.punto[data-hecha="true"] { border-color: transparent; background: var(--tono); }
 
-.crono[data-estado="terminado"] .crono-botones button {
-  background: var(--tarjeta);
+.punto:disabled { opacity: .55; }
+
+.ejercicio-controles { display: flex; gap: var(--e2); align-items: stretch; }
+
+.campo-numero {
+  display: flex;
+  align-items: center;
+  gap: var(--e1);
+  flex: 0 0 4.75rem;
+  padding: 0 var(--e3);
+  border: 1.5px solid var(--borde);
+  border-radius: var(--r-control);
+  background: var(--superficie);
+  font-size: .8125rem;
+  color: var(--tinta-suave);
+}
+
+.campo-numero input {
+  width: 100%;
+  min-width: 0;
+  padding: var(--e2) 0;
+  border: 0;
+  background: transparent;
+  font-size: 1rem;
+  font-weight: 650;
   color: var(--tinta);
-  box-shadow: 4px 4px 0 var(--tinta), 4px 4px 0 var(--linea) var(--tarjeta);
 }
+
+.campo-numero input:focus-visible { outline: none; }
+.campo-numero:focus-within { border-color: var(--tono); }
+
+.anotar-serie { flex: 1; min-height: 0; padding: var(--e2) var(--e3); }
+
+.ejercicio-linea { margin: var(--e2) 0 0; font-size: .8125rem; color: var(--tinta-media); }
+.ejercicio-linea.tenue { color: var(--tinta-suave); }
+
+/* --- Historial --- */
+
+.sesion {
+  margin-bottom: var(--e3);
+  padding: var(--e4);
+  border: 1px solid var(--borde);
+  border-radius: var(--r-tarjeta);
+  background: var(--superficie);
+}
+
+.sesion-cabecera {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--e2);
+  margin-bottom: var(--e3);
+  padding-bottom: var(--e2);
+  border-bottom: 1px solid var(--borde);
+}
+
+.sesion-fecha { font-size: .9375rem; }
+
+.sesion-volumen { flex: none; font-size: .8125rem; color: var(--tinta-suave); font-variant-numeric: tabular-nums; }
+
+.sesion-ejercicios { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: var(--e1); }
+
+.sesion-ejercicios li { display: flex; justify-content: space-between; align-items: baseline; gap: var(--e3); }
+
+.sesion-ejercicio { overflow-wrap: anywhere; font-size: .9375rem; }
+
+.sesion-detalle { flex: none; font-size: .8125rem; color: var(--tinta-suave); font-variant-numeric: tabular-nums; }
+
+/* --- Gym: contador --- */
 
 .contador {
   display: grid;
@@ -1110,227 +1164,28 @@ body.captura #app {
 .contador button {
   width: var(--tocable);
   padding: 0;
-  font-size: 1.5rem;
-  line-height: 1;
+  border-radius: 50%;
+  font-size: 1.25rem;
 }
 
-.contador strong {
-  text-align: center;
-  font-family: var(--mono);
-  font-size: 2.4rem;
-  font-weight: 700;
-  font-variant-numeric: tabular-nums;
-}
+.contador strong { text-align: center; font-size: 2.25rem; font-weight: 750; letter-spacing: -.03em; }
 
-/* --- Semana --- */
+/* --- Diagnóstico y entrada --- */
 
-.semana {
+.acciones { display: flex; flex-wrap: wrap; gap: var(--e3); }
+.acciones button { flex: 1 1 12rem; }
+
+.diag {
   display: grid;
-  grid-template-columns: repeat(7, 1fr);
-  margin-bottom: var(--e4);
-  border: var(--borde);
-  background: var(--tarjeta);
-  box-shadow: var(--relieve-corto);
+  grid-template-columns: auto 1fr;
+  gap: var(--e2) var(--e4);
+  margin: 0;
+  font-size: .875rem;
 }
 
-.dia {
-  position: relative;
-  min-height: var(--tocable);
-  padding: var(--e2) 0;
-  border: 0;
-  background: transparent;
-  box-shadow: none;
-  color: var(--tinta);
-  font-family: var(--mono);
-  font-size: .95rem;
-  font-weight: 700;
-}
+.diag dt { color: var(--tinta-suave); }
+.diag dd { margin: 0; word-break: break-word; }
+.diag dd[data-estado="ok"] { color: var(--tono); font-weight: 560; }
+.diag dd[data-estado="falla"] { color: var(--alerta); font-weight: 560; }
 
-.dia + .dia { border-left: var(--linea) solid var(--tinta); }
-
-.dia:active { transform: none; box-shadow: none; }
-
-.dia[aria-pressed="true"] { background: var(--tinta); color: var(--tarjeta); }
-
-/* Hoy va subrayado aunque estés mirando otro día: sin esa referencia, navegar
-   por la semana te deja sin saber dónde estás parado. */
-.dia[data-hoy="true"]::after {
-  content: "";
-  position: absolute;
-  left: 25%;
-  right: 25%;
-  bottom: 5px;
-  height: 2px;
-  background: currentColor;
-}
-
-/* Un punto arriba avisa de qué días tienen rutina puesta. */
-.dia[data-tiene="true"]::before {
-  content: "";
-  position: absolute;
-  top: 5px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 5px;
-  height: 5px;
-  background: currentColor;
-}
-
-/* --- Ejercicios --- */
-
-.ejercicios { display: flex; flex-direction: column; gap: var(--e3); margin-bottom: var(--e5); }
-
-.ejercicio {
-  padding: var(--e3);
-  border: var(--borde);
-  background: var(--tarjeta);
-  box-shadow: var(--relieve-corto);
-}
-
-.ejercicio-cabecera {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: var(--e3);
-  margin-bottom: var(--e2);
-}
-
-.ejercicio-nombre { margin: 0; font-size: 1rem; font-weight: 700; overflow-wrap: anywhere; }
-
-.ejercicio-objetivo {
-  flex: none;
-  font-family: var(--mono);
-  font-size: .78rem;
-  font-weight: 700;
-  color: var(--tenue);
-}
-
-/* Un punto por serie: se ve cuánto queda sin leer un número, que es lo que se
-   necesita mirando de reojo entre repeticiones. */
-.series-puntos { display: flex; flex-wrap: wrap; gap: var(--e2); margin-bottom: var(--e3); }
-
-.punto {
-  width: 1.5rem;
-  height: 1.5rem;
-  min-height: 0;
-  padding: 0;
-  border: var(--borde);
-  background: var(--papel);
-  box-shadow: none;
-}
-
-.punto[data-hecha="true"] { background: var(--tinta); }
-
-.punto:disabled { opacity: .6; }
-
-.punto:active { transform: none; box-shadow: none; }
-
-.ejercicio-controles { display: flex; gap: var(--e2); align-items: stretch; }
-
-.campo-numero {
-  display: flex;
-  align-items: center;
-  gap: var(--e1);
-  flex: 0 0 5rem;
-  padding: 0 var(--e2);
-  border: var(--borde);
-  background: var(--tarjeta);
-  font-family: var(--mono);
-  font-size: .8rem;
-  color: var(--tenue);
-}
-
-.campo-numero input {
-  width: 100%;
-  min-width: 0;
-  padding: var(--e2) 0;
-  border: 0;
-  background: transparent;
-  font-family: var(--mono);
-  font-size: 1rem;
-  font-weight: 700;
-  color: var(--tinta);
-}
-
-.campo-numero input:focus-visible { outline: none; }
-
-.campo-numero:focus-within { outline: var(--linea) solid var(--tinta); outline-offset: 2px; }
-
-.anotar-serie { flex: 1; min-height: 0; }
-
-.ejercicio-linea {
-  margin: var(--e2) 0 0;
-  font-family: var(--mono);
-  font-size: .74rem;
-}
-
-.ejercicio-linea.tenue { color: var(--tenue); }
-
-/* El cronómetro se pega arriba mientras corre: entre series es lo único que se
-   mira, y buscarlo con el pulgar mientras cuentas segundos es justo lo que no
-   puede pasar. */
-.crono[data-estado="corriendo"],
-.crono[data-estado="terminado"] {
-  position: sticky;
-  top: var(--e2);
-  z-index: 5;
-}
-
-.crono-duraciones { justify-content: center; margin-top: var(--e2); }
-
-.crono-duraciones .chip { box-shadow: none; font-size: .68rem; padding: var(--e1) var(--e2); }
-
-.crono[data-estado="terminado"] .chip { background: var(--tarjeta); color: var(--tinta); }
-
-.crono[data-estado="terminado"] .chip[aria-pressed="true"] {
-  background: var(--tinta);
-  color: var(--tarjeta);
-  outline: var(--linea) solid var(--tarjeta);
-}
-
-/* --- Historial --- */
-
-.sesion {
-  margin-bottom: var(--e3);
-  padding: var(--e3);
-  border: var(--borde);
-  background: var(--tarjeta);
-  box-shadow: var(--relieve-corto);
-}
-
-.sesion-cabecera {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: var(--e2);
-  margin-bottom: var(--e2);
-  padding-bottom: var(--e2);
-  border-bottom: var(--linea) dashed var(--tenue);
-}
-
-.sesion-fecha { margin: 0; font-size: .95rem; font-weight: 700; }
-
-.sesion-volumen {
-  flex: none;
-  font-family: var(--mono);
-  font-size: .72rem;
-  color: var(--tenue);
-}
-
-.sesion-ejercicios { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: var(--e1); }
-
-.sesion-ejercicios li {
-  display: flex;
-  justify-content: space-between;
-  align-items: baseline;
-  gap: var(--e3);
-}
-
-.sesion-ejercicio { overflow-wrap: anywhere; font-size: .9rem; }
-
-.sesion-detalle {
-  flex: none;
-  font-family: var(--mono);
-  font-size: .74rem;
-  color: var(--tenue);
-}
+#correo, #clave { font-size: 1rem; }

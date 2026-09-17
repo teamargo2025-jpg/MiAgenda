@@ -138,7 +138,17 @@ Si a las dos semanas sigo anotando en otro lado, la app no resolvió la fricció
   Una nota pertenece a un solo vaso: permitir varios obligaría a decidir en cuál
   aparece al filtrar.
 
-- **Diseño brutalista y monocromo** (10/09/2026). Bordes de 2 px, esquinas
+- **Diseño serio y alegre, con un tono por sección** (17/09/2026). Sustituye al
+  brutalismo monocromo. La seriedad viene de la disciplina —una familia
+  tipográfica, tres radios con significado, escala de espacios corta—; la
+  alegría, del color que INFORMA: cada sección tiene su tono y, como solo se ve
+  una a la vez, nunca hay más de un color en pantalla. El tono dice dónde estás
+  antes de que leas el título.
+  Tipografía Figtree servida desde el propio dominio, no desde Google Fonts: el
+  service worker solo cachea el mismo origen y la app tiene que abrir sin señal.
+  Se evitaron a conciencia el mismo radio y la misma sombra gris en todas las
+  tarjetas, el fondo crema con terracota, y los rótulos en versalitas.
+- ~~**Diseño brutalista y monocromo**~~ (10/09/2026, sustituido el 17/09). Bordes de 2 px, esquinas
   rectas, sombras duras sin desenfoque, monoespaciada para los datos. No es
   solo gusto: a un brazo de distancia, con una mano y con prisa, el contraste
   alto y los bordes evidentes hacen que cada zona tocable se lea de un vistazo.

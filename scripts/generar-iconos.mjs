@@ -4,11 +4,11 @@
 import { deflateSync } from 'node:zlib';
 import { writeFileSync, mkdirSync } from 'node:fs';
 
-const PAPEL = [0xeb, 0xeb, 0xeb];
-const TINTA = [0x11, 0x11, 0x11];
-// Sin acento cromático: el interior es papel y los renglones son tinta, igual
-// que la app. El icono tiene que anunciar lo que se abre.
-const ACENTO = [0xff, 0xff, 0xff];
+// Añil de la sección Inicio sobre lienzo claro, con los renglones calados en
+// blanco. El icono anuncia lo mismo que ve quien abre la app.
+const PAPEL = [0xf3, 0xf3, 0xf9];
+const TINTA = [0xff, 0xff, 0xff];
+const ACENTO = [0x4f, 0x46, 0xe5];
 
 const tablaCrc = Array.from({ length: 256 }, (_, n) => {
   let c = n;
@@ -67,15 +67,10 @@ const dibujar = (tam, margenRelativo) => {
   const m = tam * margenRelativo;
   // Esquinas rectas (r = 0) y un borde grueso de tinta: el icono tiene que
   // anunciar lo mismo que la app al abrirse.
-  const tarjeta = { x0: m, y0: m, x1: tam - m, y1: tam - m, r: 0 };
-  const grosorBorde = Math.max(2, tam * 0.035);
-  const interior = {
-    x0: tarjeta.x0 + grosorBorde,
-    y0: tarjeta.y0 + grosorBorde,
-    x1: tarjeta.x1 - grosorBorde,
-    y1: tarjeta.y1 - grosorBorde,
-    r: 0,
-  };
+  const tarjeta = { x0: m, y0: m, x1: tam - m, y1: tam - m, r: tam * 0.225 };
+  // Sin marco: el interior ES la tarjeta. El radio generoso es el mismo gesto
+  // que el del elemento principal de cada pantalla.
+  const interior = tarjeta;
   const anchoTarjeta = tarjeta.x1 - tarjeta.x0;
   const grosor = anchoTarjeta * 0.085;
   const hueco = anchoTarjeta * 0.145;
@@ -87,7 +82,7 @@ const dibujar = (tam, margenRelativo) => {
     y0: primeraY + i * (grosor + hueco),
     x1: izq + anchoTarjeta * largo,
     y1: primeraY + i * (grosor + hueco) + grosor,
-    r: 0,
+    r: grosor / 2,
   }));
 
   const rgb = Buffer.alloc(tam * (tam * 3 + 1));

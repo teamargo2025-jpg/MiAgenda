@@ -1,0 +1,9 @@
+Figtree — Erik Kennedy. SIL Open Font License 1.1.
+https://github.com/erikdkennedy/figtree
+
+Se sirve desde este dominio en vez de desde Google Fonts a propósito: el
+service worker solo cachea peticiones del propio origen, y esta app tiene que
+abrir sin señal. Un tipo cross-origin fallaría justo en el caso que más nos
+importa.
+
+Subconjunto latino, variable 300-900, 20 KB.
