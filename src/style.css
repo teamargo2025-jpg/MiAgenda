@@ -84,8 +84,11 @@ body.captura     { --tono: #0a7369; --tono-suave: #e1f4f2; }
 body.notas       { --tono: #7c3aed; --tono-suave: #f2eafe; }
 body.finanzas,
 body.analisis    { --tono: #a35a09; --tono-suave: #fdf1e3; }
+/* Acero: el material de la sección. Se descartó el rosa —demasiado blando
+   para lo que se hace aquí— y también el rojo, que en esta app ya significa
+   "algo va mal" y confundiría un entrenamiento con un error. */
 body.gym,
-body.historial   { --tono: #c93756; --tono-suave: #fdecef; }
+body.historial   { --tono: #24587a; --tono-suave: #e6eef4; }
 
 @media (prefers-color-scheme: dark) {
   :root {
@@ -116,7 +119,7 @@ body.historial   { --tono: #c93756; --tono-suave: #fdecef; }
   body.finanzas,
   body.analisis    { --tono: #f0ab4e; --tono-suave: #3a2c15; }
   body.gym,
-  body.historial   { --tono: #ff7a96; --tono-suave: #3d1f2a; }
+  body.historial   { --tono: #6fb8e0; --tono-suave: #1b2f3d; }
 }
 
 * { box-sizing: border-box; }
