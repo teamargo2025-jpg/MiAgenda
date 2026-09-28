@@ -158,11 +158,13 @@ export function crearCalendario({ mes, titulo, cuadricula, detalle, antes, despu
     actualizar(nuevasNotas, nuevosApartados) {
       notas = nuevasNotas;
       apartados = nuevosApartados;
-      // Sin ninguna nota con fecha no hay nada que pintar, y un calendario
-      // vacío en el lobby sería un bloque que no se ha ganado el sitio.
-      const hayFechas = notas.some((n) => n.recordar_en);
-      mes.hidden = !hayFechas;
-      if (hayFechas) pintar();
+      // Se pinta siempre, aunque no haya nada puesto. Estuvo un rato oculto
+      // hasta que existiera la primera nota con fecha, con la idea de que cada
+      // bloque del lobby se gane su sitio; pero un mes vacío ya contesta la
+      // pregunta que se le hace —"¿tengo algo esta semana?"— y esconderlo
+      // justo cuando no tienes nada puesto es esconderlo siempre al principio.
+      mes.hidden = false;
+      pintar();
     },
   };
 }
