@@ -238,6 +238,14 @@ botonFechas.addEventListener('click', async () => {
     .order('creada_en', { ascending: false })
     .limit(30);
 
+  // La consulta del lobby, tal cual y con su filtro. Si esta trae menos que la
+  // de arriba, el problema no es ni el dato ni el calendario: es el filtro, y
+  // hasta ahora no había forma de verlo desde fuera.
+  const { data: delLobby, error: errorLobby } = await db
+    .from('notas')
+    .select('id, texto, recordar_en, hecha, apartado_id')
+    .eq('hecha', false);
+
   botonFechas.disabled = false;
 
   if (error) {
@@ -248,9 +256,24 @@ botonFechas.addEventListener('click', async () => {
 
   const notas = data ?? [];
   const conFecha = notas.filter((n) => n.recordar_en).length;
-  resultadoFechas.textContent =
-    `${notas.length} notas. ${conFecha} con fecha guardada, ${notas.length - conFecha} sin ella.`;
-  resultadoFechas.dataset.estado = 'neutro';
+
+  // Lo que el calendario recibiría de verdad, repartido por mes. Esta línea es
+  // la que contesta "¿el dato llega y no se pinta, o no llega?".
+  const lleganAlCalendario = (delLobby ?? []).filter((n) => n.recordar_en);
+  const porMes = new Map();
+  for (const nota of lleganAlCalendario) {
+    const d = new Date(nota.recordar_en);
+    const mes = d.toLocaleDateString('es-PE', { month: 'long', year: 'numeric' });
+    porMes.set(mes, (porMes.get(mes) ?? 0) + 1);
+  }
+  const reparto = [...porMes.entries()].map(([mes, n]) => `${mes}: ${n}`).join(', ');
+
+  resultadoFechas.textContent = errorLobby
+    ? `La consulta del lobby falla: ${errorLobby.message}`
+    : `${notas.length} notas, ${conFecha} con fecha. ` +
+      `Al calendario le llegan ${lleganAlCalendario.length}` +
+      (reparto ? ` — ${reparto}.` : '.');
+  resultadoFechas.dataset.estado = errorLobby ? 'falla' : 'neutro';
 
   listaFechas.replaceChildren(
     ...notas.map((nota) => {
