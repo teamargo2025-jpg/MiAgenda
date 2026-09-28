@@ -403,11 +403,6 @@ form.addEventListener('submit', async (evento) => {
     return;
   }
 
-  if (escrita.fecha && escrita.fecha <= new Date()) {
-    decir('No se guardó: esa hora ya pasó.', 'falla');
-    return;
-  }
-
   const problema = cuando.problema();
   if (problema) {
     decir(`No se guardó: ${problema}.`, 'falla');
@@ -449,8 +444,12 @@ form.addEventListener('submit', async (evento) => {
 
   const suyo = elegido ? buscarApartado(apartados, elegido) : null;
   const dondeVa = suyo ? ` en ${suyo.nombre}` : '';
+  // Una hora que ya pasó no impide guardar. Antes sí, y era el peor reparto
+  // posible: te quedabas sin la nota por un detalle de la fecha. Se guarda,
+  // queda como aviso vencido —que es lo que es— y se dice.
+  const pasada = escrita.fecha && escrita.fecha <= new Date();
   const base = recordarEn
-    ? `Guardado${dondeVa}. Te aviso ${describirCuando(recordarEn)}`
+    ? `Guardado${dondeVa}. ${pasada ? 'Ojo: esa hora ya pasó' : `Te aviso ${describirCuando(recordarEn)}`}`
     : `Guardado${dondeVa}`;
 
   decir(guardado === 'cola' ? `${base} — se subirá al volver la conexión.` : `${base}.`, 'ok');

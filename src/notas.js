@@ -451,7 +451,12 @@ async function cambiarFormato(nota, formato) {
 function fechaEscritaDe(nota) {
   if (nota.recordar_en || !nota.texto.includes('#')) return null;
   const { fecha } = extraerFecha(nota.texto);
-  return fecha && fecha > new Date() ? fecha : null;
+  // Se enseña aunque ya haya pasado. Pedía que fuera futura, y eso volvía a
+  // esconder en silencio una fecha perfectamente entendida: escribir "#29" el
+  // día 29 por la tarde dejaba la nota igual que si no se hubiera escrito
+  // nada. Esta pantalla ya muestra los avisos vencidos en vez de tragárselos
+  // —haberse pasado no los hace menos importantes—, y aquí vale lo mismo.
+  return fecha ?? null;
 }
 
 async function rescatarFecha(nota, boton) {
@@ -483,7 +488,11 @@ function pintarAlarma(boton, nota) {
     // poder ver si acertó antes de tocarlo.
     boton.textContent = escrita ? `Poner aviso ${describirFecha(escrita)}` : '+ recordar';
     boton.classList.toggle('por-aplicar', Boolean(escrita));
-    boton.classList.remove('vencida', 'activa');
+    // Una fecha escrita que ya pasó se marca como tal. Sigue pudiendo
+    // aplicarse —queda como aviso vencido, que es lo que es— pero no debe
+    // parecer que va a sonar.
+    boton.classList.toggle('vencida', Boolean(escrita) && escrita <= new Date());
+    boton.classList.remove('activa');
     return;
   }
   boton.classList.remove('por-aplicar');
