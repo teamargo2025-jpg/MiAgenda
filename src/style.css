@@ -1446,6 +1446,7 @@ body.captura #app {
 
 @media (prefers-color-scheme: dark) {
   #lista li[data-color] .sello-apartado { color: #16162c; }
+  button.cal-dia[data-color] { color: #16162c; }
 }
 
 /* Texto y hora a la izquierda, etiqueta a la derecha. Compartiendo fila, la
@@ -1546,6 +1547,17 @@ button.cal-dia {
   cursor: pointer;
 }
 
+/* El día se pinta del color de su apartado, no de un gris de relleno: mirando
+   el mes se sabe de qué va cada cosa antes de tocar nada. Es lo mismo que hace
+   la etiqueta en las últimas capturas, para que un color signifique siempre lo
+   mismo en toda la app. */
+button.cal-dia[data-color] {
+  background: var(--color-apartado);
+  color: #fff;
+}
+
+button.cal-dia[data-color] .cal-punto { background: currentColor; }
+
 /* Hoy se marca con un aro y no con relleno: el relleno ya significa "aquí hay
    algo puesto", y dos significados en la misma señal no se distinguen. */
 .cal-dia.es-hoy {
@@ -1554,10 +1566,17 @@ button.cal-dia {
   color: var(--tono);
 }
 
+/* El día abierto se marca con un aro por fuera y no cambiándole el relleno:
+   el relleno ya está diciendo de qué apartado es, y pisarlo para decir "estás
+   mirando este" borraría el dato por el que se abrió. */
 .cal-dia.esta-abierto {
+  outline: 2px solid var(--tinta);
+  outline-offset: 2px;
+}
+
+.cal-dia.esta-abierto:not([data-color]) {
   background: var(--tono);
   color: var(--superficie);
-  outline-color: var(--tinta);
 }
 
 /* Un punto por recordatorio, hasta tres. El punto dice que hay algo; el color

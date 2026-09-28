@@ -30,11 +30,15 @@ export function crearCalendario({ mes, titulo, cuadricula, detalle, antes, despu
   let elegido = null;
   let notas = [];
   let apartados = [];
+  // Mientras nadie haya tocado las flechas, el calendario puede decidir en qué
+  // mes abrirse. En cuanto se toca, manda quien mira.
+  let tocado = false;
 
   antes.addEventListener('click', () => mover(-1));
   despues.addEventListener('click', () => mover(1));
 
   function mover(meses) {
+    tocado = true;
     visible = new Date(visible.getFullYear(), visible.getMonth() + meses, 1);
     // Al cambiar de mes se cierra el día abierto: seguiría mostrando notas de
     // un día que ya no está en pantalla.
@@ -61,6 +65,30 @@ export function crearCalendario({ mes, titulo, cuadricula, detalle, antes, despu
     return apartados.find((a) => a.id === nota.apartado_id)?.color ?? null;
   }
 
+  // En qué mes abrirse. Lo normal es el de hoy, pero si hoy no tiene nada
+  // puesto y lo que tienes cae más adelante, se abre ahí: un calendario que
+  // arranca en un mes vacío teniendo cosas el mes que viene parece roto, y de
+  // hecho esconde justo lo que se venía a ver.
+  function mesDeApertura(mapa) {
+    const hoy = new Date();
+    const esteMes = [...mapa.keys()].some((k) => {
+      const [a, m] = k.split('-').map(Number);
+      return a === hoy.getFullYear() && m === hoy.getMonth();
+    });
+    if (esteMes || !mapa.size) return new Date(hoy.getFullYear(), hoy.getMonth(), 1);
+
+    const futuras = [...mapa.values()]
+      .flat()
+      .map((n) => new Date(n.recordar_en))
+      .filter((d) => d >= hoy)
+      .sort((a, b) => a - b);
+
+    // Si todo lo que hay ya pasó, se queda en el mes de hoy: mirar hacia atrás
+    // al abrir la app no es lo que se le pide a esto.
+    if (!futuras.length) return new Date(hoy.getFullYear(), hoy.getMonth(), 1);
+    return new Date(futuras[0].getFullYear(), futuras[0].getMonth(), 1);
+  }
+
   function celdaDia(fecha, delDia) {
     const hoy = new Date();
     const celda = document.createElement(delDia.length ? 'button' : 'div');
@@ -75,24 +103,32 @@ export function crearCalendario({ mes, titulo, cuadricula, detalle, antes, despu
     celda.append(numero);
 
     if (delDia.length) {
-      // Puntos y no solo color de fondo: el color dice de qué apartado es,
-      // pero que haya algo ese día tiene que verse sin depender del color.
+      // El día se pinta entero del color de su apartado. Cuando ese día tiene
+      // cosas de varios, manda la primera de la mañana y las demás quedan
+      // dichas por los puntos: repartir la celda en franjas la volvería
+      // ilegible a este tamaño.
+      const orden = [...delDia].sort((a, b) => new Date(a.recordar_en) - new Date(b.recordar_en));
+      const color = orden.map(colorDe).find(Boolean);
+      if (color) celda.dataset.color = color;
+
+      // Los puntos siguen ahí: dicen cuántas cosas hay, y dicen que hay algo
+      // sin depender del color para quien no lo distingue.
       const puntos = document.createElement('span');
       puntos.className = 'cal-puntos';
       puntos.setAttribute('aria-hidden', 'true');
-      for (const nota of delDia.slice(0, 3)) {
+      for (const _ of orden.slice(0, 3)) {
         const punto = document.createElement('span');
         punto.className = 'cal-punto';
-        const color = colorDe(nota);
-        if (color) punto.dataset.color = color;
         puntos.append(punto);
       }
       celda.append(puntos);
 
       const cuantas = delDia.length === 1 ? '1 recordatorio' : `${delDia.length} recordatorios`;
+      const suyo = color ? apartados.find((a) => a.color === color)?.nombre : null;
       celda.setAttribute(
         'aria-label',
-        `${fecha.toLocaleDateString('es-PE', { day: 'numeric', month: 'long' })}, ${cuantas}`,
+        `${fecha.toLocaleDateString('es-PE', { day: 'numeric', month: 'long' })}, ${cuantas}` +
+          (suyo ? ` en ${suyo}` : ''),
       );
 
       celda.addEventListener('click', () => {
@@ -164,6 +200,7 @@ export function crearCalendario({ mes, titulo, cuadricula, detalle, antes, despu
       // pregunta que se le hace —"¿tengo algo esta semana?"— y esconderlo
       // justo cuando no tienes nada puesto es esconderlo siempre al principio.
       mes.hidden = false;
+      if (!tocado) visible = mesDeApertura(porDia());
       pintar();
     },
   };
