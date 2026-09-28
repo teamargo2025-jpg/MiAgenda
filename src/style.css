@@ -1398,3 +1398,77 @@ body.captura #app {
   white-space: pre-wrap;
   overflow-wrap: anywhere;
 }
+
+/* La barra de desplazamiento del mapa se oculta pero el gesto se queda: en el
+   celular se arrastra con el dedo, y en escritorio con la rueda horizontal o
+   arrastrando. Una barra visible bajo un mapa de tres tarjetas es ruido que no
+   informa de nada. */
+#mapa { scrollbar-width: none; }
+#mapa::-webkit-scrollbar { display: none; }
+
+/* El chip de crear: cuadrado y con el signo centrado, para que un "+" solo no
+   quede descolgado dentro de una pastilla alargada. */
+.chip-nuevo {
+  width: var(--tocable);
+  padding: 0;
+  font-size: 1.125rem;
+  font-weight: 500;
+  line-height: 1;
+}
+
+/* --- Etiqueta de apartado en las últimas capturas --- */
+
+/* El color marca la tarjeta entera por el borde derecho: recorriendo la lista
+   se ve a qué pertenece cada línea antes de llegar a leer el nombre. */
+#lista li[data-color] {
+  border-right: 5px solid var(--color-apartado);
+  padding-right: var(--e3);
+}
+
+/* Y la etiqueta va rellena, no en tono suave: es lo último que se mira de cada
+   fila y tiene que resolverse de un golpe de vista. */
+#lista .sello-apartado {
+  background: var(--color-apartado);
+  color: #fff;
+  font-weight: 620;
+}
+
+#lista .sello-apartado .punto-color { background: currentColor; }
+
+@media (prefers-color-scheme: dark) {
+  #lista .sello-apartado { color: #16162c; }
+}
+
+/* Texto y hora a la izquierda, etiqueta a la derecha. Antes compartían fila y
+   la etiqueta caía al renglón de abajo en cuanto el texto era largo. */
+.reciente-cuerpo {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+#lista li { align-items: center; }
+
+/* El borde de color se mantiene sólido aunque la nota esté sin subir: lo
+   punteado dice "todavía no ha llegado al servidor", pero el color dice a qué
+   apartado pertenece, y esa segunda cosa no está en duda. */
+#lista li[data-color].sin-subir { border-right-style: solid !important; }
+
+/* Texto y hora a la izquierda, etiqueta a la derecha. Compartiendo fila, la
+   etiqueta caía al renglón de abajo en cuanto el texto era largo. */
+.reciente-cuerpo {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+#lista li { align-items: center; }
+
+/* El borde de color se mantiene sólido aunque la nota esté sin subir: lo
+   punteado dice "todavía no ha llegado al servidor", pero el color dice a qué
+   apartado pertenece, y esa segunda cosa no está en duda. */
+#lista li[data-color].sin-subir { border-right-style: solid !important; }

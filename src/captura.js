@@ -123,7 +123,11 @@ function chipNuevo() {
   const chip = document.createElement('button');
   chip.type = 'button';
   chip.className = 'chip chip-nuevo';
-  chip.textContent = '+ Apartado';
+  chip.textContent = '+';
+  // El nombre se va pero la etiqueta accesible se queda: un botón que solo
+  // dice "+" no significa nada para quien lo escucha en vez de verlo.
+  chip.setAttribute('aria-label', 'Crear apartado');
+  chip.title = 'Crear apartado';
   chip.addEventListener('click', () => {
     cajaNuevo.hidden = !cajaNuevo.hidden;
     if (!cajaNuevo.hidden) campoNuevo.focus();
@@ -298,17 +302,21 @@ async function pintarRecientes() {
       const li = document.createElement('li');
       if (nota.sinSubir) li.classList.add('sin-subir');
 
-      const cuerpo = document.createElement('span');
-      cuerpo.className = 'texto';
-      cuerpo.textContent = nota.texto.split('\n')[0].replace(/^\[[ xX]\]\s?/, '');
-
-      const derecha = document.createElement('span');
-      derecha.className = 'nota-chips';
-
-      // A qué apartado pertenece, con su color. Es lo que permite reconocer de
-      // un vistazo si la nota cayó donde tocaba.
+      // El color del apartado marca la tarjeta entera por el borde derecho,
+      // no solo la etiqueta: de un vistazo se ve a qué pertenece cada línea
+      // sin llegar a leer el nombre.
       const suyo = nota.apartado_id ? buscarApartado(apartados, nota.apartado_id) : null;
-      if (suyo) derecha.append(selloApartado(suyo));
+      if (suyo) li.dataset.color = suyo.color;
+
+      // El texto y su hora van juntos a la izquierda; la etiqueta, sola a la
+      // derecha. Compartiendo fila, la etiqueta caía al renglón de abajo en
+      // cuanto el texto era largo — que es siempre.
+      const cuerpo = document.createElement('div');
+      cuerpo.className = 'reciente-cuerpo';
+
+      const linea = document.createElement('span');
+      linea.className = 'texto';
+      linea.textContent = nota.texto.split('\n')[0].replace(/^\[[ xX]\]\s?/, '');
 
       const marca = document.createElement('time');
       if (nota.sinSubir) {
@@ -323,8 +331,11 @@ async function pintarRecientes() {
         marca.textContent = formatearFecha(nota.creada_en);
       }
 
-      derecha.append(marca);
-      li.append(cuerpo, derecha);
+      cuerpo.append(linea, marca);
+      li.append(cuerpo);
+
+      // La etiqueta, pegada al borde derecho y sin nada que la empuje.
+      if (suyo) li.append(selloApartado(suyo));
       return li;
     }),
   );
@@ -439,11 +450,36 @@ function esFalloDeRed(error) {
   return !error.code || error.message === 'Failed to fetch';
 }
 
-// Ctrl+Enter (o Cmd+Enter) guarda sin levantar la mano del teclado.
+// Con teclado físico, dos Enter seguidos guardan. Uno solo hace lo que se
+// espera de un campo de varias líneas: bajar de renglón.
+//
+// La comprobación es `pointer: fine`, no el ancho de la pantalla: lo que
+// decide es si hay un teclado de verdad detrás. En el celular, donde el Enter
+// es el de la pantalla táctil y a menudo lo que se quiere es un salto de
+// línea, se deja como está y se guarda con el botón.
+const conTecladoFisico = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
+
 texto.addEventListener('keydown', (evento) => {
+  // Ctrl+Enter (o Cmd+Enter) guarda siempre, esté donde esté el cursor.
   if ((evento.metaKey || evento.ctrlKey) && evento.key === 'Enter') {
+    evento.preventDefault();
     form.requestSubmit();
+    return;
   }
+
+  if (!conTecladoFisico || evento.key !== 'Enter' || evento.shiftKey) return;
+
+  // El segundo Enter se reconoce porque el carácter justo antes del cursor ya
+  // es un salto de línea. Se mira el texto y no un contador de pulsaciones:
+  // así funciona igual si vuelves a una línea vacía de más arriba.
+  const hasta = texto.value.slice(0, texto.selectionStart);
+  if (!hasta.endsWith('\n')) return;
+
+  evento.preventDefault();
+  // Se quita el renglón vacío que dejó el primer Enter: fue una pulsación para
+  // guardar, no una línea en blanco que quisieras dentro de la nota.
+  texto.value = texto.value.replace(/\n+$/, '');
+  form.requestSubmit();
 });
 
 // El service worker se registra también aquí: si la primera visita es a la
