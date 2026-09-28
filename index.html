@@ -51,6 +51,19 @@
         </a>
       </section>
 
+      <!-- Bajo el resumen: qué tienes puesto y cuándo. "Hoy" contesta el día
+           de hoy; esto contesta la semana que viene, que es la pregunta que se
+           hace antes de comprometerse a algo nuevo. -->
+      <section id="seccion-calendario" class="panel" hidden>
+        <div class="cal-barra">
+          <button id="cal-antes" type="button" class="cal-flecha" aria-label="Mes anterior">‹</button>
+          <h2 id="cal-mes" class="cal-mes"></h2>
+          <button id="cal-despues" type="button" class="cal-flecha" aria-label="Mes siguiente">›</button>
+        </div>
+        <div id="cal-cuadricula" class="cal-cuadricula"></div>
+        <ul id="cal-detalle" class="notas-lista compacta" hidden aria-label="Recordatorios del día"></ul>
+      </section>
+
       <!-- El mapa de apartados va bajo el resumen: es lo que da la foto de en
            qué andas metido, y se mira menos a menudo que lo de hoy. -->
       <section id="seccion-mapa" hidden>

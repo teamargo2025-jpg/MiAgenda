@@ -16,6 +16,7 @@ import { describirCuando } from './cuando.js';
 import { resumen, delMes } from './cuentas.js';
 import { cargarApartados, raices, hijosDe, buscarApartado } from './apartados.js';
 import { dibujarArbol } from './mapa.js';
+import { crearCalendario } from './calendario.js';
 
 const estado = document.getElementById('estado');
 const seccionHoy = document.getElementById('seccion-hoy');
@@ -84,6 +85,60 @@ async function traerMovimientos() {
   return data ?? [];
 }
 
+// Una fila de nota con su hora y su apartado. La usan "Hoy" y el día abierto
+// del calendario: son la misma cosa mirada desde dos sitios, y tenerlas
+// escritas dos veces acabaría con que solo una de las dos se arregla.
+function filaDeNota(nota, ahora = new Date()) {
+  const li = document.createElement('li');
+  li.className = 'nota-fila';
+
+  const cuerpo = document.createElement('div');
+  cuerpo.className = 'nota-cuerpo';
+
+  const texto = document.createElement('div');
+  texto.className = 'nota-texto';
+  // Solo la primera línea: aquí interesa reconocer la nota, no leerla entera.
+  // Para eso está su pantalla.
+  texto.textContent = nota.texto.split('\n')[0].replace(/^\[[ xX]\]\s?/, '');
+
+  const pie = document.createElement('div');
+  pie.className = 'nota-chips';
+
+  const cuando = document.createElement('span');
+  const vencida = new Date(nota.recordar_en) < ahora;
+  cuando.className = vencida ? 'marca-vencida' : 'gasto-fecha';
+  cuando.textContent = describirCuando(nota.recordar_en);
+  pie.append(cuando);
+
+  // De qué apartado sale, con su color: en una lista mezclada es lo que
+  // permite reconocer de un vistazo a qué pertenece cada cosa.
+  const suyo = nota.apartado_id ? buscarApartado(apartados, nota.apartado_id) : null;
+  if (suyo) {
+    const sello = document.createElement('span');
+    sello.className = 'sello-apartado';
+    sello.dataset.color = suyo.color;
+    const punto = document.createElement('span');
+    punto.className = 'punto-color';
+    punto.setAttribute('aria-hidden', 'true');
+    sello.append(punto, document.createTextNode(suyo.nombre));
+    pie.append(sello);
+  }
+
+  cuerpo.append(texto, pie);
+  li.append(cuerpo);
+  return li;
+}
+
+const calendario = crearCalendario({
+  mes: document.getElementById('seccion-calendario'),
+  titulo: document.getElementById('cal-mes'),
+  cuadricula: document.getElementById('cal-cuadricula'),
+  detalle: document.getElementById('cal-detalle'),
+  antes: document.getElementById('cal-antes'),
+  despues: document.getElementById('cal-despues'),
+  alPintarNota: (nota) => filaDeNota(nota),
+});
+
 function pintarHoy(notas) {
   // Lo de hoy y lo que ya venció sin hacerse. Un recordatorio que se pasó no
   // deja de importar por haber pasado — al contrario.
@@ -95,48 +150,7 @@ function pintarHoy(notas) {
   seccionHoy.hidden = relevantes.length === 0;
   if (!relevantes.length) return;
 
-  listaHoy.replaceChildren(
-    ...relevantes.slice(0, 6).map((nota) => {
-      const li = document.createElement('li');
-      li.className = 'nota-fila';
-
-      const cuerpo = document.createElement('div');
-      cuerpo.className = 'nota-cuerpo';
-
-      const texto = document.createElement('div');
-      texto.className = 'nota-texto';
-      // Solo la primera línea: en el lobby interesa reconocer la nota, no
-      // leerla entera. Para eso está su pantalla.
-      texto.textContent = nota.texto.split('\n')[0].replace(/^\[[ xX]\]\s?/, '');
-
-      const pie = document.createElement('div');
-      pie.className = 'nota-chips';
-
-      const cuando = document.createElement('span');
-      const vencida = new Date(nota.recordar_en) < ahora;
-      cuando.className = vencida ? 'marca-vencida' : 'gasto-fecha';
-      cuando.textContent = describirCuando(nota.recordar_en);
-      pie.append(cuando);
-
-      // De qué apartado sale, con su color: en una lista mezclada es lo que
-      // permite reconocer de un vistazo a qué pertenece cada cosa.
-      const suyo = nota.apartado_id ? buscarApartado(apartados, nota.apartado_id) : null;
-      if (suyo) {
-        const sello = document.createElement('span');
-        sello.className = 'sello-apartado';
-        sello.dataset.color = suyo.color;
-        const punto = document.createElement('span');
-        punto.className = 'punto-color';
-        punto.setAttribute('aria-hidden', 'true');
-        sello.append(punto, document.createTextNode(suyo.nombre));
-        pie.append(sello);
-      }
-
-      cuerpo.append(texto, pie);
-      li.append(cuerpo);
-      return li;
-    }),
-  );
+  listaHoy.replaceChildren(...relevantes.slice(0, 6).map((nota) => filaDeNota(nota, ahora)));
 }
 
 // Un árbol por apartado de primer nivel. Los que no tienen subapartados se
@@ -197,6 +211,7 @@ async function pintarTodo() {
 
   pintarHoy(todasLasNotas);
   pintarResumen(todasLasNotas, todosLosMovimientos);
+  calendario.actualizar(todasLasNotas, apartados);
   pintarMapa();
 
   sinNada.hidden = todasLasNotas.length + todosLosMovimientos.length > 0;

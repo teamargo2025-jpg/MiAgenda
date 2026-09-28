@@ -1415,19 +1415,28 @@ body.captura #app {
   font-weight: 500;
   line-height: 1;
 }
-
 /* --- Etiqueta de apartado en las últimas capturas --- */
 
-/* El color marca la tarjeta entera por el borde derecho: recorriendo la lista
-   se ve a qué pertenece cada línea antes de llegar a leer el nombre. */
+/* La etiqueta no va junto al borde derecho: es el borde derecho. Ocupa el alto
+   entero de la tarjeta, así que recorriendo la lista el color se lee como una
+   columna continua y se sabe a qué pertenece cada línea antes de llegar al
+   nombre. Un filete de unos pocos píxeles se perdía contra el borde gris. */
 #lista li[data-color] {
-  border-right: 5px solid var(--color-apartado);
-  padding-right: var(--e3);
+  padding-right: 0;
+  /* Para que las esquinas rectas del bloque las recorte el radio de la
+     tarjeta en vez de asomar por fuera. */
+  overflow: hidden;
 }
 
-/* Y la etiqueta va rellena, no en tono suave: es lo último que se mira de cada
-   fila y tiene que resolverse de un golpe de vista. */
-#lista .sello-apartado {
+#lista li[data-color] .sello-apartado {
+  align-self: stretch;
+  /* Se come el relleno vertical de la tarjeta para llegar de borde a borde. */
+  margin-block: calc(-1 * var(--e3));
+  display: flex;
+  align-items: center;
+  min-width: 3.25rem;
+  padding: 0 var(--e3);
+  border-radius: 0;
   background: var(--color-apartado);
   color: #fff;
   font-weight: 620;
@@ -1436,25 +1445,8 @@ body.captura #app {
 #lista .sello-apartado .punto-color { background: currentColor; }
 
 @media (prefers-color-scheme: dark) {
-  #lista .sello-apartado { color: #16162c; }
+  #lista li[data-color] .sello-apartado { color: #16162c; }
 }
-
-/* Texto y hora a la izquierda, etiqueta a la derecha. Antes compartían fila y
-   la etiqueta caía al renglón de abajo en cuanto el texto era largo. */
-.reciente-cuerpo {
-  flex: 1;
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-#lista li { align-items: center; }
-
-/* El borde de color se mantiene sólido aunque la nota esté sin subir: lo
-   punteado dice "todavía no ha llegado al servidor", pero el color dice a qué
-   apartado pertenece, y esa segunda cosa no está en duda. */
-#lista li[data-color].sin-subir { border-right-style: solid !important; }
 
 /* Texto y hora a la izquierda, etiqueta a la derecha. Compartiendo fila, la
    etiqueta caía al renglón de abajo en cuanto el texto era largo. */
@@ -1468,7 +1460,125 @@ body.captura #app {
 
 #lista li { align-items: center; }
 
-/* El borde de color se mantiene sólido aunque la nota esté sin subir: lo
-   punteado dice "todavía no ha llegado al servidor", pero el color dice a qué
-   apartado pertenece, y esa segunda cosa no está en duda. */
-#lista li[data-color].sin-subir { border-right-style: solid !important; }
+/* Sin subir, la tarjeta se dibuja punteada. El bloque de color se queda como
+   está: lo punteado dice "todavía no ha llegado al servidor", y a qué apartado
+   pertenece no está en duda. */
+#lista li[data-color].sin-subir { border-right: 0 !important; }
+
+/* --- Fecha escrita dentro de la nota --- */
+
+/* Confirma lo que se entendió de "#lunes 9:00" mientras se escribe. Discreta
+   cuando acierta y roja cuando la hora ya pasó: enterarse al guardar de que la
+   fecha no valía es enterarse tarde. */
+.pista-fecha {
+  margin: 0;
+  font-size: .8125rem;
+  font-weight: 560;
+}
+
+.pista-fecha[data-estado="ok"] { color: var(--tono); }
+.pista-fecha[data-estado="falla"] { color: var(--alerta); }
+
+/* --- Minicalendario --- */
+
+.cal-barra {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--e2);
+  margin-bottom: var(--e3);
+}
+
+.cal-mes { margin: 0; font-size: 1rem; }
+
+.cal-flecha {
+  width: var(--tocable);
+  height: var(--tocable);
+  flex: none;
+  padding: 0;
+  border: 1px solid var(--borde);
+  border-radius: var(--r-control);
+  background: var(--superficie);
+  color: var(--tinta-media);
+  font-size: 1.25rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.cal-flecha:hover { color: var(--tinta); border-color: var(--borde-firme); }
+
+.cal-cuadricula {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 2px;
+}
+
+.cal-cabecera-dia {
+  padding-bottom: var(--e1);
+  text-align: center;
+  font-size: .75rem;
+  font-weight: 560;
+  color: var(--tinta-suave);
+}
+
+/* Los días sin nada son texto, no botones: no llevan a ningún sitio, y
+   hacerlos pulsables sería prometer algo que no pasa al tocarlos. */
+.cal-dia {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  min-height: 2.25rem;
+  padding: var(--e1) 0;
+  border: 0;
+  border-radius: var(--r-control);
+  background: none;
+  font: inherit;
+  font-size: .8125rem;
+  color: var(--tinta-suave);
+}
+
+button.cal-dia {
+  background: var(--tono-suave);
+  color: var(--tinta);
+  font-weight: 620;
+  cursor: pointer;
+}
+
+/* Hoy se marca con un aro y no con relleno: el relleno ya significa "aquí hay
+   algo puesto", y dos significados en la misma señal no se distinguen. */
+.cal-dia.es-hoy {
+  outline: 2px solid var(--tono);
+  outline-offset: -2px;
+  color: var(--tono);
+}
+
+.cal-dia.esta-abierto {
+  background: var(--tono);
+  color: var(--superficie);
+  outline-color: var(--tinta);
+}
+
+/* Un punto por recordatorio, hasta tres. El punto dice que hay algo; el color
+   dice de qué apartado. Fiarlo todo al color dejaría el día vacío para quien
+   no lo distingue. */
+.cal-puntos { display: flex; gap: 3px; height: 5px; }
+
+.cal-punto {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--tinta-media);
+}
+
+.cal-punto[data-color] { background: var(--color-apartado); }
+
+.cal-dia.esta-abierto .cal-punto { background: currentColor; }
+
+.cal-dia:focus-visible {
+  outline: 2px solid var(--tono);
+  outline-offset: 2px;
+}
+
+#cal-detalle { margin-top: var(--e3); margin-bottom: 0; }

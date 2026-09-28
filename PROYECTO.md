@@ -84,6 +84,35 @@ Si a las dos semanas sigo anotando en otro lado, la app no resolvió la fricció
 
 ## Decisiones tomadas
 
+- **La almohadilla vuelve, pero para la fecha** (28/09/2026). Se quitó como
+  forma de crear temas porque los apartados pasaron a tener chips propios, y el
+  hueco que dejó lo ocupa lo que de verdad no se puede tocar en una fila de
+  botones: la fecha. "pagar luz #lunes 9:00" se escribe sin soltar el hilo de
+  la frase; el panel plegado de "+ Recordarme" sigue ahí para quien prefiera
+  tocar. Se acepta el día y la hora en cualquier orden, con o sin tilde, y el
+  día suelto significa el más próximo.
+  - **Sin hora, las 8:00.** Es cuando empieza el día de verdad. A medianoche el
+    aviso se duerme con uno y "a la hora a la que lo escribiste" no significa
+    nada.
+  - **Un número pelado es día del mes, no hora.** "#12" es el día 12. Es la
+    única regla que no se adivina sola, y por eso las horas piden dos puntos o
+    am/pm: "#12:00". Lo que no se entiende no se toca — la nota se guarda
+    entera y sin recordatorio, porque una cita inventada es peor que ninguna.
+  - **Lo entendido se enseña mientras se escribe.** Un lector de fechas que
+    acierta el 95% sin decir qué entendió es peor que no tenerlo: el 5% son
+    citas a las que no llegas.
+- **Minicalendario en el lobby** (28/09/2026). "Hoy" contesta el día de hoy;
+  esto contesta la otra pregunta, la que se hace antes de comprometerse a algo
+  nuevo: cómo tengo la semana que viene. Se puede pasar de mes, porque a final
+  de mes casi todo lo puesto cae en el siguiente. Cada día con algo lleva un
+  punto por recordatorio —hasta tres— del color de su apartado: el punto dice
+  que hay algo, el color dice de qué; fiarlo todo al color dejaría el día vacío
+  para quien no lo distingue. Tocar un día abre su lista debajo.
+- **La etiqueta de apartado es el borde derecho de la tarjeta** (28/09/2026).
+  Antes era una pastilla de color junto a un filete de cinco píxeles; ahora
+  ocupa el alto entero. Recorriendo las últimas capturas, el color se lee como
+  una columna continua y se sabe a qué pertenece cada línea antes de llegar al
+  nombre.
 - **Los temas pasan a ser apartados de verdad** (28/09/2026). Dejan de
   escribirse con almohadilla dentro de la nota y pasan a ser entidades con
   nombre, color elegido a mano, subapartados y pantalla propia. La decisión

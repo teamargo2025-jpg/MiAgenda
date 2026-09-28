@@ -10,6 +10,7 @@
 
 import { db, configurado } from './supabase.js';
 import { crearSelectorDeCuando, describirCuando } from './cuando.js';
+import { extraerFecha, describirFecha } from './fecha.js';
 import { exigirSesion } from './sesion.js';
 import { encolar, nuevoId, soportaCola } from './cola.js';
 import { pendientesDe, sincronizarEnSegundoPlano } from './sincronizar.js';
@@ -219,7 +220,39 @@ for (const chip of chipsFormato) {
   });
 }
 
-texto.addEventListener('input', repasarFormato);
+texto.addEventListener('input', () => {
+  repasarFormato();
+  repasarFecha();
+});
+
+// --- Fecha escrita ---
+//
+// Se puede poner la fecha dentro de la propia nota: "pagar luz #lunes 9:00".
+// Escribirla cuesta menos que desplegar el panel y dar tres toques, y sobre
+// todo no rompe el hilo: sigues escribiendo la frase.
+//
+// Lo que se entiende se enseña debajo mientras escribes. Un lector de fechas
+// que acierta el 95% de las veces sin decir qué entendió es peor que no
+// tenerlo: el 5% restante son citas a las que no llegas.
+
+const pistaFecha = document.getElementById('pista-fecha');
+
+function repasarFecha() {
+  const { fecha } = extraerFecha(texto.value);
+
+  if (!fecha) {
+    pistaFecha.hidden = true;
+    return null;
+  }
+
+  const pasada = fecha <= new Date();
+  pistaFecha.textContent = pasada
+    ? `Esa hora ya pasó (${describirFecha(fecha)})`
+    : `Te aviso ${describirFecha(fecha)}`;
+  pistaFecha.dataset.estado = pasada ? 'falla' : 'ok';
+  pistaFecha.hidden = false;
+  return fecha;
+}
 
 // --- Dictado ---
 
@@ -235,6 +268,7 @@ const dictado = crearDictado({
     const separador = textoPrevio && !textoPrevio.endsWith(' ') ? ' ' : '';
     texto.value = textoPrevio + separador + transcrito;
     repasarFormato();
+    repasarFecha();
   },
   alEstado(estado) {
     const escuchando = estado === 'escuchando';
@@ -358,11 +392,19 @@ export function selloApartado(apartado) {
 form.addEventListener('submit', async (evento) => {
   evento.preventDefault();
 
-  const contenido = texto.value.trim();
+  // La fecha escrita se saca del texto: "pagar luz #lunes" se guarda como
+  // "pagar luz" con recordatorio, no con la marca dentro.
+  const escrita = extraerFecha(texto.value);
+  const contenido = escrita.limpio;
   if (!contenido) return;
 
   if (!configurado) {
     decir('Falta configurar Supabase — mira el diagnóstico.', 'falla');
+    return;
+  }
+
+  if (escrita.fecha && escrita.fecha <= new Date()) {
+    decir('No se guardó: esa hora ya pasó.', 'falla');
     return;
   }
 
@@ -375,7 +417,7 @@ form.addEventListener('submit', async (evento) => {
   boton.disabled = true;
   decir('Guardando…');
 
-  const recordarEn = cuando.valor();
+  const recordarEn = escrita.fecha ? escrita.fecha.toISOString() : cuando.valor();
   // El id se genera aquí: la nota tiene identidad antes de existir en el
   // servidor, así que reintentar la subida no puede duplicarla.
   const fila = {
@@ -401,6 +443,7 @@ form.addEventListener('submit', async (evento) => {
   formatoElegido = 'texto';
   pintarFormato();
   repasarFormato();
+  pistaFecha.hidden = true;
   plegarCuando();
   texto.focus();
 
