@@ -42,6 +42,23 @@
         <p id="resultado" class="resultado"></p>
       </section>
 
+      <!-- Qué fecha tiene cada nota de verdad, y qué entiende el lector de lo
+           que lleva escrito. Está aquí y no en Notas porque no es para el uso
+           diario: es para cuando algo no aparece donde debería y hay que saber
+           si el dato falta o si falta enseñarlo. -->
+      <section class="panel">
+        <h2>Fechas de las notas</h2>
+        <p class="nota">
+          Lo que hay guardado en cada nota y lo que el lector entiende del "#"
+          que tenga escrito.
+        </p>
+        <div class="acciones">
+          <button id="btn-fechas" type="button">Revisar las notas</button>
+        </div>
+        <p id="resultado-fechas" class="resultado"></p>
+        <ul id="lista-fechas" class="notas-lista compacta" hidden></ul>
+      </section>
+
       <section class="panel">
         <h2>Estado</h2>
         <dl class="diag">

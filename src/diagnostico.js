@@ -5,6 +5,8 @@
 import { configurado, VAPID_PUBLICA } from './supabase.js';
 import { suscribir, probarDesdeServidor } from './push.js';
 import { exigirSesion } from './sesion.js';
+import { db } from './supabase.js';
+import { extraerFecha } from './fecha.js';
 
 const set = (id, texto, estado = 'neutro') => {
   const el = document.getElementById(id);
@@ -212,3 +214,89 @@ botonServidor.addEventListener('click', async () => {
 // El diagnóstico también entra detrás de la puerta: suscribir un dispositivo
 // escribe en la base, y esa escritura ahora exige sesión.
 if (configurado) await exigirSesion();
+
+
+// --- Fechas de las notas ---
+
+const botonFechas = document.getElementById('btn-fechas');
+const resultadoFechas = document.getElementById('resultado-fechas');
+const listaFechas = document.getElementById('lista-fechas');
+
+const cuando = (iso) =>
+  new Date(iso).toLocaleString('es-PE', {
+    day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit', hour12: false,
+  });
+
+botonFechas.addEventListener('click', async () => {
+  botonFechas.disabled = true;
+  resultadoFechas.textContent = 'Leyendo…';
+  resultadoFechas.dataset.estado = 'neutro';
+
+  const { data, error } = await db
+    .from('notas')
+    .select('id, texto, recordar_en, hecha')
+    .order('creada_en', { ascending: false })
+    .limit(30);
+
+  botonFechas.disabled = false;
+
+  if (error) {
+    resultadoFechas.textContent = `No se pudo leer: ${error.message}`;
+    resultadoFechas.dataset.estado = 'falla';
+    return;
+  }
+
+  const notas = data ?? [];
+  const conFecha = notas.filter((n) => n.recordar_en).length;
+  resultadoFechas.textContent =
+    `${notas.length} notas. ${conFecha} con fecha guardada, ${notas.length - conFecha} sin ella.`;
+  resultadoFechas.dataset.estado = 'neutro';
+
+  listaFechas.replaceChildren(
+    ...notas.map((nota) => {
+      const li = document.createElement('li');
+      li.className = 'nota-fila';
+
+      const texto = document.createElement('div');
+      texto.className = 'nota-texto';
+      texto.textContent = nota.texto.split('\n')[0];
+
+      const detalle = document.createElement('div');
+      detalle.className = 'nota-chips';
+
+      const guardada = document.createElement('span');
+      guardada.className = nota.recordar_en ? 'nota-alarma activa' : 'gasto-fecha';
+      guardada.textContent = nota.recordar_en
+        ? `guardada: ${cuando(nota.recordar_en)}`
+        : 'sin fecha guardada';
+      detalle.append(guardada);
+
+      // Lo que el lector saca del texto, se haya aplicado o no. Si aquí sale
+      // una fecha y arriba pone "sin fecha guardada", el dato está escrito
+      // pero nunca se aplicó; si aquí no sale nada, el lector no lo entiende.
+      const { fecha } = extraerFecha(nota.texto);
+      const leida = document.createElement('span');
+      leida.className = fecha ? 'nota-alarma por-aplicar' : 'gasto-fecha';
+      leida.textContent = nota.texto.includes('#')
+        ? fecha
+          ? `el lector lee: ${cuando(fecha)}`
+          : 'el lector no entiende su #'
+        : 'sin # escrito';
+      detalle.append(leida);
+
+      if (nota.hecha) {
+        const hecha = document.createElement('span');
+        hecha.className = 'gasto-fecha';
+        hecha.textContent = 'marcada como hecha';
+        detalle.append(hecha);
+      }
+
+      const cuerpo = document.createElement('div');
+      cuerpo.className = 'nota-cuerpo';
+      cuerpo.append(texto, detalle);
+      li.append(cuerpo);
+      return li;
+    }),
+  );
+  listaFechas.hidden = notas.length === 0;
+});
