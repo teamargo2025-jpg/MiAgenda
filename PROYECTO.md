@@ -84,6 +84,17 @@ Si a las dos semanas sigo anotando en otro lado, la app no resolvió la fricció
 
 ## Decisiones tomadas
 
+- **Una fecha escrita que no se aplicó no se pierde** (28/09/2026). Las notas
+  capturadas antes de que existiera el lector se quedaron con el "#" dentro del
+  texto y sin recordatorio, y así se habrían quedado para siempre. En Notas, una
+  nota sin aviso cuyo texto lleva una fecha legible enseña "Poner aviso jueves
+  08:00" en vez de "+ recordar": un toque la aplica y limpia el texto. Se enseña
+  lo entendido y no un "aplicar fecha" genérico, porque hay que poder ver si
+  acertó antes de tocarlo. Hacerlo automático se descartó: reescribir el texto
+  de una nota sin que nadie lo pida es demasiado.
+- **El calendario dice cuándo no tiene nada** (28/09/2026). Una cuadrícula vacía
+  y muda no distingue "no tienes nada puesto" de "esto está roto", y esa duda ya
+  costó una tarde de búsqueda.
 - **La almohadilla vuelve, pero para la fecha** (28/09/2026). Se quitó como
   forma de crear temas porque los apartados pasaron a tener chips propios, y el
   hueco que dejó lo ocupa lo que de verdad no se puede tocar en una fila de

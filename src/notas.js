@@ -6,6 +6,7 @@
 
 import { db, configurado } from './supabase.js';
 import { describirCuando } from './cuando.js';
+import { extraerFecha, describirFecha } from './fecha.js';
 import { exigirSesion, salir } from './sesion.js';
 import { pendientesDe } from './sincronizar.js';
 import { quitarDeCola } from './cola.js';
@@ -258,7 +259,13 @@ function crearFila(nota) {
   alarma.type = 'button';
   alarma.className = 'nota-alarma';
   pintarAlarma(alarma, nota);
-  alarma.addEventListener('click', () => editarAlarma(nota, alarma));
+  alarma.addEventListener('click', () => {
+    // Si la nota trae una fecha escrita que nunca llegó a aplicarse, el primer
+    // toque la aplica en vez de abrir el calendario: es lo que se quiso decir
+    // al escribirla, y hacérselo teclear otra vez sería cobrar dos veces.
+    if (!nota.recordar_en && fechaEscritaDe(nota)) rescatarFecha(nota, alarma);
+    else editarAlarma(nota, alarma);
+  });
 
   const formatoBoton = document.createElement('button');
   formatoBoton.type = 'button';
@@ -437,12 +444,49 @@ async function cambiarFormato(nota, formato) {
   pintarTodo();
 }
 
+// La fecha que quedó escrita dentro del texto y nunca se aplicó. Pasa con lo
+// capturado antes de que existiera el lector, y pasaría otra vez si algún día
+// se escribe un "#" que en ese momento no se supo leer. Perder la fecha por eso
+// sería hacerle pagar al usuario un cambio nuestro.
+function fechaEscritaDe(nota) {
+  if (nota.recordar_en || !nota.texto.includes('#')) return null;
+  const { fecha } = extraerFecha(nota.texto);
+  return fecha && fecha > new Date() ? fecha : null;
+}
+
+async function rescatarFecha(nota, boton) {
+  const { fecha, limpio } = extraerFecha(nota.texto);
+  if (!fecha) return;
+
+  const iso = fecha.toISOString();
+  const { error } = await db
+    .from('notas')
+    .update({ recordar_en: iso, texto: limpio, notificada_en: null })
+    .eq('id', nota.id);
+
+  if (error) {
+    decir(`No se pudo poner el aviso: ${error.message}`, 'falla');
+    return;
+  }
+
+  nota.recordar_en = iso;
+  nota.texto = limpio;
+  nota.notificada_en = null;
+  decir(`Aviso puesto: ${describirCuando(iso)}.`, 'ok');
+  pintarTodo();
+}
+
 function pintarAlarma(boton, nota) {
   if (!nota.recordar_en) {
-    boton.textContent = '+ recordar';
+    const escrita = fechaEscritaDe(nota);
+    // Se enseña lo que se entendió, no un "aplicar fecha" genérico: hay que
+    // poder ver si acertó antes de tocarlo.
+    boton.textContent = escrita ? `Poner aviso ${describirFecha(escrita)}` : '+ recordar';
+    boton.classList.toggle('por-aplicar', Boolean(escrita));
     boton.classList.remove('vencida', 'activa');
     return;
   }
+  boton.classList.remove('por-aplicar');
   const vencida = new Date(nota.recordar_en) <= new Date();
   boton.textContent = `Aviso ${describirCuando(nota.recordar_en)}`;
   boton.classList.toggle('vencida', vencida && !nota.notificada_en);

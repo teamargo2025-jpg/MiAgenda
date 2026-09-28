@@ -1601,3 +1601,23 @@ button.cal-dia[data-color] .cal-punto { background: currentColor; }
 }
 
 #cal-detalle { margin-top: var(--e3); margin-bottom: 0; }
+
+/* Una fecha que se escribió en la nota y nunca llegó a aplicarse. Se pinta
+   como una acción pendiente y no como un aviso puesto: todavía no lo está, y
+   confundir las dos cosas dejaría creyendo que hay alarma donde no la hay. */
+.nota-alarma.por-aplicar {
+  border-color: color-mix(in srgb, var(--tono) 55%, transparent);
+  border-style: dashed;
+  color: var(--tono);
+  font-weight: 560;
+}
+
+/* El mes sin nada lo dice con palabras. Una cuadrícula vacía y muda no
+   distingue "no tienes nada" de "esto está roto", y esa duda ya costó una
+   tarde. */
+.cal-vacio {
+  margin: var(--e3) 0 0;
+  text-align: center;
+  font-size: .8125rem;
+  color: var(--tinta-suave);
+}

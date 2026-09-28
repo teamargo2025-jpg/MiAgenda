@@ -34,6 +34,13 @@ export function crearCalendario({ mes, titulo, cuadricula, detalle, antes, despu
   // mes abrirse. En cuanto se toca, manda quien mira.
   let tocado = false;
 
+  // Aviso de mes sin nada. Se crea aquí y no en el HTML porque solo lo usa
+  // este módulo y nadie más tiene que saber que existe.
+  const avisoVacio = document.createElement('p');
+  avisoVacio.className = 'cal-vacio';
+  avisoVacio.hidden = true;
+  cuadricula.after(avisoVacio);
+
   antes.addEventListener('click', () => mover(-1));
   despues.addEventListener('click', () => mover(1));
 
@@ -187,6 +194,16 @@ export function crearCalendario({ mes, titulo, cuadricula, detalle, antes, despu
     }
 
     cuadricula.replaceChildren(...hijos);
+
+    const enEsteMes = [...mapa.keys()].some((k) => {
+      const [a, m] = k.split('-').map(Number);
+      return a === visible.getFullYear() && m === visible.getMonth();
+    });
+    avisoVacio.textContent = mapa.size
+      ? `Nada puesto en ${visible.toLocaleDateString('es-PE', { month: 'long' })}.`
+      : 'Escribe la fecha en la nota —"examen #lunes 9:00"— y aparecerá aquí.';
+    avisoVacio.hidden = enEsteMes;
+
     pintarDetalle(mapa);
   }
 
