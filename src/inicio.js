@@ -14,12 +14,18 @@ import { exigirSesion } from './sesion.js';
 import { pendientesDe, sincronizarEnSegundoPlano } from './sincronizar.js';
 import { describirCuando } from './cuando.js';
 import { resumen, delMes } from './cuentas.js';
+import { cargarApartados, raices, hijosDe, buscarApartado } from './apartados.js';
+import { dibujarArbol } from './mapa.js';
 
 const estado = document.getElementById('estado');
 const seccionHoy = document.getElementById('seccion-hoy');
 const listaHoy = document.getElementById('hoy');
 const seccionResumen = document.getElementById('seccion-resumen');
 const sinNada = document.getElementById('sin-nada');
+const seccionMapa = document.getElementById('seccion-mapa');
+const mapa = document.getElementById('mapa');
+
+let apartados = [];
 
 const decir = (mensaje, tipo = 'neutro') => {
   estado.textContent = mensaje;
@@ -62,7 +68,7 @@ const esHoy = (iso) => {
 async function traerNotas() {
   const { data, error } = await db
     .from('notas')
-    .select('id, texto, recordar_en, hecha, tema')
+    .select('id, texto, recordar_en, hecha, apartado_id')
     .eq('hecha', false);
 
   if (error) throw new Error(error.message);
@@ -103,15 +109,52 @@ function pintarHoy(notas) {
       // leerla entera. Para eso está su pantalla.
       texto.textContent = nota.texto.split('\n')[0].replace(/^\[[ xX]\]\s?/, '');
 
+      const pie = document.createElement('div');
+      pie.className = 'nota-chips';
+
       const cuando = document.createElement('span');
       const vencida = new Date(nota.recordar_en) < ahora;
       cuando.className = vencida ? 'marca-vencida' : 'gasto-fecha';
       cuando.textContent = describirCuando(nota.recordar_en);
+      pie.append(cuando);
 
-      cuerpo.append(texto, cuando);
+      // De qué apartado sale, con su color: en una lista mezclada es lo que
+      // permite reconocer de un vistazo a qué pertenece cada cosa.
+      const suyo = nota.apartado_id ? buscarApartado(apartados, nota.apartado_id) : null;
+      if (suyo) {
+        const sello = document.createElement('span');
+        sello.className = 'sello-apartado';
+        sello.dataset.color = suyo.color;
+        const punto = document.createElement('span');
+        punto.className = 'punto-color';
+        punto.setAttribute('aria-hidden', 'true');
+        sello.append(punto, document.createTextNode(suyo.nombre));
+        pie.append(sello);
+      }
+
+      cuerpo.append(texto, pie);
       li.append(cuerpo);
       return li;
     }),
+  );
+}
+
+// Un árbol por apartado de primer nivel. Los que no tienen subapartados se
+// dibujan igual: un nodo solo también informa —dice que ese apartado está sin
+// desarrollar— y esconderlos dejaría un mapa que no cuadra con la realidad.
+function pintarMapa() {
+  const principales = raices(apartados);
+  seccionMapa.hidden = principales.length === 0;
+  if (!principales.length) return;
+
+  mapa.replaceChildren(
+    ...principales.map((apartado) =>
+      dibujarArbol({
+        apartado,
+        hijos: hijosDe(apartados, apartado.id),
+        enlaceDe: (a) => `/apartado.html?id=${encodeURIComponent(a.id)}`,
+      }),
+    ),
   );
 }
 
@@ -154,6 +197,7 @@ async function pintarTodo() {
 
   pintarHoy(todasLasNotas);
   pintarResumen(todasLasNotas, todosLosMovimientos);
+  pintarMapa();
 
   sinNada.hidden = todasLasNotas.length + todosLosMovimientos.length > 0;
 
@@ -165,6 +209,12 @@ if (!configurado) {
   decir('Falta configurar Supabase — mira el diagnóstico.', 'falla');
 } else {
   await exigirSesion();
+
+  apartados = cargarApartados((frescos) => {
+    apartados = frescos;
+    pintarTodo();
+  });
+
   sincronizarEnSegundoPlano(() => pintarTodo());
   pintarTodo();
 }

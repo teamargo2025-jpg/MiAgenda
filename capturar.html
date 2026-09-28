@@ -15,13 +15,6 @@
   </head>
   <body class="captura">
     <main id="app">
-      <!-- Mientras hay un tema activo, todo lo que se escriba cae ahí sin
-           repetir la etiqueta. Se ve siempre, porque un contexto invisible que
-           decide dónde van tus notas sería peor que no tenerlo. -->
-      <div id="banda-tema" class="banda-tema" hidden>
-        <span id="banda-tema-nombre"></span>
-        <button id="banda-tema-salir" type="button" aria-label="Salir del tema">Salir</button>
-      </div>
 
       <form id="form" autocomplete="off">
         <!-- Sin etiqueta, sin categorías, sin desplegables: el peaje de treinta
@@ -42,10 +35,6 @@
             <span class="visualmente-oculto">Dictar</span>
           </button>
         </div>
-        <!-- Confirma el tema detectado mientras escribes. Sin esto, escribir
-             "#salud" y ver que la etiqueta desaparece al guardar parecería que
-             se perdió algo. -->
-        <p id="tema" class="tema-detectado" hidden></p>
 
         <!-- El formato solo aparece cuando la nota tiene más de una línea:
              para una frase suelta no significa nada, y mostrarlo siempre sería
@@ -56,10 +45,22 @@
           <button type="button" class="chip" data-formato="checklist" aria-pressed="false">Checklist</button>
         </div>
 
+        <!-- Dónde va la nota. Ocupa el primer sitio porque es la decisión
+             que se toma siempre; la fecha, en cambio, solo la lleva una nota
+             de cada varias, así que se pliega detrás de un botón. -->
+        <div id="apartados" class="chips" role="group" aria-label="Apartado"></div>
+        <div id="subapartados" class="chips" hidden role="group" aria-label="Subapartado"></div>
+        <div id="nuevo-apartado" class="nuevo-apartado" hidden>
+          <input id="nombre-apartado" type="text" placeholder="Nombre del apartado" aria-label="Nombre del apartado" />
+          <button id="crear-apartado" type="button">Crear</button>
+        </div>
+
+        <button id="abrir-cuando" type="button" class="chip">+ Recordarme</button>
+
         <!-- Atajos para los casos de siempre. Elegir día y hora en un
              calendario son cinco toques; esto es uno. La fecha libre queda
              detrás de "Otra…" para quien de verdad la necesite. -->
-        <div id="cuando" class="chips" role="group" aria-label="¿Cuándo recordarlo?">
+        <div id="cuando" class="chips" hidden role="group" aria-label="¿Cuándo recordarlo?">
           <button type="button" class="chip" data-preset="tarde">Esta tarde</button>
           <button type="button" class="chip" data-preset="noche">Esta noche</button>
           <button type="button" class="chip" data-preset="manana">Mañana 9:00</button>

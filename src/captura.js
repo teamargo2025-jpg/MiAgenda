@@ -1,8 +1,12 @@
 // Pantalla de captura. Lo único que hace: recoger una línea y guardarla.
 //
 // El objetivo declarado del proyecto es que anotar cueste menos que no anotar,
-// así que aquí no se pide categoría, ni tablero, ni confirmación. Se escribe y
-// se guarda — con señal o sin ella.
+// así que aquí se decide lo mínimo: dónde va y qué dice. Se escribe y se
+// guarda — con señal o sin ella.
+//
+// El apartado ocupa el primer sitio porque es la decisión que se toma siempre.
+// La fecha va plegada detrás de un botón: solo una nota de cada varias lleva
+// recordatorio, y tenerla desplegada cobraba un peaje visual en todas.
 
 import { db, configurado } from './supabase.js';
 import { crearSelectorDeCuando, describirCuando } from './cuando.js';
@@ -11,7 +15,15 @@ import { encolar, nuevoId, soportaCola } from './cola.js';
 import { pendientesDe, sincronizarEnSegundoPlano } from './sincronizar.js';
 import { crearDictado, soportaVoz } from './voz.js';
 import { convertirA, lineasDe } from './formato.js';
-import { extraerTema, leerTemaActivo, guardarTemaActivo } from './tema.js';
+import {
+  cargarApartados,
+  crearApartado,
+  colorLibre,
+  raices,
+  hijosDe,
+  buscarApartado,
+  caminoDe,
+} from './apartados.js';
 
 const form = document.getElementById('form');
 const texto = document.getElementById('texto');
@@ -30,48 +42,144 @@ const decir = (mensaje, estado = 'neutro') => {
   aviso.dataset.estado = estado;
 };
 
-// --- Tema ---
+// --- Apartados ---
 
-const avisoTema = document.getElementById('tema');
-const banda = document.getElementById('banda-tema');
-const bandaNombre = document.getElementById('banda-tema-nombre');
-const bandaSalir = document.getElementById('banda-tema-salir');
+const CLAVE_ELEGIDO = 'miagenda-apartado-elegido';
 
-// Se puede entrar a un tema desde la lista (…/?tema=salud) o venir de una
-// sesión anterior. El parámetro manda: es una acción que se acaba de hacer.
-const temaDeLaUrl = new URLSearchParams(location.search).get('tema');
-let temaActivo = temaDeLaUrl || leerTemaActivo();
-if (temaDeLaUrl) {
-  guardarTemaActivo(temaDeLaUrl);
-  // Se limpia la URL para que recargar o compartir el enlace no vuelva a
-  // meterte en un tema del que ya saliste.
-  history.replaceState(null, '', location.pathname);
+const filaApartados = document.getElementById('apartados');
+const filaSub = document.getElementById('subapartados');
+const cajaNuevo = document.getElementById('nuevo-apartado');
+const campoNuevo = document.getElementById('nombre-apartado');
+const botonCrear = document.getElementById('crear-apartado');
+
+let apartados = [];
+// El elegido se recuerda entre sesiones: se captura en rachas dentro del mismo
+// apartado, y volver a elegirlo en cada nota sería el peaje que este proyecto
+// existe para quitar.
+let elegido = leerElegido();
+
+function leerElegido() {
+  try {
+    return localStorage.getItem(CLAVE_ELEGIDO) || null;
+  } catch {
+    return null;
+  }
 }
 
-const pintarBanda = () => {
-  banda.hidden = !temaActivo;
-  if (temaActivo) bandaNombre.textContent = `Añadiendo a #${temaActivo}`;
-};
+function guardarElegido(id) {
+  try {
+    if (id) localStorage.setItem(CLAVE_ELEGIDO, id);
+    else localStorage.removeItem(CLAVE_ELEGIDO);
+  } catch {
+    // Sin almacenamiento se pierde el recuerdo, no la captura.
+  }
+}
 
-bandaSalir.addEventListener('click', () => {
-  temaActivo = null;
-  guardarTemaActivo(null);
-  pintarBanda();
+function chipApartado(apartado, activo) {
+  const chip = document.createElement('button');
+  chip.type = 'button';
+  chip.className = 'chip';
+  chip.dataset.color = apartado.color;
+  chip.setAttribute('aria-pressed', String(activo));
+
+  const punto = document.createElement('span');
+  punto.className = 'punto-color';
+  punto.setAttribute('aria-hidden', 'true');
+
+  chip.append(punto, document.createTextNode(apartado.nombre));
+
+  chip.addEventListener('click', () => {
+    // Volver a tocar el elegido lo deselecciona: dejar una nota sin clasificar
+    // tiene que costar lo mismo que clasificarla.
+    elegido = elegido === apartado.id ? null : apartado.id;
+    guardarElegido(elegido);
+    pintarApartados();
+  });
+
+  return chip;
+}
+
+function pintarApartados() {
+  const principales = raices(apartados);
+  const camino = elegido ? caminoDe(apartados, elegido) : [];
+  const raizActiva = camino[0] ?? null;
+
+  filaApartados.replaceChildren(
+    ...principales.map((a) => chipApartado(a, raizActiva?.id === a.id)),
+    chipNuevo(),
+  );
+
+  // Los subapartados solo aparecen cuando su padre está elegido: enseñarlos
+  // todos convertiría la fila en una lista de veinte, y elegir volvería a ser
+  // una tarea en vez de un gesto.
+  const hijos = raizActiva ? hijosDe(apartados, raizActiva.id) : [];
+  filaSub.hidden = hijos.length === 0;
+  if (hijos.length) {
+    filaSub.replaceChildren(...hijos.map((h) => chipApartado(h, elegido === h.id)));
+  }
+}
+
+function chipNuevo() {
+  const chip = document.createElement('button');
+  chip.type = 'button';
+  chip.className = 'chip chip-nuevo';
+  chip.textContent = '+ Apartado';
+  chip.addEventListener('click', () => {
+    cajaNuevo.hidden = !cajaNuevo.hidden;
+    if (!cajaNuevo.hidden) campoNuevo.focus();
+  });
+  return chip;
+}
+
+async function crearDesdeCaptura() {
+  const nombre = campoNuevo.value.trim();
+  if (!nombre) return;
+
+  botonCrear.disabled = true;
+  const { apartado, error } = await crearApartado({
+    nombre,
+    color: colorLibre(apartados),
+  });
+  botonCrear.disabled = false;
+
+  if (error) {
+    decir(`No se pudo crear el apartado: ${error.message}`, 'falla');
+    return;
+  }
+
+  apartados = [...apartados, apartado];
+  elegido = apartado.id;
+  guardarElegido(elegido);
+  campoNuevo.value = '';
+  cajaNuevo.hidden = true;
+  pintarApartados();
   texto.focus();
+}
+
+botonCrear.addEventListener('click', crearDesdeCaptura);
+campoNuevo.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') {
+    e.preventDefault();
+    crearDesdeCaptura();
+  }
 });
 
-pintarBanda();
+// --- Recordatorio plegado ---
 
-// Se muestra en cuanto se teclea la almohadilla. La etiqueta se quita del texto
-// al guardar, así que verla reconocida antes evita la sensación de que algo se
-// borró solo.
-const repasarTema = () => {
-  const { tema } = extraerTema(texto.value);
-  // Escribir una etiqueta gana al tema activo: lo explícito manda sobre lo
-  // heredado. Solo se avisa si de verdad cambia el destino.
-  const distinto = tema && tema !== temaActivo;
-  avisoTema.hidden = !distinto;
-  if (distinto) avisoTema.textContent = `→ tema #${tema}`;
+const abrirCuando = document.getElementById('abrir-cuando');
+const filaCuando = document.getElementById('cuando');
+
+abrirCuando.addEventListener('click', () => {
+  const abierto = !filaCuando.hidden;
+  filaCuando.hidden = abierto;
+  abrirCuando.setAttribute('aria-pressed', String(!abierto));
+  if (abierto) cuando.limpiar();
+});
+
+const plegarCuando = () => {
+  filaCuando.hidden = true;
+  abrirCuando.setAttribute('aria-pressed', 'false');
+  cuando.limpiar();
 };
 
 // --- Formato ---
@@ -107,10 +215,7 @@ for (const chip of chipsFormato) {
   });
 }
 
-texto.addEventListener('input', () => {
-  repasarFormato();
-  repasarTema();
-});
+texto.addEventListener('input', repasarFormato);
 
 // --- Dictado ---
 
@@ -126,7 +231,6 @@ const dictado = crearDictado({
     const separador = textoPrevio && !textoPrevio.endsWith(' ') ? ' ' : '';
     texto.value = textoPrevio + separador + transcrito;
     repasarFormato();
-    repasarTema();
   },
   alEstado(estado) {
     const escuchando = estado === 'escuchando';
@@ -156,6 +260,8 @@ if (soportaVoz && dictado) {
   });
 }
 
+// --- Últimas ---
+
 const formatearFecha = (iso) =>
   new Date(iso).toLocaleString('es-PE', {
     day: 'numeric',
@@ -166,14 +272,13 @@ const formatearFecha = (iso) =>
   });
 
 // Se muestran unas pocas notas recientes como acuse de recibo: ver la frase
-// aparecer en la lista es lo que convence de que quedó guardada. La pantalla
-// completa de gestión llega en su propio bloque.
+// aparecer en la lista es lo que convence de que quedó guardada.
 async function pintarRecientes() {
   if (!configurado) return;
 
   const { data } = await db
     .from('notas')
-    .select('id, texto, creada_en, recordar_en')
+    .select('id, texto, creada_en, recordar_en, apartado_id')
     .order('creada_en', { ascending: false })
     .limit(5);
 
@@ -181,10 +286,7 @@ async function pintarRecientes() {
   // y no verlo en ningún sitio se siente exactamente como haberlo perdido.
   const enCola = await pendientesDe('nota');
 
-  const todas = [
-    ...enCola.map((e) => ({ ...e, sinSubir: true })),
-    ...(data ?? []),
-  ].slice(0, 5);
+  const todas = [...enCola.map((e) => ({ ...e, sinSubir: true })), ...(data ?? [])].slice(0, 5);
 
   if (!todas.length) {
     recientes.hidden = true;
@@ -198,29 +300,49 @@ async function pintarRecientes() {
 
       const cuerpo = document.createElement('span');
       cuerpo.className = 'texto';
-      cuerpo.textContent = nota.texto;
+      cuerpo.textContent = nota.texto.split('\n')[0].replace(/^\[[ xX]\]\s?/, '');
+
+      const derecha = document.createElement('span');
+      derecha.className = 'nota-chips';
+
+      // A qué apartado pertenece, con su color. Es lo que permite reconocer de
+      // un vistazo si la nota cayó donde tocaba.
+      const suyo = nota.apartado_id ? buscarApartado(apartados, nota.apartado_id) : null;
+      if (suyo) derecha.append(selloApartado(suyo));
 
       const marca = document.createElement('time');
       if (nota.sinSubir) {
         marca.textContent = 'en el dispositivo';
         marca.title = 'Se subirá cuando vuelva la conexión';
       } else if (nota.recordar_en) {
-        // Cuando hay recordatorio se muestra ese, no la fecha de creación: es
-        // el dato que importa mirar de un vistazo.
         marca.dateTime = nota.recordar_en;
-        marca.textContent = `Aviso ${describirCuando(nota.recordar_en)}`;
+        marca.textContent = describirCuando(nota.recordar_en);
         marca.classList.add('con-alarma');
       } else {
         marca.dateTime = nota.creada_en;
         marca.textContent = formatearFecha(nota.creada_en);
       }
 
-      li.append(cuerpo, marca);
+      derecha.append(marca);
+      li.append(cuerpo, derecha);
       return li;
     }),
   );
   recientes.hidden = false;
 }
+
+export function selloApartado(apartado) {
+  const sello = document.createElement('span');
+  sello.className = 'sello-apartado';
+  sello.dataset.color = apartado.color;
+  const punto = document.createElement('span');
+  punto.className = 'punto-color';
+  punto.setAttribute('aria-hidden', 'true');
+  sello.append(punto, document.createTextNode(apartado.nombre));
+  return sello;
+}
+
+// --- Guardar ---
 
 form.addEventListener('submit', async (evento) => {
   evento.preventDefault();
@@ -243,25 +365,14 @@ form.addEventListener('submit', async (evento) => {
   decir('Guardando…');
 
   const recordarEn = cuando.valor();
-  // El tema se separa ANTES de dar formato: si no, "#salud" acabaría
-  // convertido en una línea más de la lista o en una casilla de la checklist.
-  const { tema: temaEscrito, limpio } = extraerTema(contenido);
-  const tema = temaEscrito ?? temaActivo;
-
-  if (!limpio) {
-    decir('Eso es solo una etiqueta. Escribe también qué quieres anotar.', 'falla');
-    boton.disabled = false;
-    return;
-  }
-
   // El id se genera aquí: la nota tiene identidad antes de existir en el
   // servidor, así que reintentar la subida no puede duplicarla.
   const fila = {
     id: nuevoId(),
-    texto: convertirA(formatoElegido, limpio),
+    texto: convertirA(formatoElegido, contenido),
     recordar_en: recordarEn,
     formato: formatoElegido,
-    tema,
+    apartado_id: elegido,
     // La hora la pone el dispositivo y no el servidor: si la nota se captura
     // sin señal y sube tres horas después, la fecha correcta es cuando se te
     // ocurrió, no cuando hubo cobertura.
@@ -279,18 +390,16 @@ form.addEventListener('submit', async (evento) => {
   formatoElegido = 'texto';
   pintarFormato();
   repasarFormato();
-  repasarTema();
-  cuando.limpiar();
+  plegarCuando();
   texto.focus();
 
-  const enTema = tema ? ` en #${tema}` : '';
+  const suyo = elegido ? buscarApartado(apartados, elegido) : null;
+  const dondeVa = suyo ? ` en ${suyo.nombre}` : '';
   const base = recordarEn
-    ? `Guardado${enTema}. Te aviso ${describirCuando(recordarEn)}`
-    : `Guardado${enTema}`;
-  decir(
-    guardado === 'cola' ? `${base} — se subirá al volver la conexión.` : `${base}.`,
-    'ok',
-  );
+    ? `Guardado${dondeVa}. Te aviso ${describirCuando(recordarEn)}`
+    : `Guardado${dondeVa}`;
+
+  decir(guardado === 'cola' ? `${base} — se subirá al volver la conexión.` : `${base}.`, 'ok');
   pintarRecientes();
 });
 
@@ -330,27 +439,44 @@ function esFalloDeRed(error) {
   return !error.code || error.message === 'Failed to fetch';
 }
 
-// Ctrl+Enter (o Cmd+Enter) guarda sin levantar la mano del teclado. En el
-// celular el botón queda a mano; en la computadora esto ahorra el viaje al ratón.
+// Ctrl+Enter (o Cmd+Enter) guarda sin levantar la mano del teclado.
 texto.addEventListener('keydown', (evento) => {
   if ((evento.metaKey || evento.ctrlKey) && evento.key === 'Enter') {
     form.requestSubmit();
   }
 });
 
-// El service worker se registra también aquí, no solo en el diagnóstico: si la
-// primera visita es a la captura —que es lo normal— la app debe quedar
-// instalable desde ahí.
+// El service worker se registra también aquí: si la primera visita es a la
+// captura, la app debe quedar instalable desde ahí.
 if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('/sw.js', { scope: '/' }).catch(() => {
-    // Que falle el registro no debe impedir capturar; solo se pierde la
-    // instalación y el aviso, que se diagnostican en la otra página.
-  });
+  navigator.serviceWorker.register('/sw.js', { scope: '/' }).catch(() => {});
 }
 
-// La sesión se comprueba antes de pedir nada a la base: sin ella las políticas
-// devolverían cero filas y la pantalla mentiría diciendo que no hay notas, en
-// vez de mandarte a entrar.
+// --- Arranque ---
+
 await exigirSesion();
+
+// Se puede llegar desde un apartado concreto (…/capturar.html?apartado=<id>).
+// El parámetro manda sobre lo recordado: es una acción que se acaba de hacer.
+const pedido = new URLSearchParams(location.search).get('apartado');
+if (pedido) {
+  elegido = pedido;
+  guardarElegido(elegido);
+  history.replaceState(null, '', location.pathname);
+}
+
+apartados = cargarApartados((frescos) => {
+  apartados = frescos;
+  // Si el apartado recordado ya no existe —se borró desde otro dispositivo—,
+  // se suelta en vez de guardar notas contra un identificador fantasma.
+  if (elegido && !buscarApartado(apartados, elegido)) {
+    elegido = null;
+    guardarElegido(null);
+  }
+  pintarApartados();
+  pintarRecientes();
+});
+
+pintarApartados();
 sincronizarEnSegundoPlano(() => pintarRecientes());
 pintarRecientes();

@@ -55,6 +55,8 @@ const PAGINAS = {
   'index.html': 'inicio',
   'capturar.html': 'capturar',
   'notas.html': 'notas',
+  'apartado.html': 'notas',
+  'metis.html': 'notas',
   'finanzas.html': 'finanzas',
   'analisis.html': 'finanzas',
   'gym.html': 'gym',

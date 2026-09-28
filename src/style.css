@@ -1192,3 +1192,209 @@ body.captura #app {
 .diag dd[data-estado="falla"] { color: var(--alerta); font-weight: 560; }
 
 #correo, #clave { font-size: 1rem; }
+
+/* --- Paleta de apartados --- */
+
+/* El color se aplica poniendo data-color en el elemento. Los valores viven
+   aquí y no en la base: así un color elegido hace meses sigue siendo legible
+   cuando cambie el tema, y se puede ajustar toda la paleta de una vez. */
+[data-color="indigo"]  { --color-apartado: #4f46e5; --color-apartado-suave: #eceafe; }
+[data-color="acero"]   { --color-apartado: #24587a; --color-apartado-suave: #e6eef4; }
+[data-color="verde"]   { --color-apartado: #0a7369; --color-apartado-suave: #e1f4f2; }
+[data-color="violeta"] { --color-apartado: #7c3aed; --color-apartado-suave: #f2eafe; }
+[data-color="ambar"]   { --color-apartado: #a35a09; --color-apartado-suave: #fdf1e3; }
+[data-color="rosa"]    { --color-apartado: #c93756; --color-apartado-suave: #fdecef; }
+[data-color="oliva"]   { --color-apartado: #4a6710; --color-apartado-suave: #eef4e0; }
+[data-color="ciruela"] { --color-apartado: #8c2f5f; --color-apartado-suave: #fbeaf3; }
+
+@media (prefers-color-scheme: dark) {
+  [data-color="indigo"]  { --color-apartado: #8b8bf7; --color-apartado-suave: #262547; }
+  [data-color="acero"]   { --color-apartado: #6fb8e0; --color-apartado-suave: #1b2f3d; }
+  [data-color="verde"]   { --color-apartado: #3ed0c2; --color-apartado-suave: #16352f; }
+  [data-color="violeta"] { --color-apartado: #b295fb; --color-apartado-suave: #2c2348; }
+  [data-color="ambar"]   { --color-apartado: #f0ab4e; --color-apartado-suave: #3a2c15; }
+  [data-color="rosa"]    { --color-apartado: #ff7a96; --color-apartado-suave: #3d1f2a; }
+  [data-color="oliva"]   { --color-apartado: #a9cc4f; --color-apartado-suave: #29330f; }
+  [data-color="ciruela"] { --color-apartado: #f292c0; --color-apartado-suave: #3d1b2d; }
+}
+
+/* Un chip de apartado toma su propio color en vez del tono de la sección: es
+   el color lo que lo identifica, y usar el de la pantalla los haría todos
+   iguales. */
+.chip[data-color] { border-color: color-mix(in srgb, var(--color-apartado) 38%, transparent); }
+
+.chip[data-color][aria-pressed="true"] {
+  border-color: transparent;
+  background: var(--color-apartado);
+  color: #fff;
+}
+
+@media (prefers-color-scheme: dark) {
+  .chip[data-color][aria-pressed="true"] { color: #16162c; }
+}
+
+/* Punto de color delante del nombre: identifica el apartado incluso cuando el
+   chip no está seleccionado y el relleno no está puesto. */
+.punto-color {
+  display: inline-block;
+  width: .5rem;
+  height: .5rem;
+  margin-right: .375rem;
+  border-radius: 50%;
+  background: var(--color-apartado);
+  vertical-align: baseline;
+}
+
+.chip[aria-pressed="true"] .punto-color { background: currentColor; }
+
+/* Sello del apartado en una nota o captura reciente. */
+.sello-apartado {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  padding: 1px var(--e2);
+  border-radius: 999px;
+  background: var(--color-apartado-suave);
+  color: var(--color-apartado);
+  font-size: .8125rem;
+  font-weight: 560;
+  white-space: nowrap;
+}
+
+.sello-apartado .punto-color { background: var(--color-apartado); }
+
+/* El chip que crea uno nuevo se distingue por ser el único punteado: dice
+   "aquí no hay nada todavía" sin necesitar un rótulo. */
+.chip-nuevo { border-style: dashed; color: var(--tinta-suave); }
+
+.nuevo-apartado { display: flex; gap: var(--e2); }
+.nuevo-apartado input { flex: 1; }
+.nuevo-apartado button { flex: none; }
+
+/* El selector de apartado se abre dentro de la propia fila: la nota sigue a la
+   vista mientras eliges, que es lo que deja decidir sin recordar cuál era. */
+.selector-apartado {
+  margin-top: var(--e2);
+  padding-top: var(--e2);
+  border-top: 1px solid var(--borde);
+}
+
+.selector-apartado .chip { font-size: .78rem; padding: var(--e1) var(--e2); }
+
+/* Los chips sueltos dentro del formulario no deben estirarse a todo el ancho:
+   un chip ancho se lee como botón principal y compite con Guardar. */
+#form > .chip { align-self: flex-start; }
+
+/* --- Apartados: pantalla propia --- */
+
+.migas { margin: 0 0 var(--e2); font-size: .875rem; color: var(--tinta-suave); }
+.migas a { color: var(--tinta-media); text-decoration: none; }
+.migas a:hover { color: var(--tono); text-decoration: underline; }
+
+.acciones-apartado {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--e2);
+  margin-bottom: var(--e5);
+}
+
+/* La cuadrícula: los subapartados son destinos a los que se entra, y una
+   rejilla se recorre con la vista mucho antes que una columna de renglones. */
+.cuadricula {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(8.5rem, 1fr));
+  gap: var(--e3);
+  margin-bottom: var(--e5);
+}
+
+.celda {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: var(--e3);
+  min-height: 5.5rem;
+  padding: var(--e4);
+  border: 1px solid color-mix(in srgb, var(--color-apartado) 30%, transparent);
+  border-left: 4px solid var(--color-apartado);
+  border-radius: var(--r-tarjeta);
+  background: var(--superficie);
+  color: var(--tinta);
+  text-decoration: none;
+  transition: border-color .15s ease, transform .12s ease;
+}
+
+.celda:active { transform: scale(.985); }
+
+.celda-nombre { font-weight: 620; letter-spacing: -.01em; overflow-wrap: anywhere; }
+
+.celda-cuenta { font-size: .8125rem; color: var(--color-apartado); font-weight: 560; }
+
+@media (prefers-reduced-motion: reduce) {
+  .celda { transition: none; }
+  .celda:active { transform: none; }
+}
+
+/* --- Mapa de apartados --- */
+
+/* Desplazamiento horizontal: con cuatro apartados no caben en una columna sin
+   que la pantalla de inicio se convierta en un scroll interminable, y verlos
+   de lado es como se recorre un mapa. */
+#mapa {
+  display: flex;
+  gap: var(--e3);
+  margin-bottom: var(--e5);
+  padding-bottom: var(--e2);
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+}
+
+.arbol {
+  flex: 0 0 min(19rem, 88%);
+  height: auto;
+  border: 1px solid var(--borde);
+  border-radius: var(--r-tarjeta);
+  background: var(--superficie);
+  scroll-snap-align: center;
+}
+
+.rama { stroke: var(--borde-firme); stroke-width: 1.5; }
+
+.nodo { cursor: pointer; }
+
+.nodo-circulo {
+  fill: var(--color-apartado-suave);
+  stroke: var(--color-apartado);
+  stroke-width: 1.5;
+}
+
+.nodo-centro .nodo-circulo { fill: var(--color-apartado); stroke: none; }
+
+.nodo-texto {
+  fill: var(--color-apartado);
+  font-size: 10px;
+  font-weight: 620;
+}
+
+.nodo-centro .nodo-texto { fill: #fff; font-size: 12px; }
+
+@media (prefers-color-scheme: dark) {
+  .nodo-centro .nodo-texto { fill: #16162c; }
+}
+
+.nodo:hover .nodo-circulo { stroke-width: 3; }
+
+/* --- Metis --- */
+
+.bloque-metis {
+  margin: 0;
+  padding: var(--e4);
+  border: 1px solid var(--borde);
+  border-radius: var(--r-tarjeta);
+  background: var(--superficie);
+  color: var(--tinta-media);
+  font-family: ui-monospace, 'SF Mono', 'Cascadia Mono', monospace;
+  font-size: .8125rem;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}

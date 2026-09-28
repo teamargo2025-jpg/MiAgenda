@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <meta name="theme-color" content="#f3f3f9" media="(prefers-color-scheme: light)" />
     <meta name="theme-color" content="#121225" media="(prefers-color-scheme: dark)" />
-    <title>Mis notas — MiAgenda</title>
+    <title>Apartado — MiAgenda</title>
     <meta name="robots" content="noindex, nofollow" />
     <link rel="manifest" href="/manifest.webmanifest" />
     <link rel="icon" href="/icono-192.png" />
@@ -14,45 +14,54 @@
   </head>
   <body class="notas">
     <main id="app">
+      <p id="migas" class="migas"></p>
+
       <header class="barra">
-        <h1>Mis notas</h1>
-        <div class="acciones-barra">
-          <!-- El diagnóstico es donde se suscribe un dispositivo nuevo a las
-               notificaciones. No estorba en la captura, pero tiene que ser
-               alcanzable sin escribir la URL a mano. -->
-          <a class="enlace-discreto" href="/diagnostico.html">Ajustes</a>
-          <button id="salir" type="button" class="salir">Salir</button>
-        </div>
+        <h1 id="titulo">Apartado</h1>
+        <a class="enlace-discreto" href="/notas.html">Todas</a>
       </header>
 
-      <!-- Las pestañas salen de los apartados que existan. A diferencia de los
-           temas de antes, un apartado aparece aquí aunque esté vacío: se crea
-           primero y se llena después. -->
-      <nav id="temas" class="chips temas" hidden aria-label="Filtrar por tema"></nav>
+      <p id="estado" class="resultado"></p>
 
-      <p id="estado" class="resultado">Cargando…</p>
+      <!-- Las acciones del apartado van arriba: renombrar, recolorear y
+           preparar para Metis son cosas que se hacen sobre el apartado
+           entero, no sobre lo que contiene. -->
+      <div class="acciones-apartado">
+        <a id="anadir" class="entrar-tema" href="#">+ Anotar aquí</a>
+        <button id="renombrar" type="button" class="salir">Renombrar</button>
+        <button id="abrir-colores" type="button" class="salir">Color</button>
+        <a id="metis" class="salir" href="#">Concretar idea</a>
+      </div>
 
-      <section id="seccion-pendientes" hidden>
-        <h2>Pendientes</h2>
-        <ul id="pendientes" class="notas-lista"></ul>
-      </section>
+      <div id="colores" class="chips" hidden role="group" aria-label="Color del apartado"></div>
 
-      <section id="seccion-hechas" hidden>
+      <section>
         <div class="cabecera-seccion">
-          <h2>Hechas</h2>
-          <button id="vaciar-hechas" type="button" class="salir" hidden>Borrar</button>
+          <h2 id="titulo-sub">Subapartados</h2>
+          <button id="nuevo-sub" type="button" class="salir">+ Añadir</button>
         </div>
-        <ul id="hechas" class="notas-lista"></ul>
+
+        <div id="crear-sub" class="nuevo-apartado" hidden>
+          <input id="nombre-sub" type="text" placeholder="Nombre del subapartado" aria-label="Nombre del subapartado" />
+          <button id="confirmar-sub" type="button">Crear</button>
+        </div>
+
+        <!-- Cuadrícula y no lista: los subapartados son sitios a los que se
+             entra, y una rejilla de destinos se recorre con la vista mucho
+             antes que una columna de renglones. -->
+        <div id="cuadricula" class="cuadricula"></div>
+        <p id="sin-sub" class="nota" hidden>
+          Aún no hay subapartados. Créalos para separar lo que se te ocurra dentro de este apartado.
+        </p>
       </section>
 
-      <p id="vacio" hidden class="nota">
-        Todavía no hay nada. <a href="/">Captura algo</a>.
-      </p>
+      <section>
+        <h2 id="titulo-notas">Notas</h2>
+        <ul id="lista" class="notas-lista"></ul>
+        <p id="sin-notas" class="nota" hidden>Nada anotado todavía aquí.</p>
+      </section>
     </main>
 
-    <!-- Barra fija abajo: en el celular es donde llega el pulgar sin recolocar
-         la mano. Los enlaces en el pie obligaban a estirarse hasta arriba o a
-         hacer scroll, que para moverse entre tres pantallas es demasiado. -->
     <nav class="barra-nav" aria-label="Secciones">
       <a href="/" class="pestana">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V20h14V9.5"/></svg>
@@ -76,14 +85,6 @@
       </a>
     </nav>
 
-
-    <!-- El aviso de borrado vive fuera de la lista para que no se vaya con la
-         fila que acaba de desaparecer. -->
-    <div id="deshacer" class="deshacer" hidden>
-      <span id="deshacer-texto"></span>
-      <button id="deshacer-boton" type="button">Deshacer</button>
-    </div>
-
-    <script type="module" src="/src/notas.js"></script>
+    <script type="module" src="/src/apartado.js"></script>
   </body>
 </html>

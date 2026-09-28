@@ -19,6 +19,8 @@ export default defineConfig({
         main: resolve(__dirname, 'index.html'),
         capturar: resolve(__dirname, 'capturar.html'),
         notas: resolve(__dirname, 'notas.html'),
+        apartado: resolve(__dirname, 'apartado.html'),
+        metis: resolve(__dirname, 'metis.html'),
         finanzas: resolve(__dirname, 'finanzas.html'),
         gym: resolve(__dirname, 'gym.html'),
         historial: resolve(__dirname, 'historial.html'),

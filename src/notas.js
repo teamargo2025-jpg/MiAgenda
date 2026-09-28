@@ -10,7 +10,13 @@ import { exigirSesion, salir } from './sesion.js';
 import { pendientesDe } from './sincronizar.js';
 import { quitarDeCola } from './cola.js';
 import { itemsDe, alternarItem, convertirA, progreso, ETIQUETAS, FORMATOS } from './formato.js';
-import { extraerTema, temasDe } from './tema.js';
+import {
+  cargarApartados,
+  raices,
+  hijosDe,
+  buscarApartado,
+  ramaDe,
+} from './apartados.js';
 
 const estado = document.getElementById('estado');
 const vacio = document.getElementById('vacio');
@@ -61,7 +67,7 @@ const decir = (mensaje, tipo = 'neutro') => {
 async function traerNotas() {
   const { data, error } = await db
     .from('notas')
-    .select('id, texto, recordar_en, notificada_en, hecha, creada_en, formato, tema')
+    .select('id, texto, recordar_en, notificada_en, hecha, creada_en, formato, apartado_id')
     .order('creada_en', { ascending: false });
 
   if (error) throw new Error(error.message);
@@ -77,74 +83,104 @@ function ordenarPendientes(notas) {
   return [...conHora, ...sinHora];
 }
 
-// --- Temas ---
+// --- Apartados ---
 
-const barraTemas = document.getElementById('temas');
+const barraApartados = document.getElementById('temas');
 
-// null = todos. La cadena vacía es un valor real (el tema "sin tema"), así que
-// no puede usarse para decir "sin filtro".
-let temaActivo = null;
+let apartados = [];
+// null = todos. La cadena vacía es un valor real (las notas sin apartado), así
+// que no puede usarse para decir "sin filtro".
+let apartadoActivo = null;
 
-function pintarTemas(notas) {
-  const temas = temasDe(notas);
-  const sinTema = notas.filter((n) => !n.tema).length;
+function pintarApartados(notas) {
+  const principales = raices(apartados);
 
-  // Con un solo tema no hay nada que filtrar, y una fila de pestañas que no
-  // sirve para nada es ruido.
-  if (temas.length === 0) {
-    barraTemas.hidden = true;
-    temaActivo = null;
+  // Sin apartados creados no hay nada que filtrar, y una fila de pestañas que
+  // no sirve para nada es ruido.
+  if (principales.length === 0) {
+    barraApartados.hidden = true;
+    apartadoActivo = null;
     return;
   }
 
-  const opciones = [
-    { clave: null, etiqueta: 'Todos', total: notas.length },
-    ...temas.map((t) => ({ clave: t.tema, etiqueta: `#${t.tema}`, total: t.total })),
-  ];
+  const camino = apartadoActivo ? caminoActivo() : [];
+  const raizActiva = camino[0] ?? null;
 
-  if (sinTema > 0) opciones.push({ clave: '', etiqueta: 'Sin tema', total: sinTema });
+  const cuenta = (id) => {
+    const rama = new Set(ramaDe(apartados, id));
+    return notas.filter((x) => rama.has(x.apartado_id)).length;
+  };
 
-  // Si el tema activo se quedó sin notas —se movió la última, o se borró—, el
-  // filtro volvería a una pantalla vacía sin explicar por qué. Se vuelve a
-  // Todos.
-  if (temaActivo !== null && !opciones.some((o) => o.clave === temaActivo)) {
-    temaActivo = null;
+  const sinApartado = notas.filter((x) => !x.apartado_id).length;
+
+  const fila = [botonFiltro(null, 'Todo', notas.length)];
+
+  for (const a of principales) {
+    fila.push(botonFiltro(a.id, a.nombre, cuenta(a.id), a.color, raizActiva?.id === a.id));
   }
 
-  // Al estar dentro de un tema aparece la vía directa para seguir añadiendo
-  // ahí. Es el gesto natural: se entra a mirar un tema y se acaba queriendo
-  // apuntar una más.
-  const entrar = document.createElement('a');
-  entrar.className = 'entrar-tema';
-  entrar.href = `/capturar.html?tema=${encodeURIComponent(temaActivo ?? '')}`;
-  entrar.textContent = `+ Añadir a #${temaActivo}`;
+  if (sinApartado > 0) fila.push(botonFiltro('', 'Sin apartado', sinApartado));
 
-  barraTemas.replaceChildren(
-    ...opciones.map((opcion) => {
-      const boton = document.createElement('button');
-      boton.type = 'button';
-      boton.className = 'chip';
-      boton.textContent = `${opcion.etiqueta} ${opcion.total}`;
-      boton.setAttribute('aria-pressed', String(opcion.clave === temaActivo));
-      boton.addEventListener('click', () => {
-        temaActivo = opcion.clave === temaActivo ? null : opcion.clave;
-        pintarTodo();
-      });
-      return boton;
-    }),
-  );
+  // Los subapartados solo se despliegan bajo el suyo: enseñarlos todos haría
+  // de la fila una lista larga en la que cuesta encontrar nada.
+  if (raizActiva) {
+    for (const h of hijosDe(apartados, raizActiva.id)) {
+      fila.push(botonFiltro(h.id, '↳ ' + h.nombre, cuenta(h.id), h.color, apartadoActivo === h.id));
+    }
+  }
 
-  // Solo cuando hay un tema concreto activo: en "Todos" o en "Sin tema" no hay
-  // un destino al que añadir.
-  if (temaActivo) barraTemas.append(entrar);
+  // Dentro de un apartado concreto aparece la vía directa para seguir
+  // añadiendo ahí: se entra a mirarlo y se acaba queriendo apuntar una más.
+  if (apartadoActivo) {
+    const entrar = document.createElement('a');
+    entrar.className = 'entrar-tema';
+    entrar.href = `/capturar.html?apartado=${encodeURIComponent(apartadoActivo)}`;
+    entrar.textContent = '+ Añadir aquí';
+    fila.push(entrar);
+  }
 
-  barraTemas.hidden = false;
+  barraApartados.replaceChildren(...fila);
+  barraApartados.hidden = false;
 }
 
-const enTemaActivo = (nota) => {
-  if (temaActivo === null) return true;
-  if (temaActivo === '') return !nota.tema;
-  return nota.tema === temaActivo;
+function botonFiltro(clave, etiqueta, total, color = null, activoForzado = null) {
+  const boton = document.createElement('button');
+  boton.type = 'button';
+  boton.className = 'chip';
+  if (color) boton.dataset.color = color;
+
+  const activo = activoForzado ?? clave === apartadoActivo;
+  boton.setAttribute('aria-pressed', String(activo));
+
+  if (color) {
+    const punto = document.createElement('span');
+    punto.className = 'punto-color';
+    punto.setAttribute('aria-hidden', 'true');
+    boton.append(punto);
+  }
+  boton.append(document.createTextNode(`${etiqueta} ${total}`));
+
+  boton.addEventListener('click', () => {
+    apartadoActivo = clave === apartadoActivo ? null : clave;
+    pintarTodo();
+  });
+
+  return boton;
+}
+
+const caminoActivo = () => {
+  const actual = buscarApartado(apartados, apartadoActivo);
+  if (!actual) return [];
+  return actual.padre_id ? [buscarApartado(apartados, actual.padre_id), actual] : [actual];
+};
+
+// Elegir un apartado general incluye lo que hay en sus subapartados: al entrar
+// en "Proyectos" se espera verlo todo, no solo lo que quedó suelto en la raíz.
+const enApartadoActivo = (nota) => {
+  if (apartadoActivo === null) return true;
+  if (apartadoActivo === '') return !nota.apartado_id;
+  const rama = new Set(ramaDe(apartados, apartadoActivo));
+  return rama.has(nota.apartado_id);
 };
 
 // --- Pintado ---
@@ -244,20 +280,27 @@ function crearFila(nota) {
   chips.className = 'nota-chips';
   chips.append(creada, alarma, formatoBoton);
 
-  if (nota.tema) {
-    const tema = document.createElement('button');
-    tema.type = 'button';
-    tema.className = 'nota-tema';
-    tema.textContent = `#${nota.tema}`;
-    tema.setAttribute('aria-label', `Ver solo el tema ${nota.tema}`);
-    // Tocar el tema de una nota filtra por él: es el gesto que uno intenta
-    // instintivamente al ver una etiqueta.
-    tema.addEventListener('click', () => {
-      temaActivo = nota.tema;
-      pintarTodo();
-    });
-    chips.append(tema);
+  // A qué apartado pertenece, con su color. Tocarlo abre el selector para
+  // moverla: desde que el apartado no se escribe dentro del texto, esta es la
+  // única forma de cambiarlo, y tiene que estar donde se mira el dato.
+  const suyo = nota.apartado_id ? buscarApartado(apartados, nota.apartado_id) : null;
+
+  const sello = document.createElement('button');
+  sello.type = 'button';
+  sello.className = suyo ? 'sello-apartado' : 'nota-formato';
+  if (suyo) {
+    sello.dataset.color = suyo.color;
+    const punto = document.createElement('span');
+    punto.className = 'punto-color';
+    punto.setAttribute('aria-hidden', 'true');
+    sello.append(punto, document.createTextNode(suyo.nombre));
+    sello.setAttribute('aria-label', `En ${suyo.nombre}. Tocar para mover`);
+  } else {
+    sello.textContent = 'sin apartado';
+    sello.setAttribute('aria-label', 'Sin apartado. Tocar para elegir uno');
   }
+  sello.addEventListener('click', () => abrirSelector(nota, cuerpo));
+  chips.append(sello);
 
   cuerpo.append(texto, chips);
 
@@ -422,12 +465,12 @@ async function pintarTodo() {
   // Las pestañas se calculan sobre TODAS las notas, no sobre las filtradas: si
   // no, al entrar en un tema desaparecerían los demás y no habría forma de
   // volver.
-  pintarTemas(notas);
+  pintarApartados(notas);
 
-  const visibles = notas.filter(enTemaActivo);
+  const visibles = notas.filter(enApartadoActivo);
   const pendientes = ordenarPendientes(visibles.filter((n) => !n.hecha));
   const hechas = visibles.filter((n) => n.hecha);
-  const sinSubir = (await pendientesDe('nota')).filter(enTemaActivo);
+  const sinSubir = (await pendientesDe('nota')).filter(enApartadoActivo);
 
   listaPendientes.replaceChildren(
     ...sinSubir.map(crearFilaPendiente),
@@ -441,6 +484,66 @@ async function pintarTodo() {
   botonVaciar.textContent = `Borrar ${hechas.length}`;
   botonVaciar.onclick = () => vaciarHechas(hechas);
   vacio.hidden = visibles.length + sinSubir.length > 0;
+}
+
+// Selector para mover una nota. Se abre dentro de la propia fila en vez de en
+// un diálogo: la nota sigue a la vista mientras eliges, que es lo que permite
+// decidir sin recordar de cuál se trataba.
+function abrirSelector(nota, cuerpo) {
+  const previo = cuerpo.querySelector('.selector-apartado');
+  if (previo) {
+    previo.remove();
+    return;
+  }
+
+  const caja = document.createElement('div');
+  caja.className = 'chips selector-apartado';
+
+  const opcion = (id, etiqueta, color) => {
+    const chip = document.createElement('button');
+    chip.type = 'button';
+    chip.className = 'chip';
+    if (color) chip.dataset.color = color;
+    chip.setAttribute('aria-pressed', String((nota.apartado_id ?? null) === id));
+    if (color) {
+      const punto = document.createElement('span');
+      punto.className = 'punto-color';
+      punto.setAttribute('aria-hidden', 'true');
+      chip.append(punto);
+    }
+    chip.append(document.createTextNode(etiqueta));
+    chip.addEventListener('click', () => moverNota(nota, id));
+    return chip;
+  };
+
+  caja.append(opcion(null, 'Sin apartado', null));
+  for (const a of raices(apartados)) {
+    caja.append(opcion(a.id, a.nombre, a.color));
+    for (const h of hijosDe(apartados, a.id)) {
+      caja.append(opcion(h.id, '↳ ' + h.nombre, h.color));
+    }
+  }
+
+  cuerpo.append(caja);
+}
+
+async function moverNota(nota, apartadoId) {
+  const anterior = nota.apartado_id ?? null;
+  nota.apartado_id = apartadoId;
+  pintarTodo();
+
+  const { error } = await db
+    .from('notas')
+    .update({ apartado_id: apartadoId })
+    .eq('id', nota.id);
+
+  if (error) {
+    // Se revierte: dejar la nota en pantalla dentro de un apartado en el que no
+    // está guardada sería peor que no haberla movido.
+    nota.apartado_id = anterior;
+    decir(`No se pudo mover: ${error.message}`, 'falla');
+    pintarTodo();
+  }
 }
 
 // --- Acciones ---
@@ -521,16 +624,14 @@ function editarTexto(nota, elemento) {
       return;
     }
 
-    // Se vuelve a leer el tema: escribir "#otro" al editar mueve la nota de
-    // tema, igual que al capturarla. Es la única forma de cambiarla de tema, y
-    // funciona sin aprender nada nuevo.
-    const { tema, limpio } = extraerTema(nuevo);
-    const textoFinal = limpio || nuevo;
+    // El texto es solo texto: desde que los apartados son entidades, editar
+    // una nota no puede moverla de sitio sin querer.
+    const textoFinal = nuevo;
 
     elemento.textContent = textoFinal;
     const { error } = await db
       .from('notas')
-      .update({ texto: textoFinal, tema })
+      .update({ texto: textoFinal })
       .eq('id', nota.id);
 
     if (error) {
@@ -541,7 +642,6 @@ function editarTexto(nota, elemento) {
       return;
     }
     nota.texto = textoFinal;
-    nota.tema = tema;
     pintarTodo();
   };
 
@@ -671,5 +771,11 @@ if (!configurado) {
 } else {
   await exigirSesion();
   document.getElementById('salir')?.addEventListener('click', salir);
+
+  apartados = cargarApartados((frescos) => {
+    apartados = frescos;
+    pintarTodo();
+  });
+
   pintarTodo();
 }

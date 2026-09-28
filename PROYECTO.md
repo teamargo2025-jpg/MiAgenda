@@ -84,6 +84,24 @@ Si a las dos semanas sigo anotando en otro lado, la app no resolvió la fricció
 
 ## Decisiones tomadas
 
+- **Los temas pasan a ser apartados de verdad** (28/09/2026). Dejan de
+  escribirse con almohadilla dentro de la nota y pasan a ser entidades con
+  nombre, color elegido a mano, subapartados y pantalla propia. La decisión
+  anterior —etiqueta escrita, sin tabla— era correcta para lo que se pedía
+  entonces; dejó de serlo cuando se pidieron tres cosas que una etiqueta no
+  puede dar: color, jerarquía, y existir aunque esté vacío. Primero creo
+  "Proyectos", luego lo lleno — con el modelo viejo el apartado desaparecía
+  hasta que alguna nota lo usara.
+- **Dos niveles y no más.** Apartado y subapartado. Profundidad libre obligaría
+  a decidir cómo se navega, cómo se dibuja y qué pasa al mover una rama, y nada
+  de eso hace falta.
+- **Los recordatorios se pliegan, no se quitan.** En la captura el apartado
+  ocupa el primer sitio porque es la decisión que se toma siempre; la fecha
+  queda detrás de un botón porque solo la lleva una nota de cada varias.
+- **Metis se alimenta copiando y pegando.** La app reúne las notas de un
+  apartado en un texto ordenado; Metis vive en Claude Code y ahí se pega. Sin
+  API, sin coste y sin conexión.
+
 - **El gimnasio registra series, y la rutina sigue siendo texto** (11/09/2026).
   Cada línea de la rutina —"Press banca 4x8 60kg"— se interpreta para poder
   contar series y comparar con la última vez, pero se edita como texto: escribir
